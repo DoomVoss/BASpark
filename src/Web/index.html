@@ -26,10 +26,13 @@ class MouseSpark {
         this.trail = [];
         this.isDown = false;
         this.lastPos = null;
+        this.baseFrameMs = 1000 / 60;
+        this.maxDeltaMs = 100;
+        this.lastFrameTime = performance.now();
 
         this.initCanvas();
         this.bindEvents();
-        this.loop();
+        requestAnimationFrame((now) => this.loop(now));
     }
 
     initCanvas() {
@@ -111,14 +114,18 @@ class MouseSpark {
         }
     }
 
-    loop() {
+    loop(now) {
+        const deltaMs = Math.min(now - this.lastFrameTime, this.maxDeltaMs);
+        this.lastFrameTime = now;
+        const frameScale = deltaMs / this.baseFrameMs;
+
         if (this.waves.length > 0 || this.sparks.length > 0 || this.trail.length > 0) {
             this.ctx.clearRect(0, 0, this.c.width, this.c.height);
             this.ctx.globalCompositeOperation = "lighter";
 
             for (let i = this.trail.length - 1; i >= 0; i--) {
                 let t = this.trail[i];
-                t.life -= this.isDown ? 0.085 : 0.18;
+                t.life -= (this.isDown ? 0.085 : 0.18) * frameScale;
                 if (t.life <= 0) this.trail.splice(i, 1);
             }
 
@@ -138,7 +145,7 @@ class MouseSpark {
 
             for (let i = this.waves.length - 1; i >= 0; i--) {
                 let w = this.waves[i];
-                w.life++;
+                w.life += frameScale;
                 let progress = w.life / w.max;
                 let ease = 1 - Math.pow(1 - Math.min(progress, 1), 3);
                 w.r = 26 * this.scale * ease;
@@ -153,9 +160,9 @@ class MouseSpark {
                     this.ctx.shadowBlur = 0;
                 }
                 let r = w.ring;
-                r.life++;
+                r.life += frameScale;
                 let rProg = Math.min(r.life / r.maxLife, 1);
-                r.ang -= r.rs;
+                r.ang -= r.rs * frameScale;
                 r.segs.forEach(seg => {
                     let shrink = Math.max(0, 1 - rProg);
                     let len = seg.len * shrink;
@@ -174,10 +181,12 @@ class MouseSpark {
 
             for (let i = this.sparks.length - 1; i >= 0; i--) {
                 let s = this.sparks[i];
-                s.x += s.vx; s.y += s.vy;
-                s.vx *= s.f; s.vy *= s.f;
-                s.rot += s.rs;
-                s.a -= 0.032;
+                s.x += s.vx * frameScale;
+                s.y += s.vy * frameScale;
+                s.vx *= Math.pow(s.f, frameScale);
+                s.vy *= Math.pow(s.f, frameScale);
+                s.rot += s.rs * frameScale;
+                s.a -= 0.032 * frameScale;
                 if (s.a <= 0) { this.sparks.splice(i, 1); continue; }
                 this.ctx.save();
                 this.ctx.translate(s.x, s.y);
@@ -192,7 +201,7 @@ class MouseSpark {
             }
             this.ctx.globalCompositeOperation = "source-over";
         }
-        requestAnimationFrame(() => this.loop());
+        requestAnimationFrame((nextNow) => this.loop(nextNow));
     }
 }
 
