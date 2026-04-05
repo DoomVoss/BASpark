@@ -139,6 +139,7 @@ namespace BASpark
             CheckMasterSwitch.IsChecked = ConfigManager.IsEffectEnabled;
             CheckAutoStart.IsChecked = ConfigManager.AutoStart;
             CheckTelemetry.IsChecked = ConfigManager.EnableTelemetry;
+            CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
             UpdateColorPreview(ConfigManager.ParticleColor);
         }
 
@@ -206,6 +207,7 @@ namespace BASpark
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
             ConfigManager.Save("ParticleColor", ConfigManager.ParticleColor);
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
+            ConfigManager.Save("EnableAlwaysTrailEffect", CheckAlwaysTrailEffectSwitch.IsChecked ?? false);
 
             App.SetAutoStart(ConfigManager.AutoStart);
             

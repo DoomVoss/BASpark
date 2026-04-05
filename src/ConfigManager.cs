@@ -14,6 +14,7 @@ namespace BASpark
         public static bool EnableTelemetry { get; set; } = false;
         public static int TotalClicks { get; set; } = 0;
         public static string LastNoticeContent { get; set; } = "";
+        public static bool EnableAlwaysTrailEffect { get; set; } = false;
 
         public static void Load()
         {
@@ -31,6 +32,7 @@ namespace BASpark
                         EnableTelemetry = Convert.ToBoolean(key.GetValue("EnableTelemetry", false));
                         TotalClicks = Convert.ToInt32(key.GetValue("TotalClicks", 0));
                         LastNoticeContent = key.GetValue("LastNoticeContent", "")?.ToString() ?? "";
+                        EnableAlwaysTrailEffect = Convert.ToBoolean(key.GetValue("EnableAlwaysTrailEffect", false));
                     }
                 }
             }
@@ -72,6 +74,7 @@ namespace BASpark
                 EnableTelemetry = false;
                 TotalClicks = 0;
                 LastNoticeContent = "";
+                EnableAlwaysTrailEffect = false;
             }
             catch { }
         }
