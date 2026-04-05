@@ -57,8 +57,11 @@ class MouseSpark {
         });
 
         window.addEventListener("mousemove", e => {
-            if (!this.isDown) return;
+            if (!this.isDown && !window.enableAlwaysTrailEffect) return;
             const p = getPos(e);
+            if (!this.lastPos) {
+                this.lastPos = p;
+            }
             if (this.lastPos && dist(p, this.lastPos) > 2) {
                 this.trail.push({ x: p.x, y: p.y, life: 1 });
                 this.lastPos = p;
@@ -118,7 +121,11 @@ class MouseSpark {
 
             for (let i = this.trail.length - 1; i >= 0; i--) {
                 let t = this.trail[i];
-                t.life -= this.isDown ? 0.085 : 0.18;
+                if (window.enableAlwaysTrailEffect) {
+                    t.life -= 0.085;
+                } else {
+                    t.life -= this.isDown ? 0.085 : 0.18;
+                }
                 if (t.life <= 0) this.trail.splice(i, 1);
             }
 
@@ -203,6 +210,8 @@ window.spark = new MouseSpark();
 let lastBoomX = -1, lastBoomY = -1;
 let lastBoomTime = 0; 
 let lastMoveX = -1, lastMoveY = -1;
+
+window.enableAlwaysTrailEffect = false;
 
 window.externalBoom = (x, y) => {
     const now = Date.now();

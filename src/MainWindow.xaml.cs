@@ -118,6 +118,14 @@ namespace BASpark
                 _lastMoveTicks = currentTicks;
 
                 System.Windows.Point clientPoint = this.PointFromScreen(new System.Windows.Point(e.X, e.Y));
+                if (ConfigManager.EnableAlwaysTrailEffect)
+                {
+                    webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = true;");
+                }
+                else
+                {
+                    webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = false;");
+                }
                 _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalMove) window.externalMove({clientPoint.X}, {clientPoint.Y});");
             };
 
