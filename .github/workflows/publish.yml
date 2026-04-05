@@ -50,6 +50,13 @@ jobs:
           generate_release_notes: true
           body: |
             ## 💫 BASpark 正式版 ${{ github.ref_name }}
+            
+            ---
+            
+            - **运行环境**：Windows 10/11 (x64) | .NET 8.0 Runtime
+            - **开源协议**：MIT License (完全免费，禁止商用)
+            - **问题反馈**：请提交 [Issues] 或联系作者。
+
             本次更新包含以下改动：
           draft: false
           prerelease: false

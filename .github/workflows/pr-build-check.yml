@@ -1,0 +1,49 @@
+name: PR Build Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Single EXE
+        shell: pwsh
+        run: |
+          $RAW_VER = "${{ github.ref_name }}".TrimStart("v")
+          
+          if ("${{ github.event_name }}" -eq 'pull_request') { 
+              $RAW_VER = "PR-${{ github.event.pull_request.number }}" 
+          }
+          elseif ($RAW_VER -eq "main" -or [string]::IsNullOrWhiteSpace($RAW_VER)) { 
+              $RAW_VER = "0.0.0-preview" 
+          }
+          
+          dotnet publish src/BASpark.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:Version=$RAW_VER `
+            -o src/publish_single
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BASpark-Executable-Preview
+          path: src/publish_single/
+          retention-days: 7
