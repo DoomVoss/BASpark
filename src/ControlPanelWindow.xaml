@@ -130,19 +130,59 @@
 
             <StackPanel Name="PageSettings" Visibility="Collapsed">
                 <TextBlock Text="参数配置" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
-                
+                    
                 <CheckBox Name="CheckMasterSwitch" Content="启用鼠标全局特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
                 <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标全局拖尾特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
-                
+                    
                 <TextBlock Text="特效主题颜色" Foreground="#666" Margin="0,0,0,5"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                     <Border Name="ColorPreview" Width="35" Height="35" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1" Margin="0,0,10,0"/>
                     <Button Content="打开调色板..." Click="PickColor_Click" Width="100" Height="35" Background="White" BorderBrush="#CCC" Cursor="Hand"/>
                 </StackPanel>
 
+                <TextBlock Text="自定义大小" Foreground="#666" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Name="SliderScale" Grid.Column="0" Minimum="0.5" Maximum="3.0" TickFrequency="0.1" SmallChange="0.1" LargeChange="0.4" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                    <TextBlock Name="TextScaleValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
+                </Grid>
+
+                <TextBlock Text="透明度" Foreground="#666" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Name="SliderOpacity" Grid.Column="0" Minimum="0.1" Maximum="1.0" TickFrequency="0.05" SmallChange="0.05" LargeChange="0.2" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                    <TextBlock Name="TextOpacityValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
+                </Grid>
+
+                <TextBlock Text="播放速度" Foreground="#666" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Name="SliderSpeed" Grid.Column="0" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" SmallChange="0.1" LargeChange="0.4" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                    <TextBlock Name="TextSpeedValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
+                </Grid>
+
+                <TextBlock Text="拖尾刷新率（Hz）" Foreground="#666" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Name="SliderTrailRefresh" Grid.Column="0" Minimum="10" Maximum="240" TickFrequency="10" SmallChange="10" LargeChange="20" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                    <TextBlock Name="TextTrailRefreshValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
+                </Grid>
+
                 <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
                 <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" Foreground="#666" Margin="0,0,0,30"/>
-                
+                    
                 <Button Content="保存设置" Click="SaveSettings_Click" Width="120" Height="35" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"/>
             </StackPanel>
 

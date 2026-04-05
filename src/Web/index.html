@@ -18,6 +18,8 @@ class MouseSpark {
     constructor(opts = {}) {
         this.color = opts.color || '45,175,255'; 
         this.scale = opts.scale || 1.5;
+        this.opacity = opts.opacity || 1.0;
+        this.speed = opts.speed || 1.0;
         this.maxTrail = opts.maxTrail || 16;
         this.el = opts.el || document.body;
 
@@ -33,6 +35,10 @@ class MouseSpark {
         this.initCanvas();
         this.bindEvents();
         requestAnimationFrame((now) => this.loop(now));
+    }
+
+    alpha(value) {
+        return Math.max(0, Math.min(1, value * this.opacity));
     }
 
     initCanvas() {
@@ -120,7 +126,7 @@ class MouseSpark {
     loop(now) {
         const deltaMs = Math.min(now - this.lastFrameTime, this.maxDeltaMs);
         this.lastFrameTime = now;
-        const frameScale = deltaMs / this.baseFrameMs;
+        const frameScale = (deltaMs / this.baseFrameMs) * this.speed;
 
         if (this.waves.length > 0 || this.sparks.length > 0 || this.trail.length > 0) {
             this.ctx.clearRect(0, 0, this.c.width, this.c.height);
@@ -143,9 +149,9 @@ class MouseSpark {
                     this.ctx.lineTo(this.trail[i].x, this.trail[i].y);
                 }
                 this.ctx.lineWidth = 4.5;
-                this.ctx.strokeStyle = `rgba(${this.color},0.35)`;
+                this.ctx.strokeStyle = `rgba(${this.color},${this.alpha(0.35)})`;
                 this.ctx.shadowBlur = 10;
-                this.ctx.shadowColor = `rgba(${this.color},0.45)`;
+                this.ctx.shadowColor = `rgba(${this.color},${this.alpha(0.45)})`;
                 this.ctx.stroke();
                 this.ctx.shadowBlur = 0;
             }
@@ -160,9 +166,9 @@ class MouseSpark {
                 if (alpha > 0) {
                     this.ctx.beginPath();
                     this.ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
-                    this.ctx.fillStyle = `rgba(${this.color},${alpha})`;
+                    this.ctx.fillStyle = `rgba(${this.color},${this.alpha(alpha)})`;
                     this.ctx.shadowBlur = 10;
-                    this.ctx.shadowColor = `rgba(${this.color},1)`;
+                    this.ctx.shadowColor = `rgba(${this.color},${this.alpha(1)})`;
                     this.ctx.fill();
                     this.ctx.shadowBlur = 0;
                 }
@@ -177,9 +183,9 @@ class MouseSpark {
                     this.ctx.beginPath();
                     this.ctx.arc(w.x, w.y, w.r + 3 * this.scale, start, start + len);
                     this.ctx.lineWidth = 3.7;
-                    this.ctx.strokeStyle = `rgba(245,248,252,${1 - rProg})`;
+                    this.ctx.strokeStyle = `rgba(245,248,252,${this.alpha(1 - rProg)})`;
                     this.ctx.shadowBlur = 6;
-                    this.ctx.shadowColor = `rgba(${this.color},0.75)`;
+                    this.ctx.shadowColor = `rgba(${this.color},${this.alpha(0.75)})`;
                     this.ctx.stroke();
                     this.ctx.shadowBlur = 0;
                 });
@@ -202,7 +208,7 @@ class MouseSpark {
                 this.ctx.moveTo(0, -s.s);
                 this.ctx.lineTo(s.s * 0.6, s.s * 0.6);
                 this.ctx.lineTo(-s.s * 0.6, s.s * 0.6);
-                this.ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+                this.ctx.fillStyle = `rgba(255,255,255,${this.alpha(s.a)})`;
                 this.ctx.fill();
                 this.ctx.restore();
             }
@@ -248,6 +254,13 @@ window.externalUp = () => {
 
 window.updateColor = (rgbString) => {
     if (window.spark) window.spark.color = rgbString;
+};
+
+window.updateEffectSettings = (scale, opacity, speed) => {
+    if (!window.spark) return;
+    window.spark.scale = Math.max(0.5, Math.min(3, Number(scale) || 1.5));
+    window.spark.opacity = Math.max(0.1, Math.min(1, Number(opacity) || 1.0));
+    window.spark.speed = Math.max(0.2, Math.min(3, Number(speed) || 1.0));
 };
 </script>
 </body>

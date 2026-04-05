@@ -141,6 +141,26 @@ namespace BASpark
             CheckTelemetry.IsChecked = ConfigManager.EnableTelemetry;
             CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
             UpdateColorPreview(ConfigManager.ParticleColor);
+
+            SliderScale.Value = ConfigManager.EffectScale;
+            SliderOpacity.Value = ConfigManager.EffectOpacity;
+            SliderSpeed.Value = ConfigManager.EffectSpeed;
+            SliderTrailRefresh.Value = ConfigManager.TrailRefreshRate;
+            UpdateEffectValueTexts();
+        }
+
+        private void UpdateEffectValueTexts()
+        {
+            TextScaleValue.Text = $"{SliderScale.Value:F2}x";
+            TextOpacityValue.Text = $"{SliderOpacity.Value:P0}";
+            TextSpeedValue.Text = $"{SliderSpeed.Value:F2}x";
+            TextTrailRefreshValue.Text = $"{Math.Round(SliderTrailRefresh.Value)}";
+        }
+
+        private void EffectSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!IsLoaded) return;
+            UpdateEffectValueTexts();
         }
 
         private void UpdateColorPreview(string rgbString)
@@ -202,16 +222,27 @@ namespace BASpark
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
+            double effectScale = Math.Round(SliderScale.Value, 2);
+            double effectOpacity = Math.Round(SliderOpacity.Value, 2);
+            double effectSpeed = Math.Round(SliderSpeed.Value, 2);
+            int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
+
             ConfigManager.Save("IsEffectEnabled", CheckMasterSwitch.IsChecked ?? true);
             ConfigManager.Save("AutoStart", CheckAutoStart.IsChecked ?? false);
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
             ConfigManager.Save("ParticleColor", ConfigManager.ParticleColor);
+            ConfigManager.Save("EffectScale", effectScale);
+            ConfigManager.Save("EffectOpacity", effectOpacity);
+            ConfigManager.Save("EffectSpeed", effectSpeed);
+            ConfigManager.Save("TrailRefreshRate", trailRefreshRate);
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             ConfigManager.Save("EnableAlwaysTrailEffect", CheckAlwaysTrailEffectSwitch.IsChecked ?? false);
 
             App.SetAutoStart(ConfigManager.AutoStart);
             
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
+            App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed);
+            App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
 
             System.Windows.MessageBox.Show("配置已成功应用！", "BASpark", MessageBoxButton.OK, MessageBoxImage.Information);
         }
