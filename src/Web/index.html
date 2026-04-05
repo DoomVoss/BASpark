@@ -213,15 +213,27 @@ window.externalBoom = (x, y) => {
     lastBoomX = x;
     lastBoomY = y;
     lastBoomTime = now;
-    
-    window.dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y, bubbles: true }));
-};
 
+
+    const dpr = window.devicePixelRatio || 1;
+    const nx = x / dpr;
+    const ny = y / dpr;
+
+    
+    window.dispatchEvent(new MouseEvent('mousedown', { clientX: nx, clientY: ny, bubbles: true }));
+};
 window.externalMove = (x, y) => {
     if (x === lastMoveX && y === lastMoveY) return;
     lastMoveX = x;
     lastMoveY = y;
-    window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+
+    
+    const dpr = window.devicePixelRatio || 1;
+    const nx = x / dpr;
+    const ny = y / dpr;
+
+    
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: nx, clientY: ny, bubbles: true }));
 };
 
 window.externalUp = () => {
