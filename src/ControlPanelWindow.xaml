@@ -132,6 +132,7 @@
                 <TextBlock Text="参数配置" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
                 
                 <CheckBox Name="CheckMasterSwitch" Content="启用鼠标全局特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
+                <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标全局拖尾特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
                 
                 <TextBlock Text="特效主题颜色" Foreground="#666" Margin="0,0,0,5"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
