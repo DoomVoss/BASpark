@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -22,14 +23,15 @@ namespace BASpark
 
         private long _lastMoveTicks = 0;
         private long _lastClickTicks = 0;
-        
-        private const long MoveIntervalTicks = 250000; 
+
+        private long _moveIntervalTicks = 250000;
         private const long ClickIntervalTicks = 300000;
 
         public MainWindow()
         {
             InitializeComponent();
             webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            UpdateTrailRefreshRate(ConfigManager.TrailRefreshRate);
             _ = InitWebView();
         }
 
@@ -52,6 +54,24 @@ namespace BASpark
         {
             if (webView?.CoreWebView2 != null)
                 _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.updateColor) window.updateColor('{color}');");
+        }
+
+        public void UpdateEffectSettings(double scale, double opacity, double speed)
+        {
+            if (webView?.CoreWebView2 == null) return;
+
+            string scaleStr = scale.ToString("F2", CultureInfo.InvariantCulture);
+            string opacityStr = opacity.ToString("F2", CultureInfo.InvariantCulture);
+            string speedStr = speed.ToString("F2", CultureInfo.InvariantCulture);
+
+            _ = webView.CoreWebView2.ExecuteScriptAsync(
+                $"if(window.updateEffectSettings) window.updateEffectSettings({scaleStr}, {opacityStr}, {speedStr});");
+        }
+
+        public void UpdateTrailRefreshRate(int hz)
+        {
+            hz = Math.Clamp(hz, 10, 240);
+            _moveIntervalTicks = TimeSpan.FromSeconds(1.0 / hz).Ticks;
         }
 
         private async System.Threading.Tasks.Task InitWebView()
@@ -81,6 +101,7 @@ namespace BASpark
                     webView.CoreWebView2.NavigateToString(htmlContent);
                     webView.CoreWebView2.NavigationCompleted += (s, e) => {
                         UpdateColor(ConfigManager.ParticleColor);
+                        UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, ConfigManager.EffectSpeed);
                     };
                 }
             }
@@ -114,7 +135,7 @@ namespace BASpark
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
                 
                 long currentTicks = DateTime.Now.Ticks;
-                if (currentTicks - _lastMoveTicks < MoveIntervalTicks) return;
+                if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
                 _lastMoveTicks = currentTicks;
 
                 System.Windows.Point clientPoint = this.PointFromScreen(new System.Windows.Point(e.X, e.Y));
