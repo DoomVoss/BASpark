@@ -17,8 +17,8 @@ namespace BASpark
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
-        private const int WS_EX_TOOLWINDOW = 0x00000080; 
-        
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+
         private IKeyboardMouseEvents? _globalHook;
         private IntPtr _hwnd;
 
@@ -46,7 +46,7 @@ namespace BASpark
             this.Left = SystemParameters.VirtualScreenLeft;
             this.Top = SystemParameters.VirtualScreenTop;
             this.Width = SystemParameters.VirtualScreenWidth;
-            this.Height = SystemParameters.VirtualScreenHeight;
+            this.Height = SystemParameters.VirtualScreenHeight -1; 
 
             SetupGlobalHooks();
         }
@@ -77,19 +77,19 @@ namespace BASpark
 
         private async System.Threading.Tasks.Task InitWebView()
         {
-            try 
+            try
             {
                 var options = new Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions(
                     "--disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion --enable-begin-frame-scheduling"
                 );
 
                 string userDataFolder = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "BASpark_WebView2");
 
                 var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
                 await webView.EnsureCoreWebView2Async(env);
-                
+
                 webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
@@ -121,7 +121,7 @@ namespace BASpark
 
                 if (e.Button == System.Windows.Forms.MouseButtons.Left)
                 {
-                    ConfigManager.TotalClicks++; 
+                    ConfigManager.TotalClicks++;
 
                     long currentTicks = DateTime.Now.Ticks;
                     if (currentTicks - _lastClickTicks < ClickIntervalTicks) return;
@@ -134,7 +134,7 @@ namespace BASpark
 
             _globalHook.MouseMoveExt += (s, e) => {
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
-                
+
                 long currentTicks = DateTime.Now.Ticks;
                 if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
                 _lastMoveTicks = currentTicks;
