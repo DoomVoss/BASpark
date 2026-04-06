@@ -37,7 +37,7 @@ namespace BASpark
         private async void LoadRemoteNotice()
         {
             string noticeUrl = "https://qq.catbotstudio.top/notice.json";
-            
+
             try
             {
                 using HttpClient client = new HttpClient();
@@ -45,7 +45,7 @@ namespace BASpark
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) BASparkClient/1.0");
 
                 string json = await client.GetStringAsync(noticeUrl);
-                
+
                 using JsonDocument doc = JsonDocument.Parse(json);
                 JsonElement root = doc.RootElement;
 
@@ -74,7 +74,8 @@ namespace BASpark
             }
             catch
             {
-                Dispatcher.Invoke(() => {
+                Dispatcher.Invoke(() =>
+                {
                     if (string.IsNullOrEmpty(NoticeContent.Text) || NoticeContent.Text == "...")
                     {
                         NoticeBar.Visibility = Visibility.Collapsed;
@@ -138,15 +139,29 @@ namespace BASpark
         {
             CheckMasterSwitch.IsChecked = ConfigManager.IsEffectEnabled;
             CheckAutoStart.IsChecked = ConfigManager.AutoStart;
+            CheckStartSilent.IsChecked = ConfigManager.StartSilent;
             CheckTelemetry.IsChecked = ConfigManager.EnableTelemetry;
             CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
             UpdateColorPreview(ConfigManager.ParticleColor);
+
+            UpdateStartSilentInterlock();
 
             SliderScale.Value = ConfigManager.EffectScale;
             SliderOpacity.Value = ConfigManager.EffectOpacity;
             SliderSpeed.Value = ConfigManager.EffectSpeed;
             SliderTrailRefresh.Value = ConfigManager.TrailRefreshRate;
             UpdateEffectValueTexts();
+        }
+
+        private void CheckAutoStart_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateStartSilentInterlock();
+        }
+
+        private void UpdateStartSilentInterlock()
+        {
+            bool autoStartEnabled = CheckAutoStart.IsChecked == true;
+            CheckStartSilent.IsEnabled = autoStartEnabled;
         }
 
         private void UpdateEffectValueTexts()
@@ -165,16 +180,20 @@ namespace BASpark
 
         private void UpdateColorPreview(string rgbString)
         {
-            try {
+            try
+            {
                 var parts = rgbString.Split(',');
-                if (parts.Length == 3) {
+                if (parts.Length == 3)
+                {
                     byte r = byte.Parse(parts[0].Trim());
                     byte g = byte.Parse(parts[1].Trim());
                     byte b = byte.Parse(parts[2].Trim());
                     ColorPreview.Background = new System.Windows.Media.SolidColorBrush(
                         System.Windows.Media.Color.FromRgb(r, g, b));
                 }
-            } catch {
+            }
+            catch
+            {
                 ColorPreview.Background = System.Windows.Media.Brushes.Gray;
             }
         }
@@ -195,11 +214,13 @@ namespace BASpark
         {
             using var dialog = new System.Windows.Forms.ColorDialog();
             dialog.FullOpen = true;
-            try {
+            try
+            {
                 var parts = ConfigManager.ParticleColor.Split(',');
                 dialog.Color = System.Drawing.Color.FromArgb(
                     byte.Parse(parts[0]), byte.Parse(parts[1]), byte.Parse(parts[2]));
-            } catch { }
+            }
+            catch { }
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -214,8 +235,9 @@ namespace BASpark
             if (sender is System.Windows.Controls.Button btn && btn.Tag is string url)
             {
                 try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
-                catch (Exception ex) { 
-                    System.Windows.MessageBox.Show("无法打开链接: " + ex.Message); 
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show("无法打开链接: " + ex.Message);
                 }
             }
         }
@@ -226,9 +248,11 @@ namespace BASpark
             double effectOpacity = Math.Round(SliderOpacity.Value, 2);
             double effectSpeed = Math.Round(SliderSpeed.Value, 2);
             int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
+            bool autoStartEnabled = CheckAutoStart.IsChecked ?? false;
+            bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
 
             ConfigManager.Save("IsEffectEnabled", CheckMasterSwitch.IsChecked ?? true);
-            ConfigManager.Save("AutoStart", CheckAutoStart.IsChecked ?? false);
+            ConfigManager.Save("AutoStart", autoStartEnabled);
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
             ConfigManager.Save("ParticleColor", ConfigManager.ParticleColor);
             ConfigManager.Save("EffectScale", effectScale);
@@ -237,9 +261,10 @@ namespace BASpark
             ConfigManager.Save("TrailRefreshRate", trailRefreshRate);
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             ConfigManager.Save("EnableAlwaysTrailEffect", CheckAlwaysTrailEffectSwitch.IsChecked ?? false);
+            ConfigManager.Save("StartSilent", startSilentEnabled);
 
             App.SetAutoStart(ConfigManager.AutoStart);
-            
+
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
             App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed);
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
@@ -256,19 +281,21 @@ namespace BASpark
         private void ResetConfig_Click(object sender, RoutedEventArgs e)
         {
             var result = System.Windows.MessageBox.Show(
-                "确定要重置所有配置吗？这将会清空所有配置，程序随后将关闭。", 
-                "确认重置", 
-                MessageBoxButton.YesNo, 
+                "确定要重置所有配置吗？这将会清空所有配置，程序随后将关闭。",
+                "确认重置",
+                MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
             {
-                try {
+                try
+                {
                     ConfigManager.ResetAndClear();
                     System.Windows.Application.Current.Shutdown();
                 }
-                catch (Exception ex) { 
-                    System.Windows.MessageBox.Show("删除失败: " + ex.Message); 
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show("删除失败: " + ex.Message);
                 }
             }
         }

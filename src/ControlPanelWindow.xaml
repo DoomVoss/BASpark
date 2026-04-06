@@ -36,7 +36,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
-                        <BulletDecorator Background="Transparent" Cursor="Hand">
+                        <BulletDecorator x:Name="RootBullet" Background="Transparent" Cursor="Hand">
                             <BulletDecorator.Bullet>
                                 <Grid Width="40" Height="20">
                                     <Border x:Name="Background" Background="#DDD" CornerRadius="10" />
@@ -66,6 +66,12 @@
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Background" Property="Background" Value="#E0E0E0"/>
+                                <Setter TargetName="Dot" Property="Background" Value="#F5F5F5"/>
+                                <Setter TargetName="RootBullet" Property="Cursor" Value="No"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -181,7 +187,8 @@
                         <TextBlock Name="TextTrailRefreshValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
                     </Grid>
 
-                    <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
+                    <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
+                    <CheckBox Name="CheckStartSilent" Content="静默启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
                     <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" Foreground="#666" Margin="0,0,0,30"/>
                         
                     <Button Content="保存设置" Click="SaveSettings_Click" Width="120" Height="35" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"/>
