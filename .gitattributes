@@ -1,3 +1,2 @@
-*.iss linguist-documentation
-*.iss linguist-vendored
-*.iss -linguist-detectable
+*.iss linguist-vendored=true
+*.isl linguist-vendored=true

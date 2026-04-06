@@ -14,9 +14,13 @@
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <FileVersion>1.0.0</FileVersion>
     
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <WebView2LoaderPreference>Static</WebView2LoaderPreference>
   </PropertyGroup>
 
   <ItemGroup>
