@@ -21,7 +21,9 @@ class MouseSpark {
         this.opacity = opts.opacity || 1.0;
         this.speed = opts.speed || 1.0;
         this.maxTrail = opts.maxTrail || 16;
-        this.el = opts.el || document.body;
+
+        this.sparkPool = [];
+        this.wavePool = [];
 
         this.waves = [];
         this.sparks = [];
@@ -97,32 +99,63 @@ class MouseSpark {
     }
 
     boom(x, y) {
-        this.waves.push({
-            x, y, life: 0, max: 18, r: 0,
-            ring: {
-                ang: Math.random() * Math.PI * 2,
-                segs: [
-                    { off: -0.25 * Math.PI, len: 1.15 * Math.PI },
-                    { off:  0.00 * Math.PI, len: 1.15 * Math.PI },
-                    { off:  0.25 * Math.PI, len: 1.15 * Math.PI }
-                ],
-                life: 0, maxLife: 30, rs: 0.08
-            }
-        });
+        // 优化：使用对象池
+        let wave;
+        if (this.wavePool.length > 0) {
+            wave = this.wavePool.pop();
+            wave.x = x;
+            wave.y = y;
+            wave.life = 0;
+            wave.max = 18;
+            wave.r = 0;
+            wave.ring.ang = Math.random() * Math.PI * 2;
+            wave.ring.life = 0;
+        } else {
+            wave = {
+                x, y, life: 0, max: 18, r: 0,
+                ring: {
+                    ang: Math.random() * Math.PI * 2,
+                    segs: [
+                        { off: -0.25 * Math.PI, len: 1.15 * Math.PI },
+                        { off:  0.00 * Math.PI, len: 1.15 * Math.PI },
+                        { off:  0.25 * Math.PI, len: 1.15 * Math.PI }
+                    ],
+                    life: 0, maxLife: 30, rs: 0.08
+                }
+            };
+        }
+        this.waves.push(wave);
 
+        let particleCount = 4;
         let speedAdjust = this.scale / 1.5;
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < particleCount; i++) {
             let a = Math.random() * Math.PI * 2;
             let speed = (4.8 + Math.random() * 2) * speedAdjust; 
-            this.sparks.push({
-                x, y,
-                vx: Math.cos(a) * speed,
-                vy: Math.sin(a) * speed,
-                rot: Math.random() * Math.PI * 2,
-                rs: (Math.random() - 0.5) * 0.28,
-                s: (4 + Math.random() * 3) * this.scale,
-                a: 1, f: 0.9
-            });
+
+            let spark;
+            if (this.sparkPool.length > 0) {
+                spark = this.sparkPool.pop();
+                spark.x = x;
+                spark.y = y;
+                spark.vx = Math.cos(a) * speed;
+                spark.vy = Math.sin(a) * speed;
+                spark.rot = Math.random() * Math.PI * 2;
+                spark.rs = (Math.random() - 0.5) * 0.28;
+                spark.s = (4 + Math.random() * 3) * this.scale;
+                spark.a = 1;
+                spark.f = 0.9;
+            } else {
+                spark = {
+                    x, y,
+                    vx: Math.cos(a) * speed,
+                    vy: Math.sin(a) * speed,
+                    rot: Math.random() * Math.PI * 2,
+                    rs: (Math.random() - 0.5) * 0.28,
+                    s: (4 + Math.random() * 3) * this.scale,
+                    a: 1, f: 0.9
+                };
+            }
+            this.sparks.push(spark);
         }
     }
 
@@ -133,6 +166,7 @@ class MouseSpark {
 
         if (this.waves.length > 0 || this.sparks.length > 0 || this.trail.length > 0) {
             this.ctx.clearRect(0, 0, this.c.width, this.c.height);
+            // 优化：减少全局合成模式的使用
             this.ctx.globalCompositeOperation = "lighter";
 
             for (let i = this.trail.length - 1; i >= 0; i--) {
@@ -146,17 +180,44 @@ class MouseSpark {
             }
 
             if (this.trail.length > 1) {
+                // this.ctx.beginPath();
+                // this.ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                // for (let i = 1; i < this.trail.length; i++) {
+                //     this.ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                // }
+                // this.ctx.lineWidth = 8.0;
+
+
+                // this.ctx.strokeStyle = `rgba(${this.color},${this.alpha(0.35)})`;
+                // this.ctx.stroke();
+                
+
+                // =============新增的屎===============
                 this.ctx.beginPath();
                 this.ctx.moveTo(this.trail[0].x, this.trail[0].y);
                 for (let i = 1; i < this.trail.length; i++) {
                     this.ctx.lineTo(this.trail[i].x, this.trail[i].y);
                 }
-                this.ctx.lineWidth = 4.5;
-                this.ctx.strokeStyle = `rgba(${this.color},${this.alpha(0.35)})`;
-                this.ctx.shadowBlur = 10;
-                this.ctx.shadowColor = `rgba(${this.color},${this.alpha(0.45)})`;
+                this.ctx.lineWidth = 5.0;
+
+                const meteorHead = this.trail[this.trail.length - 1];
+                const meteorTail = this.trail[0];
+                const gradient = this.ctx.createLinearGradient(
+                    meteorHead.x, meteorHead.y,
+                    meteorTail.x, meteorTail.y
+                );
+                gradient.addColorStop(0, `rgba(${this.color}, 1)`);
+                gradient.addColorStop(1, `rgba(${this.color}, 0)`);
+
+                this.ctx.shadowColor = `rgba(${this.color}, 0.6)`; 
+                this.ctx.shadowBlur = 3;
+                this.ctx.shadowOffsetX = 0;
+                this.ctx.shadowOffsetY = 0;
+
+                this.ctx.strokeStyle = gradient;
                 this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
+                this.ctx.shadowColor = 'transparent';
+
             }
 
             for (let i = this.waves.length - 1; i >= 0; i--) {
@@ -170,10 +231,8 @@ class MouseSpark {
                     this.ctx.beginPath();
                     this.ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
                     this.ctx.fillStyle = `rgba(${this.color},${this.alpha(alpha)})`;
-                    this.ctx.shadowBlur = 10;
-                    this.ctx.shadowColor = `rgba(${this.color},${this.alpha(1)})`;
+                    // 优化：减少阴影效果
                     this.ctx.fill();
-                    this.ctx.shadowBlur = 0;
                 }
                 
                 let r = w.ring;
@@ -188,12 +247,14 @@ class MouseSpark {
                     this.ctx.arc(w.x, w.y, w.r + 3 * this.scale, start, start + len);
                     this.ctx.lineWidth = 3.7;
                     this.ctx.strokeStyle = `rgba(245,248,252,${this.alpha(1 - rProg)})`;
-                    this.ctx.shadowBlur = 6;
-                    this.ctx.shadowColor = `rgba(${this.color},${this.alpha(0.75)})`;
+                    // 减少阴影效果
                     this.ctx.stroke();
-                    this.ctx.shadowBlur = 0;
                 });
-                if (progress >= 1 && rProg >= 1) this.waves.splice(i, 1);
+                if (progress >= 1 && rProg >= 1) {
+                    // 回收对象到对象池
+                    this.wavePool.push(this.waves[i]);
+                    this.waves.splice(i, 1);
+                }
             }
 
             for (let i = this.sparks.length - 1; i >= 0; i--) {
@@ -204,7 +265,11 @@ class MouseSpark {
                 s.vy *= Math.pow(s.f, frameScale);
                 s.rot += s.rs * frameScale;
                 s.a -= 0.032 * frameScale;
-                if (s.a <= 0) { this.sparks.splice(i, 1); continue; }
+                if (s.a <= 0) {
+                    this.sparkPool.push(this.sparks[i]);
+                    this.sparks.splice(i, 1);
+                    continue;
+                }
                 
                 this.ctx.save();
                 this.ctx.translate(s.x, s.y);
