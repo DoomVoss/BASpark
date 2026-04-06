@@ -26,12 +26,17 @@ jobs:
           $RAW_VER = "${{ github.ref_name }}".TrimStart("v")
           
           if ("${{ github.event_name }}" -eq 'pull_request') { 
-              $RAW_VER = "PR-${{ github.event.pull_request.number }}" 
+              $PR_NUM = "${{ github.event.pull_request.number }}"
+              $RAW_VER = "0.0.0-pr.$PR_NUM" 
           }
           elseif ($RAW_VER -eq "main" -or [string]::IsNullOrWhiteSpace($RAW_VER)) { 
               $RAW_VER = "0.0.0-preview" 
           }
           
+          Write-Host "----------------------------------------------"
+          Write-Host "Targeting Version: $RAW_VER"
+          Write-Host "----------------------------------------------"
+
           dotnet publish src/BASpark.csproj `
             -c Release `
             -r win-x64 `
