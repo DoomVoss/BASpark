@@ -54,9 +54,11 @@ namespace BASpark
             Overlay = new MainWindow();
             Overlay.Show();
 
-            // 仅非开机自启/静默启动时显示控制面板
+            // 仅手动启动/开机非静默启动时显示控制面板
             if (!(launchedFromAutoStart && ConfigManager.StartSilent))
+            {
                 ShowControlPanel();
+            }
         }
 
         private static bool IsAutoStartLaunch(string[] args)

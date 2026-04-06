@@ -144,11 +144,24 @@ namespace BASpark
             CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
             UpdateColorPreview(ConfigManager.ParticleColor);
 
+            UpdateStartSilentInterlock();
+
             SliderScale.Value = ConfigManager.EffectScale;
             SliderOpacity.Value = ConfigManager.EffectOpacity;
             SliderSpeed.Value = ConfigManager.EffectSpeed;
             SliderTrailRefresh.Value = ConfigManager.TrailRefreshRate;
             UpdateEffectValueTexts();
+        }
+
+        private void CheckAutoStart_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateStartSilentInterlock();
+        }
+
+        private void UpdateStartSilentInterlock()
+        {
+            bool autoStartEnabled = CheckAutoStart.IsChecked == true;
+            CheckStartSilent.IsEnabled = autoStartEnabled;
         }
 
         private void UpdateEffectValueTexts()
@@ -235,9 +248,11 @@ namespace BASpark
             double effectOpacity = Math.Round(SliderOpacity.Value, 2);
             double effectSpeed = Math.Round(SliderSpeed.Value, 2);
             int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
+            bool autoStartEnabled = CheckAutoStart.IsChecked ?? false;
+            bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
 
             ConfigManager.Save("IsEffectEnabled", CheckMasterSwitch.IsChecked ?? true);
-            ConfigManager.Save("AutoStart", CheckAutoStart.IsChecked ?? false);
+            ConfigManager.Save("AutoStart", autoStartEnabled);
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
             ConfigManager.Save("ParticleColor", ConfigManager.ParticleColor);
             ConfigManager.Save("EffectScale", effectScale);
@@ -246,7 +261,7 @@ namespace BASpark
             ConfigManager.Save("TrailRefreshRate", trailRefreshRate);
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             ConfigManager.Save("EnableAlwaysTrailEffect", CheckAlwaysTrailEffectSwitch.IsChecked ?? false);
-            ConfigManager.Save("StartSilent", CheckStartSilent.IsChecked ?? false);
+            ConfigManager.Save("StartSilent", startSilentEnabled);
 
             App.SetAutoStart(ConfigManager.AutoStart);
 
