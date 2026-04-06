@@ -182,6 +182,7 @@
                     </Grid>
 
                     <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
+                    <CheckBox Name="CheckStartSilent" Content="静默启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
                     <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" Foreground="#666" Margin="0,0,0,30"/>
                         
                     <Button Content="保存设置" Click="SaveSettings_Click" Width="120" Height="35" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"/>
