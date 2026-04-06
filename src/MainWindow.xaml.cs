@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -164,8 +164,7 @@ namespace BASpark
                     if (currentTicks - _lastClickTicks < ClickIntervalTicks) return;
                     _lastClickTicks = currentTicks;
 
-                    System.Windows.Point clientPoint = this.PointFromScreen(new System.Windows.Point(e.X, e.Y));
-                    _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalBoom) window.externalBoom({clientPoint.X}, {clientPoint.Y});");
+                    _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalBoom) window.externalBoom({e.X}, {e.Y});");
                 }
             };
 
@@ -178,16 +177,11 @@ namespace BASpark
                 if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
                 _lastMoveTicks = currentTicks;
 
-                System.Windows.Point clientPoint = this.PointFromScreen(new System.Windows.Point(e.X, e.Y));
-                if (ConfigManager.EnableAlwaysTrailEffect)
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = true;");
-                }
-                else
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = false;");
-                }
-                _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalMove) window.externalMove({clientPoint.X}, {clientPoint.Y});");
+                string trailFlag = ConfigManager.EnableAlwaysTrailEffect ? "true" : "false";
+                _ = webView.CoreWebView2.ExecuteScriptAsync($@"
+                    window.enableAlwaysTrailEffect = {trailFlag};
+                    if(window.externalMove) window.externalMove({e.X}, {e.Y});
+            ");
             };
 
             _globalHook.MouseUpExt += (s, e) => {
