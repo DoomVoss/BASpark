@@ -96,6 +96,7 @@ namespace BASpark
             var contextMenu = new System.Windows.Forms.ContextMenuStrip();
             contextMenu.Items.Add("打开控制面板", null, (s, e) => ShowControlPanel());
             contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            contextMenu.Items.Add("重启应用", null, (s, e) => RestartApplication());
             contextMenu.Items.Add("彻底退出", null, (s, e) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;
         }
@@ -155,6 +156,13 @@ namespace BASpark
             }
 
             System.Windows.Application.Current.Shutdown();
+        }
+        private void RestartApplication()
+        {
+            string exePath = System.Environment.ProcessPath ?? 
+                            System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+            System.Diagnostics.Process.Start(exePath);
+            ExitApplication();
         }
     }
 }
