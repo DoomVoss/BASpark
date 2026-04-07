@@ -159,10 +159,17 @@ namespace BASpark
         }
         private void RestartApplication()
         {
-            string exePath = System.Environment.ProcessPath ?? 
-                            System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-            System.Diagnostics.Process.Start(exePath);
-            ExitApplication();
+            try
+            {
+                string exePath = System.Environment.ProcessPath ?? 
+                                System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+                System.Diagnostics.Process.Start(exePath);
+                ExitApplication();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("重启失败: " + ex.Message);
+            }
         }
     }
 }
