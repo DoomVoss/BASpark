@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace BASpark
@@ -15,6 +16,7 @@ namespace BASpark
     {
         private DispatcherTimer _refreshTimer;
         private DispatcherTimer _noticeTimer;
+        private bool _isCheckingUpdate = false;
 
         public ControlPanelWindow()
         {
@@ -22,6 +24,9 @@ namespace BASpark
             LoadVersion();
             LoadSettings();
             LoadRemoteNotice();
+            
+            // 启动时自动静默检查更新
+            _ = CheckForUpdates(isManual: false);
 
             _refreshTimer = new DispatcherTimer();
             _refreshTimer.Interval = TimeSpan.FromMilliseconds(500);
@@ -32,6 +37,97 @@ namespace BASpark
             _noticeTimer.Interval = TimeSpan.FromHours(3);
             _noticeTimer.Tick += (s, e) => LoadRemoteNotice();
             _noticeTimer.Start();
+        }
+
+        // 检查更新核心逻辑
+        private async Task CheckForUpdates(bool isManual)
+        {
+            string updateUrl = "https://qq.catbotstudio.top/update.json"; 
+
+            try
+            {
+                using HttpClient client = new HttpClient();
+                client.Timeout = TimeSpan.FromSeconds(5);
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) BASparkClient/1.0");
+
+                string json = await client.GetStringAsync(updateUrl);
+                using JsonDocument doc = JsonDocument.Parse(json);
+                JsonElement root = doc.RootElement;
+
+                string latestVersionStr = root.GetProperty("version").GetString() ?? "0.0.0.0";
+                string downloadUrl = root.GetProperty("url").GetString() ?? "";
+                string updateNotes = root.GetProperty("notes").GetString() ?? "无更新说明";
+
+                Version latestVersion = new Version(latestVersionStr);
+                Version? currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+
+                if (currentVersion != null && latestVersion > currentVersion)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        var result = System.Windows.MessageBox.Show(
+                            $"发现新版本: V{latestVersionStr}\n\n更新内容:\n{updateNotes}\n\n是否立即前往下载？",
+                            "发现新版本",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result == MessageBoxResult.Yes && !string.IsNullOrEmpty(downloadUrl))
+                        {
+                            Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                        }
+                    });
+                }
+                else if (isManual)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        System.Windows.MessageBox.Show("当前已是最新版本，无需更新！", "检查更新", MessageBoxButton.OK, MessageBoxImage.Information);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                if (isManual)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        System.Windows.MessageBox.Show("检查更新失败: \n" + ex.Message, "网络错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    });
+                }
+                else
+                {
+                    Debug.WriteLine("自动检查更新失败: " + ex.Message);
+                }
+            }
+        }
+
+        private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isCheckingUpdate) return;
+
+            var btn = sender as System.Windows.Controls.Button;
+            try
+            {
+                _isCheckingUpdate = true;
+                
+                if (btn != null)
+                {
+                    btn.IsEnabled = false;
+                    btn.Content = "正在检查..."; 
+                }
+
+                await CheckForUpdates(isManual: true);
+            }
+            finally
+            {
+                _isCheckingUpdate = false;
+                
+                if (btn != null)
+                {
+                    btn.IsEnabled = true;
+                    btn.Content = "检查更新"; 
+                }
+            }
         }
 
         private async void LoadRemoteNotice()

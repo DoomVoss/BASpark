@@ -14,11 +14,33 @@ namespace BASpark
         [DllImport("user32.dll")]
         static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
+        // 新增：引入获取光标信息的 API
+        [DllImport("user32.dll")]
+        static extern bool GetCursorInfo(out CURSORINFO pci);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int x;
+            public int y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CURSORINFO
+        {
+            public Int32 cbSize;
+            public Int32 flags;
+            public IntPtr hCursor;
+            public POINT ptScreenPos;
+        }
+
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
         private const int WS_EX_TOOLWINDOW = 0x00000080; 
         
+        private const Int32 CURSOR_SHOWING = 0x00000001; // 新增：光标可见状态码
+
         private IKeyboardMouseEvents? _globalHook;
         private IntPtr _hwnd;
 
@@ -112,12 +134,27 @@ namespace BASpark
             }
         }
 
+        // 判断光标是否可见
+        private bool IsCursorVisible()
+        {
+            CURSORINFO pci = new CURSORINFO();
+            pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
+            if (GetCursorInfo(out pci))
+            {
+                return (pci.flags & CURSOR_SHOWING) != 0;
+            }
+            return true;
+        }
+
         private void SetupGlobalHooks()
         {
             _globalHook = Hook.GlobalEvents();
 
             _globalHook.MouseDownExt += (s, e) => {
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
+
+                // 光标被隐藏则拦截点击特效
+                if (!IsCursorVisible()) return;
 
                 if (e.Button == System.Windows.Forms.MouseButtons.Left)
                 {
@@ -134,7 +171,9 @@ namespace BASpark
 
             _globalHook.MouseMoveExt += (s, e) => {
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
-                
+
+                if (!IsCursorVisible()) return;
+
                 long currentTicks = DateTime.Now.Ticks;
                 if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
                 _lastMoveTicks = currentTicks;
