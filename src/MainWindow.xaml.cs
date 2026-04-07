@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using Gma.System.MouseKeyHook;
+using Microsoft.Win32;
 
 namespace BASpark
 {
@@ -13,6 +14,10 @@ namespace BASpark
         static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
         static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+        [DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+        [DllImport("user32.dll")]
+        static extern int GetSystemMetrics(int nIndex);
 
         // 新增：引入获取光标信息的 API
         [DllImport("user32.dll")]
@@ -38,11 +43,21 @@ namespace BASpark
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
         private const int WS_EX_TOOLWINDOW = 0x00000080; 
-        
+
         private const Int32 CURSOR_SHOWING = 0x00000001; // 新增：光标可见状态码
+        private const int SM_XVIRTUALSCREEN = 76;
+        private const int SM_YVIRTUALSCREEN = 77;
+        private const int SM_CXVIRTUALSCREEN = 78;
+        private const int SM_CYVIRTUALSCREEN = 79;
+        private const uint SWP_NOZORDER = 0x0004;
+        private const uint SWP_NOACTIVATE = 0x0010;
 
         private IKeyboardMouseEvents? _globalHook;
         private IntPtr _hwnd;
+        private int _virtualScreenLeft;
+        private int _virtualScreenTop;
+        private int _virtualScreenWidth;
+        private int _virtualScreenHeight;
 
         private long _lastMoveTicks = 0;
         private long _lastClickTicks = 0;
@@ -65,11 +80,8 @@ namespace BASpark
             int style = GetWindowLong(_hwnd, GWL_EXSTYLE);
             SetWindowLong(_hwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
 
-            this.Left = SystemParameters.VirtualScreenLeft;
-            this.Top = SystemParameters.VirtualScreenTop;
-            this.Width = SystemParameters.VirtualScreenWidth;
-            this.Height = SystemParameters.VirtualScreenHeight;
-
+            UpdateOverlayBounds();
+            SystemEvents.DisplaySettingsChanged += HandleDisplaySettingsChanged;
             SetupGlobalHooks();
         }
 
@@ -146,6 +158,55 @@ namespace BASpark
             return true;
         }
 
+        private void HandleDisplaySettingsChanged(object? sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(UpdateOverlayBounds);
+        }
+
+        private void UpdateOverlayBounds()
+        {
+            _virtualScreenLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
+            _virtualScreenTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
+            _virtualScreenWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+            _virtualScreenHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+            if (_hwnd == IntPtr.Zero || _virtualScreenWidth <= 0 || _virtualScreenHeight <= 0)
+            {
+                return;
+            }
+
+            SetWindowPos(
+                _hwnd,
+                IntPtr.Zero,
+                _virtualScreenLeft,
+                _virtualScreenTop,
+                _virtualScreenWidth,
+                _virtualScreenHeight,
+                SWP_NOZORDER | SWP_NOACTIVATE);
+        }
+
+        private bool TryConvertScreenToOverlayPoint(int screenX, int screenY, out System.Windows.Point clientPoint)
+        {
+            clientPoint = default;
+
+            double viewportWidth = webView.ActualWidth > 0 ? webView.ActualWidth : ActualWidth;
+            double viewportHeight = webView.ActualHeight > 0 ? webView.ActualHeight : ActualHeight;
+            if (_virtualScreenWidth <= 0 || _virtualScreenHeight <= 0 || viewportWidth <= 0 || viewportHeight <= 0)
+            {
+                return false;
+            }
+
+            double normalizedX = (screenX - _virtualScreenLeft) / (double)_virtualScreenWidth;
+            double normalizedY = (screenY - _virtualScreenTop) / (double)_virtualScreenHeight;
+            double maxX = Math.Max(0, viewportWidth - 1);
+            double maxY = Math.Max(0, viewportHeight - 1);
+
+            clientPoint = new System.Windows.Point(
+                Math.Clamp(normalizedX * viewportWidth, 0, maxX),
+                Math.Clamp(normalizedY * viewportHeight, 0, maxY));
+            return true;
+        }
+
         private void SetupGlobalHooks()
         {
             _globalHook = Hook.GlobalEvents();
@@ -164,7 +225,7 @@ namespace BASpark
                     if (currentTicks - _lastClickTicks < ClickIntervalTicks) return;
                     _lastClickTicks = currentTicks;
 
-                    System.Windows.Point clientPoint = this.PointFromScreen(new System.Windows.Point(e.X, e.Y));
+                    if (!TryConvertScreenToOverlayPoint(e.X, e.Y, out System.Windows.Point clientPoint)) return;
                     _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalBoom) window.externalBoom({clientPoint.X}, {clientPoint.Y});");
                 }
             };
@@ -178,7 +239,7 @@ namespace BASpark
                 if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
                 _lastMoveTicks = currentTicks;
 
-                System.Windows.Point clientPoint = this.PointFromScreen(new System.Windows.Point(e.X, e.Y));
+                if (!TryConvertScreenToOverlayPoint(e.X, e.Y, out System.Windows.Point clientPoint)) return;
                 if (ConfigManager.EnableAlwaysTrailEffect)
                 {
                     webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = true;");
@@ -198,6 +259,7 @@ namespace BASpark
 
         protected override void OnClosed(EventArgs e)
         {
+            SystemEvents.DisplaySettingsChanged -= HandleDisplaySettingsChanged;
             _globalHook?.Dispose();
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             base.OnClosed(e);
