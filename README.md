@@ -71,13 +71,33 @@ git clone https://github.com/DoomVoss/BASpark.git
 cd BASpark
 ```
 
+### 安装前端依赖
+
+```bash
+npm install
+```
+
+### 构建前端 bundle
+
+```bash
+npm run build:web
+```
+
+### 运行桌面程序
+
+```powershell
+dotnet run --project .\src\BASpark.csproj
+```
+
 ### 使用 VS Code 打开项目 (需安装 C# Dev Kit 扩展)
 
 ```bash
 code .
 ```
 
-* 由于动效逻辑由 HTML5/Canvas 实现，你可以直接在 VS Code 中实时预览和调试 src/web/ 下的代码，而无需频繁编译整个项目。
+* 前端 bundle 由 CI 自动构建；本地开发前请先执行 `npm install` 和 `npm run build:web`。
+* 修改 `src/Web/` 下的前端代码后，需要重新执行 `npm run build:web`，再运行或发布桌面程序。
+* 由于动效逻辑由 HTML5/Canvas 实现，你可以直接在 VS Code 中调试 `src/Web/` 下的代码。
 * 提交 [Pull Request](https://github.com/DoomVoss/BASpark/pulls)，并确保代码风格与现有一致
 
 ---

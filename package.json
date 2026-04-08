@@ -1,0 +1,13 @@
+{
+  "name": "baspark-web-build",
+  "private": true,
+  "scripts": {
+    "build:web": "node ./scripts/build-web.mjs"
+  },
+  "dependencies": {
+    "blue-archive-touch-effect": "0.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.4"
+  }
+}
