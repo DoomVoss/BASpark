@@ -8,11 +8,22 @@
             width: 100%; height: 100%; 
             background: transparent !important;
         }
-        canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
+        #clickFxRoot,
+        canvas {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+        canvas { z-index: 0; }
+        #clickFxRoot { z-index: 1; }
     </style>
 </head>
 <body>
+    <div id="clickFxRoot"></div>
     <canvas id="sparkCanvas"></canvas>
+<script src="./dist/app.bundle.js"></script>
 <script>
 class MouseSpark {
     constructor(opts = {}) {
@@ -64,7 +75,6 @@ class MouseSpark {
         window.addEventListener("mousedown", e => {
             this.isDown = true;
             this.lastPos = getPos(e);
-            this.boom(this.lastPos.x, this.lastPos.y);
         });
 
         window.addEventListener("mousemove", e => {
@@ -302,6 +312,7 @@ window.externalBoom = (x, y) => {
     const now = Date.now();
     if (x === lastBoomX && y === lastBoomY && (now - lastBoomTime) < 25) return;
     lastBoomX = x; lastBoomY = y; lastBoomTime = now;
+    window.BASparkBlueArchiveFx?.spawnAt(x, y);
     window.dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y, bubbles: true }));
 };
 
@@ -317,13 +328,20 @@ window.externalUp = () => {
 
 window.updateColor = (rgbString) => {
     if (window.spark) window.spark.color = rgbString;
+    window.BASparkBlueArchiveFx?.updateSettings({ color: rgbString });
 };
 
-window.updateEffectSettings = (scale, opacity, speed) => {
+window.updateEffectSettings = (scale, opacity, speed, triangleRenderCount) => {
     if (!window.spark) return;
     window.spark.scale = Math.max(0.5, Math.min(3, Number(scale) || 1.5));
     window.spark.opacity = Math.max(0.1, Math.min(1, Number(opacity) || 1.0));
     window.spark.speed = Math.max(0.2, Math.min(3, Number(speed) || 1.0));
+    window.BASparkBlueArchiveFx?.updateSettings({
+        scale: window.spark.scale,
+        opacity: window.spark.opacity,
+        speed: window.spark.speed,
+        triangleRenderCount: Math.max(1, Math.min(10, Math.round(Number(triangleRenderCount) || 4)))
+    });
 };
 </script>
 </body>

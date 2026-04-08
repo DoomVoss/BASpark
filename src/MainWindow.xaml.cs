@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -91,16 +92,17 @@ namespace BASpark
                 _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.updateColor) window.updateColor('{color}');");
         }
 
-        public void UpdateEffectSettings(double scale, double opacity, double speed)
+        public void UpdateEffectSettings(double scale, double opacity, double speed, int triangleRenderCount)
         {
             if (webView?.CoreWebView2 == null) return;
 
             string scaleStr = scale.ToString("F2", CultureInfo.InvariantCulture);
             string opacityStr = opacity.ToString("F2", CultureInfo.InvariantCulture);
             string speedStr = speed.ToString("F2", CultureInfo.InvariantCulture);
+            string triangleCountStr = Math.Clamp(triangleRenderCount, 1, 10).ToString(CultureInfo.InvariantCulture);
 
             _ = webView.CoreWebView2.ExecuteScriptAsync(
-                $"if(window.updateEffectSettings) window.updateEffectSettings({scaleStr}, {opacityStr}, {speedStr});");
+                $"if(window.updateEffectSettings) window.updateEffectSettings({scaleStr}, {opacityStr}, {speedStr}, {triangleCountStr});");
         }
 
         public void UpdateTrailRefreshRate(int hz)
@@ -128,17 +130,36 @@ namespace BASpark
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
 
-                var streamInfo = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Web/index.html"));
-                if (streamInfo != null)
+                string webRoot = Path.Combine(AppContext.BaseDirectory, "Web");
+                string indexPath = Path.Combine(webRoot, "index.html");
+                string bundlePath = Path.Combine(webRoot, "dist", "app.bundle.js");
+                if (!File.Exists(indexPath))
                 {
-                    using var reader = new System.IO.StreamReader(streamInfo.Stream);
-                    string htmlContent = reader.ReadToEnd();
-                    webView.CoreWebView2.NavigateToString(htmlContent);
-                    webView.CoreWebView2.NavigationCompleted += (s, e) => {
-                        UpdateColor(ConfigManager.ParticleColor);
-                        UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, ConfigManager.EffectSpeed);
-                    };
+                    throw new FileNotFoundException("未找到 Web 前端资源。", indexPath);
                 }
+                if (!File.Exists(bundlePath))
+                {
+                    throw new FileNotFoundException(
+                        "未找到前端 bundle。请先执行 npm install 和 npm run build:web，再重新运行程序。",
+                        bundlePath);
+                }
+
+                webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                    "appassets",
+                    webRoot,
+                    Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.DenyCors);
+
+                webView.CoreWebView2.NavigationCompleted += (s, e) => {
+                    if (!e.IsSuccess)
+                    {
+                        return;
+                    }
+
+                    UpdateColor(ConfigManager.ParticleColor);
+                    UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, ConfigManager.EffectSpeed, ConfigManager.TriangleRenderCount);
+                };
+
+                webView.CoreWebView2.Navigate("https://appassets/index.html");
             }
             catch (Exception ex)
             {

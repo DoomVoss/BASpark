@@ -245,6 +245,7 @@ namespace BASpark
             SliderScale.Value = ConfigManager.EffectScale;
             SliderOpacity.Value = ConfigManager.EffectOpacity;
             SliderSpeed.Value = ConfigManager.EffectSpeed;
+            SliderTriangleRenderCount.Value = ConfigManager.TriangleRenderCount;
             SliderTrailRefresh.Value = ConfigManager.TrailRefreshRate;
             UpdateEffectValueTexts();
         }
@@ -265,6 +266,7 @@ namespace BASpark
             TextScaleValue.Text = $"{SliderScale.Value:F2}x";
             TextOpacityValue.Text = $"{SliderOpacity.Value:P0}";
             TextSpeedValue.Text = $"{SliderSpeed.Value:F2}x";
+            TextTriangleRenderCountValue.Text = $"{Math.Round(SliderTriangleRenderCount.Value)}";
             TextTrailRefreshValue.Text = $"{Math.Round(SliderTrailRefresh.Value)}";
         }
 
@@ -343,6 +345,7 @@ namespace BASpark
             double effectScale = Math.Round(SliderScale.Value, 2);
             double effectOpacity = Math.Round(SliderOpacity.Value, 2);
             double effectSpeed = Math.Round(SliderSpeed.Value, 2);
+            int triangleRenderCount = (int)Math.Round(SliderTriangleRenderCount.Value);
             int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
             bool autoStartEnabled = CheckAutoStart.IsChecked ?? false;
             bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
@@ -354,6 +357,7 @@ namespace BASpark
             ConfigManager.Save("EffectScale", effectScale);
             ConfigManager.Save("EffectOpacity", effectOpacity);
             ConfigManager.Save("EffectSpeed", effectSpeed);
+            ConfigManager.Save("TriangleRenderCount", triangleRenderCount);
             ConfigManager.Save("TrailRefreshRate", trailRefreshRate);
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             ConfigManager.Save("EnableAlwaysTrailEffect", CheckAlwaysTrailEffectSwitch.IsChecked ?? false);
@@ -362,7 +366,7 @@ namespace BASpark
             App.SetAutoStart(ConfigManager.AutoStart);
 
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
-            App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed);
+            App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed, triangleRenderCount);
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
 
             System.Windows.MessageBox.Show("配置已成功应用！", "BASpark", MessageBoxButton.OK, MessageBoxImage.Information);

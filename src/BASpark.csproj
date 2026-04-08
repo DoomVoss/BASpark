@@ -31,7 +31,10 @@
 
   <ItemGroup>
     <Resource Include="app.ico" />
-    <Resource Include="Web\index.html" />
+    <Content Include="Web\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
