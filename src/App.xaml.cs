@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Windows;
 using Microsoft.Win32;
+using System.Windows.Interop;
 
 namespace BASpark
 {
@@ -12,6 +13,7 @@ namespace BASpark
         private ControlPanelWindow? _controlPanel;
 
         private static Mutex? _mutex;
+        private int _isExiting = 0;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -27,6 +29,9 @@ namespace BASpark
                 System.Windows.Application.Current.Shutdown();
                 return;
             }
+
+            // 新增：监听系统关机/注销事件
+            SystemEvents.SessionEnding += OnSessionEnding;
 
             base.OnStartup(e);
 
@@ -70,6 +75,11 @@ namespace BASpark
             }
 
             return false;
+        }
+
+        private void OnSessionEnding(object sender, SessionEndingEventArgs e)
+        {
+            ExitApplication();
         }
 
         private void InitTrayIcon()
@@ -121,6 +131,52 @@ namespace BASpark
             });
         }
 
+        private void RestartApplication()
+        {
+            try
+            {
+                string exePath = System.Environment.ProcessPath ?? 
+                                 System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exePath) { UseShellExecute = true });
+                ExitApplication();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("重启失败: " + ex.Message);
+            }
+        }
+
+        private void ExitApplication()
+        {
+            if (Interlocked.Exchange(ref _isExiting, 1) == 1) return;
+
+            SystemEvents.SessionEnding -= OnSessionEnding;
+
+            ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
+
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+                _notifyIcon.ContextMenuStrip?.Dispose();
+                _notifyIcon.Dispose();
+                _notifyIcon = null;
+            }
+
+            this.Dispatcher.Invoke(() =>
+            {
+                try { _controlPanel?.Close(); } catch { }
+                try { Overlay?.Close(); } catch { }
+            });
+
+            if (_mutex != null)
+            {
+                try { _mutex.ReleaseMutex(); } catch { }
+                _mutex.Dispose();
+                _mutex = null;
+            }
+            System.Windows.Application.Current.Shutdown();
+        }
+
         public static void SetAutoStart(bool enable)
         {
             try
@@ -139,36 +195,6 @@ namespace BASpark
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("自启设置失败: " + ex.Message);
-            }
-        }
-
-        private void ExitApplication()
-        {
-            ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
-
-            _notifyIcon?.Dispose();
-            Overlay?.Close();
-
-            if (_mutex != null)
-            {
-                _mutex.ReleaseMutex();
-                _mutex.Dispose();
-            }
-
-            System.Windows.Application.Current.Shutdown();
-        }
-        private void RestartApplication()
-        {
-            try
-            {
-                string exePath = System.Environment.ProcessPath ?? 
-                                System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-                System.Diagnostics.Process.Start(exePath);
-                ExitApplication();
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show("重启失败: " + ex.Message);
             }
         }
     }
