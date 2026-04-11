@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Interop;
 using Gma.System.MouseKeyHook;
@@ -18,6 +20,28 @@ namespace BASpark
         static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
         [DllImport("user32.dll")]
         static extern int GetSystemMetrics(int nIndex);
+        [DllImport("user32.dll")]
+        static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        static extern bool IsWindow(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        static extern bool IsWindowVisible(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        static extern bool IsIconic(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        [DllImport("user32.dll")]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        [DllImport("user32.dll")]
+        static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+        [DllImport("user32.dll")]
+        static extern IntPtr GetDesktopWindow();
+        [DllImport("user32.dll")]
+        static extern IntPtr GetShellWindow();
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
         // 获取光标信息的 API
         [DllImport("user32.dll")]
@@ -39,6 +63,24 @@ namespace BASpark
             public POINT ptScreenPos;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
@@ -49,6 +91,8 @@ namespace BASpark
         private const int SM_YVIRTUALSCREEN = 77;
         private const int SM_CXVIRTUALSCREEN = 78;
         private const int SM_CYVIRTUALSCREEN = 79;
+        private const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
+        private const int FullscreenTolerance = 2;
         
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         private const uint SWP_NOSIZE = 0x0001;
@@ -56,6 +100,7 @@ namespace BASpark
         private const uint SWP_NOZORDER = 0x0004;
         private const uint SWP_NOACTIVATE = 0x0010;
         private const uint SWP_NOSENDCHANGING = 0x0400;
+        private static readonly long SuppressionCacheDurationTicks = TimeSpan.FromMilliseconds(250).Ticks;
 
         private IKeyboardMouseEvents? _globalHook;
         private IntPtr _hwnd;
@@ -70,6 +115,8 @@ namespace BASpark
         private bool _isTouchLikeInput = false;
         private string? _lastReportedInputMode;
         private bool? _lastReportedAlwaysTrail;
+        private long _suppressionCacheValidUntilTicks = 0;
+        private bool _isSuppressedByEnvironment = false;
 
         private long _moveIntervalTicks = 250000;
         private const long ClickIntervalTicks = 300000;
@@ -149,6 +196,17 @@ namespace BASpark
         {
             hz = Math.Clamp(hz, 10, 240);
             _moveIntervalTicks = TimeSpan.FromSeconds(1.0 / hz).Ticks;
+        }
+
+        public void RefreshEnvironmentFilterState()
+        {
+            _suppressionCacheValidUntilTicks = 0;
+            ShouldSuppressEffects(forceRefresh: true);
+        }
+
+        public bool IsEffectSuppressedByEnvironment()
+        {
+            return ShouldSuppressEffects();
         }
 
         private async System.Threading.Tasks.Task InitWebView()
@@ -235,6 +293,216 @@ namespace BASpark
             _ = webView.CoreWebView2.ExecuteScriptAsync(contextScript + actionScript);
         }
 
+        private bool CanRenderEffects()
+        {
+            if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null)
+            {
+                ReleasePointerState();
+                return false;
+            }
+
+            if (ShouldSuppressEffects())
+            {
+                ReleasePointerState();
+                return false;
+            }
+
+            return true;
+        }
+
+        private void ReleasePointerState()
+        {
+            if (!_isPrimaryPointerDown)
+            {
+                _isTouchLikeInput = false;
+                return;
+            }
+
+            string inputMode = _isTouchLikeInput ? InputModeTouch : InputModeMouse;
+            ExecuteWithInputContext(inputMode, "if(window.externalUp) window.externalUp();");
+            _isPrimaryPointerDown = false;
+            _isTouchLikeInput = false;
+        }
+
+        private bool ShouldSuppressEffects(bool forceRefresh = false)
+        {
+            if (!ConfigManager.EnableEnvironmentFilter)
+            {
+                _isSuppressedByEnvironment = false;
+                _suppressionCacheValidUntilTicks = 0;
+                return false;
+            }
+
+            long nowTicks = DateTime.UtcNow.Ticks;
+            if (!forceRefresh && nowTicks < _suppressionCacheValidUntilTicks)
+            {
+                return _isSuppressedByEnvironment;
+            }
+
+            IntPtr foregroundWindow = GetForegroundWindow();
+            if (!TryGetForegroundProcessName(foregroundWindow, out string processName))
+            {
+                UpdateSuppressionState(nowTicks, false);
+                return false;
+            }
+
+            if (ConfigManager.HideInFullscreen && IsEffectiveFullscreenWindow(foregroundWindow))
+            {
+                UpdateSuppressionState(nowTicks, true);
+                return true;
+            }
+
+            bool isSuppressedByProcessFilter = IsSuppressedByProcessFilter(processName);
+            UpdateSuppressionState(nowTicks, isSuppressedByProcessFilter);
+
+            return _isSuppressedByEnvironment;
+        }
+
+        private void UpdateSuppressionState(long nowTicks, bool isSuppressed)
+        {
+            _isSuppressedByEnvironment = isSuppressed;
+            _suppressionCacheValidUntilTicks = nowTicks + SuppressionCacheDurationTicks;
+        }
+
+        private bool IsSuppressedByProcessFilter(string processName)
+        {
+            ProcessFilterModeOption mode = ConfigManager.ProcessFilterMode;
+            if (mode == ProcessFilterModeOption.Disabled)
+            {
+                return false;
+            }
+
+            var filterEntries = ConfigManager.GetProcessFilterEntries();
+            if (filterEntries.Count == 0)
+            {
+                return false;
+            }
+
+            bool isListed = filterEntries.Contains(processName);
+            return mode switch
+            {
+                ProcessFilterModeOption.Blacklist => isListed,
+                ProcessFilterModeOption.Whitelist => !isListed,
+                _ => false
+            };
+        }
+
+        private bool TryGetForegroundProcessName(IntPtr hwnd, out string processName)
+        {
+            processName = string.Empty;
+            if (!IsEligibleForegroundWindow(hwnd))
+            {
+                return false;
+            }
+
+            GetWindowThreadProcessId(hwnd, out uint processId);
+            if (processId == 0 || processId == (uint)Environment.ProcessId)
+            {
+                return false;
+            }
+
+            processName = GetProcessExecutableName(processId);
+            return !string.IsNullOrWhiteSpace(processName);
+        }
+
+        private bool IsEligibleForegroundWindow(IntPtr hwnd)
+        {
+            if (hwnd == IntPtr.Zero || hwnd == _hwnd)
+            {
+                return false;
+            }
+
+            if (!IsWindow(hwnd) || !IsWindowVisible(hwnd) || IsIconic(hwnd))
+            {
+                return false;
+            }
+
+            if (hwnd == GetDesktopWindow() || hwnd == GetShellWindow())
+            {
+                return false;
+            }
+
+            string className = GetWindowClassName(hwnd);
+            return !string.Equals(className, "Shell_TrayWnd", StringComparison.OrdinalIgnoreCase) &&
+                   !string.Equals(className, "Progman", StringComparison.OrdinalIgnoreCase) &&
+                   !string.Equals(className, "WorkerW", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string GetWindowClassName(IntPtr hwnd)
+        {
+            var classNameBuilder = new StringBuilder(256);
+            return GetClassName(hwnd, classNameBuilder, classNameBuilder.Capacity) > 0
+                ? classNameBuilder.ToString()
+                : string.Empty;
+        }
+
+        private string GetProcessExecutableName(uint processId)
+        {
+            try
+            {
+                using Process process = Process.GetProcessById(unchecked((int)processId));
+
+                try
+                {
+                    string? moduleName = process.MainModule?.ModuleName;
+                    if (!string.IsNullOrWhiteSpace(moduleName))
+                    {
+                        return moduleName.ToLowerInvariant();
+                    }
+                }
+                catch
+                {
+                    // 某些系统进程可能无法读取 MainModule，回退到 ProcessName。
+                }
+
+                string fallbackName = process.ProcessName;
+                if (!fallbackName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    fallbackName += ".exe";
+                }
+
+                return fallbackName.ToLowerInvariant();
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private bool IsEffectiveFullscreenWindow(IntPtr hwnd)
+        {
+            if (!GetWindowRect(hwnd, out RECT windowRect))
+            {
+                return false;
+            }
+
+            IntPtr monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (monitor == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            MONITORINFO monitorInfo = new MONITORINFO
+            {
+                cbSize = Marshal.SizeOf<MONITORINFO>()
+            };
+
+            if (!GetMonitorInfo(monitor, ref monitorInfo))
+            {
+                return false;
+            }
+
+            return AreRectsClose(windowRect, monitorInfo.rcMonitor, FullscreenTolerance);
+        }
+
+        private static bool AreRectsClose(RECT left, RECT right, int tolerance)
+        {
+            return Math.Abs(left.Left - right.Left) <= tolerance &&
+                   Math.Abs(left.Top - right.Top) <= tolerance &&
+                   Math.Abs(left.Right - right.Right) <= tolerance &&
+                   Math.Abs(left.Bottom - right.Bottom) <= tolerance;
+        }
+
         private static string FormatCoordinate(double value)
         {
             return value.ToString("F3", CultureInfo.InvariantCulture);
@@ -294,8 +562,7 @@ namespace BASpark
             _globalHook = Hook.GlobalEvents();
 
             _globalHook.MouseDownExt += (s, e) => {
-                if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
-
+                if (!CanRenderEffects()) return;
                 if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
 
                 _isPrimaryPointerDown = true;
@@ -304,20 +571,21 @@ namespace BASpark
                 string inputMode = _isTouchLikeInput ? InputModeTouch : InputModeMouse;
                 SyncInputContext(inputMode);
 
-                ConfigManager.TotalClicks++;
-
                 long currentTicks = DateTime.Now.Ticks;
                 if (currentTicks - _lastClickTicks < ClickIntervalTicks) return;
                 _lastClickTicks = currentTicks;
 
                 if (!TryConvertScreenToOverlayPoint(e.X, e.Y, out System.Windows.Point clientPoint)) return;
+
+                ConfigManager.TotalClicks++;
+
                 string x = FormatCoordinate(clientPoint.X);
                 string y = FormatCoordinate(clientPoint.Y);
                 ExecuteWithInputContext(inputMode, $"if(window.externalBoom) window.externalBoom({x}, {y});");
             };
 
             _globalHook.MouseMoveExt += (s, e) => {
-                if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
+                if (!CanRenderEffects()) return;
 
                 bool cursorVisible = IsCursorVisible();
                 if (!cursorVisible && !_isPrimaryPointerDown) return;
@@ -336,7 +604,7 @@ namespace BASpark
             };
 
             _globalHook.MouseUpExt += (s, e) => {
-                if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
+                if (!CanRenderEffects()) return;
                 if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
 
                 string inputMode = _isTouchLikeInput ? InputModeTouch : InputModeMouse;

@@ -172,6 +172,36 @@
                         <TextBlock Name="TextTrailRefreshValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
                     </Grid>
 
+                    <Border Background="White" BorderBrush="#E0E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                        <StackPanel>
+                            <TextBlock Text="环境过滤" FontSize="16" FontWeight="Bold" Foreground="#333" Margin="0,0,0,6"/>
+                            <TextBlock Text="在全屏游戏或指定软件前台运行时，自动隐藏特效。" Foreground="#666" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                            <CheckBox Name="CheckEnvironmentFilter" Content="启用环境过滤" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,12" Checked="EnvironmentFilterSetting_Changed" Unchecked="EnvironmentFilterSetting_Changed"/>
+                            <CheckBox Name="CheckHideInFullscreen" Content="前台全屏窗口时自动隐藏特效" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,14"/>
+
+                            <TextBlock Text="进程过滤模式" Foreground="#666" Margin="0,0,0,5"/>
+                            <ComboBox Name="ComboProcessFilterMode" Width="180" Margin="0,0,0,12" SelectionChanged="ProcessFilterMode_Changed">
+                                <ComboBoxItem Content="关闭" Tag="Disabled"/>
+                                <ComboBoxItem Content="黑名单" Tag="Blacklist"/>
+                                <ComboBoxItem Content="白名单" Tag="Whitelist"/>
+                            </ComboBox>
+
+                            <TextBlock Text="进程列表（每行一个 EXE 名称）" Foreground="#666" Margin="0,0,0,5"/>
+                            <TextBox Name="TextProcessFilterList"
+                                     Height="96"
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     TextWrapping="NoWrap"
+                                     FontFamily="Consolas"
+                                     Padding="10"
+                                     BorderBrush="#D6DEE8"
+                                     BorderThickness="1"
+                                     Background="#FAFCFF"/>
+                            <TextBlock Text="示例：game.exe、obs64.exe。仅按前台进程 EXE 名精确匹配，忽略大小写。" Foreground="#888" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
                     <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
                     <CheckBox Name="CheckStartSilent" Content="静默启动 (仅限开机自启)" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
                     <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" Foreground="#666" Margin="0,0,0,30"/>

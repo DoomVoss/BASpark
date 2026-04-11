@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace BASpark
@@ -218,15 +219,23 @@ namespace BASpark
 
             if (StatusText != null)
             {
-                if (ConfigManager.IsEffectEnabled)
-                {
-                    StatusText.Text = "工作中 (Active)";
-                    StatusText.Foreground = System.Windows.Media.Brushes.Green;
-                }
-                else
+                bool suppressedByEnvironment = ConfigManager.IsEffectEnabled &&
+                    App.Overlay?.IsEffectSuppressedByEnvironment() == true;
+
+                if (!ConfigManager.IsEffectEnabled)
                 {
                     StatusText.Text = "已暂停 (Paused)";
                     StatusText.Foreground = System.Windows.Media.Brushes.Gray;
+                }
+                else if (suppressedByEnvironment)
+                {
+                    StatusText.Text = "环境过滤中 (Auto Hidden)";
+                    StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xD9, 0x77, 0x06));
+                }
+                else
+                {
+                    StatusText.Text = "工作中 (Active)";
+                    StatusText.Foreground = System.Windows.Media.Brushes.Green;
                 }
             }
         }
@@ -238,9 +247,14 @@ namespace BASpark
             CheckStartSilent.IsChecked = ConfigManager.StartSilent;
             CheckTelemetry.IsChecked = ConfigManager.EnableTelemetry;
             CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
+            CheckEnvironmentFilter.IsChecked = ConfigManager.EnableEnvironmentFilter;
+            CheckHideInFullscreen.IsChecked = ConfigManager.HideInFullscreen;
+            SelectProcessFilterMode(ConfigManager.ProcessFilterMode);
+            TextProcessFilterList.Text = ConfigManager.ProcessFilterList;
             UpdateColorPreview(ConfigManager.ParticleColor);
 
             UpdateStartSilentInterlock();
+            UpdateEnvironmentFilterInterlock();
 
             SliderScale.Value = ConfigManager.EffectScale;
             SliderOpacity.Value = ConfigManager.EffectOpacity;
@@ -258,6 +272,50 @@ namespace BASpark
         {
             bool autoStartEnabled = CheckAutoStart.IsChecked == true;
             CheckStartSilent.IsEnabled = autoStartEnabled;
+        }
+
+        private void EnvironmentFilterSetting_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            UpdateEnvironmentFilterInterlock();
+        }
+
+        private void ProcessFilterMode_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            UpdateEnvironmentFilterInterlock();
+        }
+
+        private void UpdateEnvironmentFilterInterlock()
+        {
+            bool environmentFilterEnabled = CheckEnvironmentFilter.IsChecked == true;
+            ProcessFilterModeOption selectedMode = GetSelectedProcessFilterMode();
+            bool processFilterEnabled = environmentFilterEnabled && selectedMode != ProcessFilterModeOption.Disabled;
+
+            CheckHideInFullscreen.IsEnabled = environmentFilterEnabled;
+            ComboProcessFilterMode.IsEnabled = environmentFilterEnabled;
+            TextProcessFilterList.IsEnabled = processFilterEnabled;
+            TextProcessFilterList.Opacity = processFilterEnabled ? 1.0 : 0.65;
+        }
+
+        private void SelectProcessFilterMode(ProcessFilterModeOption mode)
+        {
+            ComboBoxItem? selectedItem = ComboProcessFilterMode.Items
+                .OfType<ComboBoxItem>()
+                .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), mode.ToString(), StringComparison.OrdinalIgnoreCase));
+
+            ComboProcessFilterMode.SelectedItem = selectedItem ?? ComboProcessFilterMode.Items[0];
+        }
+
+        private ProcessFilterModeOption GetSelectedProcessFilterMode()
+        {
+            if (ComboProcessFilterMode.SelectedItem is ComboBoxItem item &&
+                Enum.TryParse(item.Tag?.ToString(), true, out ProcessFilterModeOption mode))
+            {
+                return mode;
+            }
+
+            return ProcessFilterModeOption.Disabled;
         }
 
         private void UpdateEffectValueTexts()
@@ -346,6 +404,9 @@ namespace BASpark
             int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
             bool autoStartEnabled = CheckAutoStart.IsChecked ?? false;
             bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
+            ProcessFilterModeOption processFilterMode = GetSelectedProcessFilterMode();
+            string normalizedProcessFilterList = ConfigManager.NormalizeProcessFilterList(TextProcessFilterList.Text);
+            TextProcessFilterList.Text = normalizedProcessFilterList;
 
             ConfigManager.Save("IsEffectEnabled", CheckMasterSwitch.IsChecked ?? true);
             ConfigManager.Save("AutoStart", autoStartEnabled);
@@ -358,12 +419,17 @@ namespace BASpark
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             ConfigManager.Save("EnableAlwaysTrailEffect", CheckAlwaysTrailEffectSwitch.IsChecked ?? false);
             ConfigManager.Save("StartSilent", startSilentEnabled);
+            ConfigManager.Save("EnableEnvironmentFilter", CheckEnvironmentFilter.IsChecked ?? false);
+            ConfigManager.Save("HideInFullscreen", CheckHideInFullscreen.IsChecked ?? true);
+            ConfigManager.Save("ProcessFilterMode", processFilterMode.ToString());
+            ConfigManager.Save("ProcessFilterList", normalizedProcessFilterList);
 
             App.SetAutoStart(ConfigManager.AutoStart);
 
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
             App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed);
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
+            App.Overlay?.RefreshEnvironmentFilterState();
 
             System.Windows.MessageBox.Show("配置已成功应用！", "BASpark", MessageBoxButton.OK, MessageBoxImage.Information);
         }
