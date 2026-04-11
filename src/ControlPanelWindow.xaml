@@ -134,81 +134,120 @@
                 </StackPanel>
 
                 <StackPanel Name="PageSettings" Visibility="Collapsed">
-                    <TextBlock Text="参数配置" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
-                    <CheckBox Name="CheckMasterSwitch" Content="启用鼠标点击特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
-                    <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标常驻拖尾" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
-                    
-                    <TextBlock Text="特效主题颜色" Foreground="#666" Margin="0,0,0,5"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <Border Name="ColorPreview" Width="35" Height="35" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1" Margin="0,0,10,0"/>
-                        <Button Content="打开调色板..." Click="PickColor_Click" Width="100" Height="35" Background="White" BorderBrush="#CCC" Cursor="Hand"/>
-                    </StackPanel>
+                    <TextBlock Text="参数配置" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" Foreground="#333"/>
 
-                    <TextBlock Text="自定义大小" Foreground="#666" Margin="0,0,0,5"/>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="70"/></Grid.ColumnDefinitions>
-                        <Slider Name="SliderScale" Minimum="0.5" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                        <TextBlock Name="TextScaleValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
-                    </Grid>
-
-                    <TextBlock Text="透明度" Foreground="#666" Margin="0,0,0,5"/>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="70"/></Grid.ColumnDefinitions>
-                        <Slider Name="SliderOpacity" Minimum="0.1" Maximum="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                        <TextBlock Name="TextOpacityValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
-                    </Grid>
-
-                    <TextBlock Text="播放速度" Foreground="#666" Margin="0,0,0,5"/>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="70"/></Grid.ColumnDefinitions>
-                        <Slider Name="SliderSpeed" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                        <TextBlock Name="TextSpeedValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
-                    </Grid>
-
-                    <TextBlock Text="拖尾刷新率（Hz）" Foreground="#666" Margin="0,0,0,5"/>
-                    <Grid Margin="0,0,0,20">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="70"/></Grid.ColumnDefinitions>
-                        <Slider Name="SliderTrailRefresh" Minimum="10" Maximum="240" TickFrequency="10" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                        <TextBlock Name="TextTrailRefreshValue" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#333"/>
-                    </Grid>
-
-                    <Border Background="White" BorderBrush="#E0E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                    <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="环境过滤" FontSize="16" FontWeight="Bold" Foreground="#333" Margin="0,0,0,6"/>
-                            <TextBlock Text="在全屏游戏或指定软件前台运行时，自动隐藏特效。" Foreground="#666" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                            <TextBlock Text="基础设置" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,12"/>
+                            <CheckBox Name="CheckMasterSwitch" Content="启用鼠标点击特效" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                            <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标常驻拖尾" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                            <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
+                            <CheckBox Name="CheckStartSilent" Content="静默启动 (最小化到托盘)" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8"/>
+                            <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" FontSize="12"/>
 
-                            <CheckBox Name="CheckEnvironmentFilter" Content="启用环境过滤" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,12" Checked="EnvironmentFilterSetting_Changed" Unchecked="EnvironmentFilterSetting_Changed"/>
-                            <CheckBox Name="CheckHideInFullscreen" Content="前台全屏窗口时自动隐藏特效" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,14"/>
-
-                            <TextBlock Text="进程过滤模式" Foreground="#666" Margin="0,0,0,5"/>
-                            <ComboBox Name="ComboProcessFilterMode" Width="180" Margin="0,0,0,12" SelectionChanged="ProcessFilterMode_Changed">
-                                <ComboBoxItem Content="关闭" Tag="Disabled"/>
-                                <ComboBoxItem Content="黑名单" Tag="Blacklist"/>
-                                <ComboBoxItem Content="白名单" Tag="Whitelist"/>
-                            </ComboBox>
-
-                            <TextBlock Text="进程列表（每行一个 EXE 名称）" Foreground="#666" Margin="0,0,0,5"/>
-                            <TextBox Name="TextProcessFilterList"
-                                     Height="96"
-                                     AcceptsReturn="True"
-                                     VerticalScrollBarVisibility="Auto"
-                                     TextWrapping="NoWrap"
-                                     FontFamily="Consolas"
-                                     Padding="10"
-                                     BorderBrush="#D6DEE8"
-                                     BorderThickness="1"
-                                     Background="#FAFCFF"/>
-                            <TextBlock Text="示例：game.exe、obs64.exe。仅按前台进程 EXE 名精确匹配，忽略大小写。" Foreground="#888" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <Separator Background="#F0F2F5" Margin="0,4,0,12"/>
+                            
+                            <TextBlock Text="特效主题颜色" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Name="ColorPreview" Width="40" Height="28" CornerRadius="6" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,10,0"/>
+                                <Button Content="更改颜色" Click="PickColor_Click" Width="90" Height="28" Background="#F8FAFF" BorderBrush="#45AFFF" Foreground="#45AFFF" Cursor="Hand" FontSize="12">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                </Button>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 
-                    <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
-                    <CheckBox Name="CheckStartSilent" Content="静默启动 (仅限开机自启)" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
-                    <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" Foreground="#666" Margin="0,0,0,30"/>
+                    <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="视觉表现" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,16"/>
+                            
+                            <Grid Margin="0,0,0,15">
+                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="缩放比例" Foreground="#555" FontSize="13"/>
+                                    <TextBlock Name="TextScaleValue" Text="1.0x" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
+                                </StackPanel>
+                                <Slider Name="SliderScale" Grid.Row="1" Minimum="0.5" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="全局不透明度" Foreground="#555" FontSize="13"/>
+                                    <TextBlock Name="TextOpacityValue" Text="100%" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
+                                </StackPanel>
+                                <Slider Name="SliderOpacity" Grid.Row="1" Minimum="0.1" Maximum="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="动画播放速度" Foreground="#555" FontSize="13"/>
+                                    <TextBlock Name="TextSpeedValue" Text="1.0x" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
+                                </StackPanel>
+                                <Slider Name="SliderSpeed" Grid.Row="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="拖尾刷新率 (Hz)" Foreground="#555" FontSize="13"/>
+                                    <TextBlock Name="TextTrailRefreshValue" Text="100%" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
+                                </StackPanel>
+                                <Slider Name="SliderTrailRefresh" Grid.Row="1" Minimum="10" Maximum="240" TickFrequency="10" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="环境过滤" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,12"/>
+                            
+                            <CheckBox Name="CheckEnvironmentFilter" Content="启用智能环境探测" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10" Checked="EnvironmentFilterSetting_Changed" Unchecked="EnvironmentFilterSetting_Changed"/>
+                            <CheckBox Name="CheckHideInFullscreen" Content="全屏应用前台运行时自动暂停" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,15"/>
+
+                            <Separator Background="#F0F2F5" Margin="0,5,0,15"/>
+
+                            <TextBlock Text="应用过滤 (名单管理)" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <ComboBox Name="ComboProcessFilterMode" Width="180" Margin="0,0,0,12" SelectionChanged="ProcessFilterMode_Changed" Height="28" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="🚫 关闭过滤" Tag="Disabled"/>
+                                <ComboBoxItem Content="❌ 黑名单模式" Tag="Blacklist"/>
+                                <ComboBoxItem Content="✅ 白名单模式" Tag="Whitelist"/>
+                            </ComboBox>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="SearchProcess" Height="30" Padding="26,0,5,0" VerticalContentAlignment="Center" TextChanged="SearchProcess_TextChanged" Background="#F8FAFF" BorderBrush="#D6DEE8">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                                <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" Foreground="#AAA" IsHitTestVisible="False"/>
+                                <Button Grid.Column="1" Content="刷新列表" Margin="8,0,0,0" Padding="12,0" Height="30" Click="RefreshProcessList_Click" Background="White">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                </Button>
+                            </Grid>
+                            
+                            <ListBox Name="ListProcessSelection" Height="140" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}" Margin="2,4" VerticalContentAlignment="Center">
+                                            <StackPanel Orientation="Vertical" Margin="8,0,0,0">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13" Foreground="#333"/>
+                                                <TextBlock Text="{Binding ProcessName}" FontSize="10" Foreground="#999"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </Border>
                     
-                    <Button Content="保存并应用设置" Click="SaveSettings_Click" Width="150" Height="38" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                    <Button Content="应用更改" Click="SaveSettings_Click" Width="180" Height="42" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" FontWeight="Bold" FontSize="15">
+                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
+                        </Button.Effect>
                     </Button>
+                    <Rectangle Height="40"/>
                 </StackPanel>
 
                 <StackPanel Name="PageAbout" Visibility="Collapsed">
