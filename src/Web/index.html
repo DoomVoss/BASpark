@@ -68,7 +68,7 @@ class MouseSpark {
         });
 
         window.addEventListener("mousemove", e => {
-            if (!this.isDown && !window.enableAlwaysTrailEffect) return;
+            if (!this.isDown && !window.effectiveAlwaysTrail) return;
             const p = getPos(e);
             if (!this.lastPos) this.lastPos = p;
             
@@ -171,7 +171,7 @@ class MouseSpark {
 
             for (let i = this.trail.length - 1; i >= 0; i--) {
                 let t = this.trail[i];
-                if (window.enableAlwaysTrailEffect) {
+                if (window.effectiveAlwaysTrail) {
                     t.life -= 0.085 * frameScale;
                 } else {
                     t.life -= (this.isDown ? 0.085 : 0.18) * frameScale;
@@ -296,7 +296,17 @@ let lastBoomX = -1, lastBoomY = -1;
 let lastBoomTime = 0; 
 let lastMoveX = -1, lastMoveY = -1;
 
+window.currentInputMode = "mouse";
 window.enableAlwaysTrailEffect = false;
+window.effectiveAlwaysTrail = false;
+
+window.setInputContext = (mode, alwaysTrailEnabled) => {
+    window.currentInputMode = mode === "touch" ? "touch" : "mouse";
+    window.enableAlwaysTrailEffect = Boolean(alwaysTrailEnabled);
+    window.effectiveAlwaysTrail = window.currentInputMode === "mouse" && window.enableAlwaysTrailEffect;
+};
+
+window.setInputContext("mouse", false);
 
 window.externalBoom = (x, y) => {
     const now = Date.now();

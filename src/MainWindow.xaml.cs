@@ -61,9 +61,15 @@ namespace BASpark
 
         private long _lastMoveTicks = 0;
         private long _lastClickTicks = 0;
+        private bool _isPrimaryPointerDown = false;
+        private bool _isTouchLikeInput = false;
+        private string? _lastReportedInputMode;
+        private bool? _lastReportedAlwaysTrail;
 
         private long _moveIntervalTicks = 250000;
         private const long ClickIntervalTicks = 300000;
+        private const string InputModeMouse = "mouse";
+        private const string InputModeTouch = "touch";
 
         public MainWindow()
         {
@@ -135,8 +141,11 @@ namespace BASpark
                     string htmlContent = reader.ReadToEnd();
                     webView.CoreWebView2.NavigateToString(htmlContent);
                     webView.CoreWebView2.NavigationCompleted += (s, e) => {
+                        _lastReportedInputMode = null;
+                        _lastReportedAlwaysTrail = null;
                         UpdateColor(ConfigManager.ParticleColor);
                         UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, ConfigManager.EffectSpeed);
+                        SyncInputContext(InputModeMouse);
                     };
                 }
             }
@@ -156,6 +165,43 @@ namespace BASpark
                 return (pci.flags & CURSOR_SHOWING) != 0;
             }
             return true;
+        }
+
+        private string BuildInputContextScript(string inputMode)
+        {
+            bool alwaysTrailEnabled = ConfigManager.EnableAlwaysTrailEffect;
+            if (_lastReportedInputMode == inputMode && _lastReportedAlwaysTrail == alwaysTrailEnabled)
+            {
+                return string.Empty;
+            }
+
+            _lastReportedInputMode = inputMode;
+            _lastReportedAlwaysTrail = alwaysTrailEnabled;
+            string alwaysTrailLiteral = alwaysTrailEnabled ? "true" : "false";
+            return $"if(window.setInputContext) window.setInputContext('{inputMode}', {alwaysTrailLiteral});";
+        }
+
+        private void SyncInputContext(string inputMode)
+        {
+            if (webView?.CoreWebView2 == null) return;
+
+            string script = BuildInputContextScript(inputMode);
+            if (string.IsNullOrEmpty(script)) return;
+
+            _ = webView.CoreWebView2.ExecuteScriptAsync(script);
+        }
+
+        private void ExecuteWithInputContext(string inputMode, string actionScript)
+        {
+            if (webView?.CoreWebView2 == null) return;
+
+            string contextScript = BuildInputContextScript(inputMode);
+            _ = webView.CoreWebView2.ExecuteScriptAsync(contextScript + actionScript);
+        }
+
+        private static string FormatCoordinate(double value)
+        {
+            return value.ToString("F3", CultureInfo.InvariantCulture);
         }
 
         private void HandleDisplaySettingsChanged(object? sender, EventArgs e)
@@ -214,46 +260,53 @@ namespace BASpark
             _globalHook.MouseDownExt += (s, e) => {
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
 
-                // 光标被隐藏则拦截点击特效
-                if (!IsCursorVisible()) return;
+                if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
 
-                if (e.Button == System.Windows.Forms.MouseButtons.Left)
-                {
-                    ConfigManager.TotalClicks++; 
+                _isPrimaryPointerDown = true;
+                _isTouchLikeInput = !IsCursorVisible();
 
-                    long currentTicks = DateTime.Now.Ticks;
-                    if (currentTicks - _lastClickTicks < ClickIntervalTicks) return;
-                    _lastClickTicks = currentTicks;
+                string inputMode = _isTouchLikeInput ? InputModeTouch : InputModeMouse;
+                SyncInputContext(inputMode);
 
-                    if (!TryConvertScreenToOverlayPoint(e.X, e.Y, out System.Windows.Point clientPoint)) return;
-                    _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalBoom) window.externalBoom({clientPoint.X}, {clientPoint.Y});");
-                }
+                ConfigManager.TotalClicks++;
+
+                long currentTicks = DateTime.Now.Ticks;
+                if (currentTicks - _lastClickTicks < ClickIntervalTicks) return;
+                _lastClickTicks = currentTicks;
+
+                if (!TryConvertScreenToOverlayPoint(e.X, e.Y, out System.Windows.Point clientPoint)) return;
+                string x = FormatCoordinate(clientPoint.X);
+                string y = FormatCoordinate(clientPoint.Y);
+                ExecuteWithInputContext(inputMode, $"if(window.externalBoom) window.externalBoom({x}, {y});");
             };
 
             _globalHook.MouseMoveExt += (s, e) => {
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
 
-                if (!IsCursorVisible()) return;
+                bool cursorVisible = IsCursorVisible();
+                if (!cursorVisible && !_isPrimaryPointerDown) return;
+
+                string inputMode = (_isTouchLikeInput || !cursorVisible) ? InputModeTouch : InputModeMouse;
+                SyncInputContext(inputMode);
 
                 long currentTicks = DateTime.Now.Ticks;
                 if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
                 _lastMoveTicks = currentTicks;
 
                 if (!TryConvertScreenToOverlayPoint(e.X, e.Y, out System.Windows.Point clientPoint)) return;
-                if (ConfigManager.EnableAlwaysTrailEffect)
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = true;");
-                }
-                else
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync($"window.enableAlwaysTrailEffect = false;");
-                }
-                _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalMove) window.externalMove({clientPoint.X}, {clientPoint.Y});");
+                string x = FormatCoordinate(clientPoint.X);
+                string y = FormatCoordinate(clientPoint.Y);
+                ExecuteWithInputContext(inputMode, $"if(window.externalMove) window.externalMove({x}, {y});");
             };
 
             _globalHook.MouseUpExt += (s, e) => {
                 if (!ConfigManager.IsEffectEnabled || webView?.CoreWebView2 == null) return;
-                _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.externalUp) window.externalUp();");
+                if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
+
+                string inputMode = _isTouchLikeInput ? InputModeTouch : InputModeMouse;
+                ExecuteWithInputContext(inputMode, "if(window.externalUp) window.externalUp();");
+                _isPrimaryPointerDown = false;
+                _isTouchLikeInput = false;
             };
         }
 
