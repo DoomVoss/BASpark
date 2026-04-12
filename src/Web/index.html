@@ -308,19 +308,27 @@ window.setInputContext = (mode, alwaysTrailEnabled) => {
 
 window.setInputContext("mouse", false);
 
-window.externalBoom = (x, y) => {
+// 核心修复：接收 C# 传来的物理百分比 (0.0 ~ 1.0)，由前端根据真实的画布宽度自行计算
+window.externalBoom = (percentX, percentY) => {
     const now = Date.now();
-    if (x === lastBoomX && y === lastBoomY && (now - lastBoomTime) < 25) return;
-    lastBoomX = x; lastBoomY = y; lastBoomTime = now;
-    window.dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y, bubbles: true }));
+    if (percentX === lastBoomX && percentY === lastBoomY && (now - lastBoomTime) < 25) return;
+    lastBoomX = percentX; lastBoomY = percentY; lastBoomTime = now;
+    
+    // 用百分比乘以 WebView 当前真实的内部宽度
+    let cx = percentX * window.innerWidth;
+    let cy = percentY * window.innerHeight;
+    window.dispatchEvent(new MouseEvent('mousedown', { clientX: cx, clientY: cy, bubbles: true }));
 };
 
-window.externalMove = (x, y) => {
-    if (x === lastMoveX && y === lastMoveY) return;
-    lastMoveX = x; lastMoveY = y;
-    window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+window.externalMove = (percentX, percentY) => {
+    if (percentX === lastMoveX && percentY === lastMoveY) return;
+    lastMoveX = percentX; lastMoveY = percentY;
+    
+    // 用百分比乘以 WebView 当前真实的内部宽度
+    let cx = percentX * window.innerWidth;
+    let cy = percentY * window.innerHeight;
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: cx, clientY: cy, bubbles: true }));
 };
-
 window.externalUp = () => {
     window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
 };

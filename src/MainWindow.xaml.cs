@@ -84,7 +84,7 @@ namespace BASpark
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
-        private const int WS_EX_TOOLWINDOW = 0x00000080; 
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
 
         private const Int32 CURSOR_SHOWING = 0x00000001; // 光标可见状态码
         private const int SM_XVIRTUALSCREEN = 76;
@@ -93,7 +93,7 @@ namespace BASpark
         private const int SM_CYVIRTUALSCREEN = 79;
         private const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
         private const int FullscreenTolerance = 2;
-        
+
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_NOMOVE = 0x0002;
@@ -170,7 +170,7 @@ namespace BASpark
         {
             if (_hwnd == IntPtr.Zero) return;
 
-            SetWindowPos(_hwnd, HWND_TOPMOST, 0, 0, 0, 0, 
+            SetWindowPos(_hwnd, HWND_TOPMOST, 0, 0, 0, 0,
                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
         }
 
@@ -211,19 +211,19 @@ namespace BASpark
 
         private async System.Threading.Tasks.Task InitWebView()
         {
-            try 
+            try
             {
                 var options = new Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions(
                     "--disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion --enable-begin-frame-scheduling"
                 );
 
                 string userDataFolder = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "BASpark_WebView2");
 
                 var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
                 await webView.EnsureCoreWebView2Async(env);
-                
+
                 webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
@@ -234,7 +234,8 @@ namespace BASpark
                     using var reader = new System.IO.StreamReader(streamInfo.Stream);
                     string htmlContent = reader.ReadToEnd();
                     webView.CoreWebView2.NavigateToString(htmlContent);
-                    webView.CoreWebView2.NavigationCompleted += (s, e) => {
+                    webView.CoreWebView2.NavigationCompleted += (s, e) =>
+                    {
                         _lastReportedInputMode = null;
                         _lastReportedAlwaysTrail = null;
                         UpdateColor(ConfigManager.ParticleColor);
@@ -535,33 +536,41 @@ namespace BASpark
                 SWP_NOACTIVATE);
         }
 
-        private bool TryConvertScreenToOverlayPoint(int screenX, int screenY, out System.Windows.Point clientPoint)
+        private bool TryConvertScreenToOverlayPoint(int screenX, int screenY, out System.Windows.Point percentPoint)
         {
-            clientPoint = default;
+            percentPoint = default;
+            try
+            {
+                // 1. 获取窗口绝对的物理边界
+                if (!GetWindowRect(_hwnd, out RECT rect)) return false;
 
-            double viewportWidth = webView.ActualWidth > 0 ? webView.ActualWidth : ActualWidth;
-            double viewportHeight = webView.ActualHeight > 0 ? webView.ActualHeight : ActualHeight;
-            if (_virtualScreenWidth <= 0 || _virtualScreenHeight <= 0 || viewportWidth <= 0 || viewportHeight <= 0)
+                double physWidth = rect.Right - rect.Left;
+                double physHeight = rect.Bottom - rect.Top;
+                if (physWidth <= 0 || physHeight <= 0) return false;
+
+                // 2. 计算出纯物理维度的百分比 (0.000 ~ 1.000)
+                double percentX = (screenX - rect.Left) / physWidth;
+                double percentY = (screenY - rect.Top) / physHeight;
+
+                // 3. 将百分比包装在 Point 里传给下面，彻底抛弃 viewportWidth
+                percentPoint = new System.Windows.Point(
+                    Math.Clamp(percentX, 0.0, 1.0),
+                    Math.Clamp(percentY, 0.0, 1.0)
+                );
+                return true;
+            }
+            catch
             {
                 return false;
             }
-
-            double normalizedX = (screenX - _virtualScreenLeft) / (double)_virtualScreenWidth;
-            double normalizedY = (screenY - _virtualScreenTop) / (double)_virtualScreenHeight;
-            double maxX = Math.Max(0, viewportWidth - 1);
-            double maxY = Math.Max(0, viewportHeight - 1);
-
-            clientPoint = new System.Windows.Point(
-                Math.Clamp(normalizedX * viewportWidth, 0, maxX),
-                Math.Clamp(normalizedY * viewportHeight, 0, maxY));
-            return true;
         }
 
         private void SetupGlobalHooks()
         {
             _globalHook = Hook.GlobalEvents();
 
-            _globalHook.MouseDownExt += (s, e) => {
+            _globalHook.MouseDownExt += (s, e) =>
+            {
                 if (!CanRenderEffects()) return;
                 if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
 
@@ -584,7 +593,8 @@ namespace BASpark
                 ExecuteWithInputContext(inputMode, $"if(window.externalBoom) window.externalBoom({x}, {y});");
             };
 
-            _globalHook.MouseMoveExt += (s, e) => {
+            _globalHook.MouseMoveExt += (s, e) =>
+            {
                 if (!CanRenderEffects()) return;
 
                 bool cursorVisible = IsCursorVisible();
@@ -603,7 +613,8 @@ namespace BASpark
                 ExecuteWithInputContext(inputMode, $"if(window.externalMove) window.externalMove({x}, {y});");
             };
 
-            _globalHook.MouseUpExt += (s, e) => {
+            _globalHook.MouseUpExt += (s, e) =>
+            {
                 if (!CanRenderEffects()) return;
                 if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
 
