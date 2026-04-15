@@ -14,12 +14,13 @@ using System.Linq;
 using System.ComponentModel;
 using System.Windows.Data;
 using Microsoft.Toolkit.Uwp.Notifications;
+using System.Security.Principal;
+using Microsoft.Win32;
 
 namespace BASpark
 {
     public class ProcessItem
     {
-        // 加上 = string.Empty 解决 CS8618 警告
         public string DisplayName { get; set; } = string.Empty;
         public string ProcessName { get; set; } = string.Empty;
         public bool IsSelected { get; set; }
@@ -44,6 +45,7 @@ namespace BASpark
 
             LoadVersion();
             LoadSettings();
+            CheckAdminStatus();
             LoadRemoteNotice();
             
             _ = CheckForUpdates(isManual: false);
@@ -57,6 +59,14 @@ namespace BASpark
             _noticeTimer.Interval = TimeSpan.FromHours(3);
             _noticeTimer.Tick += (s, e) => LoadRemoteNotice();
             _noticeTimer.Start();
+        }
+
+        private void CheckAdminStatus()
+        {
+            if (CheckRunAsAdmin != null)
+            {
+                CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin;
+            }
         }
 
         private async Task CheckForUpdates(bool isManual)
@@ -268,7 +278,6 @@ namespace BASpark
                     string dName = pName;
                     try 
                     { 
-                        // 使用 null 条件操作符解决 CS8600
                         string? desc = p.MainModule?.FileVersionInfo.FileDescription;
                         if (!string.IsNullOrWhiteSpace(desc)) dName = desc;
                     } 
@@ -285,7 +294,6 @@ namespace BASpark
             catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
-        // 重点：显式指定 System.Windows.Controls.TextBox 解决 CS0104 冲突
         private void SearchProcess_TextChanged(object sender, TextChangedEventArgs e)
         {
             string? filter = (sender as System.Windows.Controls.TextBox)?.Text;
@@ -300,7 +308,6 @@ namespace BASpark
             {
                 view.Filter = obj =>
                 {
-                    // 增加 null 检查解决 CS8602
                     if (obj is ProcessItem item)
                     {
                         return item.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
@@ -320,6 +327,8 @@ namespace BASpark
             CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
             CheckEnvironmentFilter.IsChecked = ConfigManager.EnableEnvironmentFilter;
             CheckHideInFullscreen.IsChecked = ConfigManager.HideInFullscreen;
+            CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin; 
+
             SelectProcessFilterMode(ConfigManager.ProcessFilterMode);
             
             string savedList = ConfigManager.ProcessFilterList ?? "";
@@ -333,7 +342,6 @@ namespace BASpark
                 var existing = ProcessList.FirstOrDefault(p => p.ProcessName.Equals(name, StringComparison.OrdinalIgnoreCase));
                 if (existing == null)
                 {
-                    // 补全 DisplayName 逻辑
                     ProcessList.Insert(0, new ProcessItem { DisplayName = name, ProcessName = name, IsSelected = true });
                 }
                 else
@@ -356,6 +364,17 @@ namespace BASpark
         private void CheckAutoStart_Changed(object sender, RoutedEventArgs e)
         {
             UpdateStartSilentInterlock();
+        }
+
+        private void CheckRunAsAdmin_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+
+            if (CheckRunAsAdmin.IsChecked == true)
+            {
+                StatusText.Text = "管理员模式将在保存并重启后生效";
+                StatusText.Foreground = System.Windows.Media.Brushes.Orange;
+            }
         }
 
         private void UpdateStartSilentInterlock()
@@ -497,12 +516,14 @@ namespace BASpark
             int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
             bool autoStartEnabled = CheckAutoStart.IsChecked ?? false;
             bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
+            bool runAsAdminEnabled = CheckRunAsAdmin.IsChecked ?? false;
             ProcessFilterModeOption processFilterMode = GetSelectedProcessFilterMode();
             
             string selectedProcesses = string.Join(Environment.NewLine, 
                 ProcessList.Where(p => p.IsSelected).Select(p => p.ProcessName));
             string normalizedProcessFilterList = ConfigManager.NormalizeProcessFilterList(selectedProcesses);
 
+            ConfigManager.Save("RunAsAdmin", runAsAdminEnabled); 
             ConfigManager.Save("IsEffectEnabled", CheckMasterSwitch.IsChecked ?? true);
             ConfigManager.Save("AutoStart", autoStartEnabled);
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
@@ -520,13 +541,134 @@ namespace BASpark
             ConfigManager.Save("ProcessFilterList", normalizedProcessFilterList);
 
             App.SetAutoStart(ConfigManager.AutoStart);
+            ApplyAutoStartSettings();
 
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
             App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed);
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
             App.Overlay?.RefreshEnvironmentFilterState();
 
+            bool isCurrentAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+            if (runAsAdminEnabled && !isCurrentAdmin)
+            {
+                var res = System.Windows.MessageBox.Show(
+                    "需要以管理员权限重启应用以应用设置，是否立即重启？", 
+                    "需要权限", 
+                    MessageBoxButton.YesNo, 
+                    MessageBoxImage.Question);
+                
+                if (res == MessageBoxResult.Yes)
+                {
+                    RestartAsAdmin();
+                    return;
+                }
+            }
+
             System.Windows.MessageBox.Show("配置已成功应用！", "BASpark", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ApplyAutoStartSettings()
+        {
+            bool autoStart = CheckAutoStart.IsChecked == true;
+            bool runAsAdmin = CheckRunAsAdmin.IsChecked == true;
+            
+            string? exePath = Assembly.GetExecutingAssembly().Location;
+            if (string.IsNullOrEmpty(exePath))
+            {
+                exePath = Process.GetCurrentProcess().MainModule?.FileName;
+            }
+
+            if (string.IsNullOrEmpty(exePath)) return;
+
+            string taskName = "BASparkAutoStart";
+            string regKeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+            
+            try
+            {
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(regKeyPath, true))
+                {
+                    if (autoStart)
+                    {
+                        if (runAsAdmin)
+                        {
+                            if (key?.GetValue("BASpark") != null)
+                            {
+                                key.DeleteValue("BASpark", false);
+                            }
+                            ManageTaskScheduler(taskName, exePath, true);
+                        }
+                        else
+                        {
+                            ManageTaskScheduler(taskName, exePath, false);
+                        }
+                    }
+                    else
+                    {
+                        ManageTaskScheduler(taskName, exePath, false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("应用高权限自启失败: " + ex.Message);
+            }
+        }
+
+        private void ManageTaskScheduler(string taskName, string exePath, bool create)
+        {
+            try
+            {
+                string arguments = create 
+                    ? $"/create /tn \"{taskName}\" /tr \"\\\"{exePath}\\\" /silent\" /sc onlogon /rl highest /f" 
+                    : $"/delete /tn \"{taskName}\" /f";
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = arguments,
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Verb = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator) ? "" : "runas"
+                };
+                
+                using (Process? process = Process.Start(startInfo))
+                {
+                    process?.WaitForExit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("任务计划程序配置失败: " + ex.Message);
+            }
+        }
+
+        private void RestartAsAdmin()
+        {
+            try
+            {
+                string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
+
+                if (string.IsNullOrEmpty(exePath) || !exePath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    exePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BASpark.exe");
+                }
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    Arguments = ConfigManager.StartSilent ? "/silent" : ""
+                };
+                
+                Process.Start(startInfo);
+                System.Windows.Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("提权重启失败，请尝试手动右键以管理员身份运行。\n错误信息: " + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

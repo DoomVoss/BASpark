@@ -48,7 +48,7 @@
                 <Border Background="#FFF5F5" Padding="12" CornerRadius="6" Margin="0,5,0,15" BorderBrush="#FFCCCC" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="● 安全预警 (重要)" FontWeight="Bold" Foreground="#E53E3E" Margin="0,0,0,4"/>
-                        <TextBlock Text="请确保从 GitHub 官方仓库下载。第三方渠道提供的版本可能存在被篡改或报毒的风险。" TextWrapping="Wrap" Foreground="#C53030" FontSize="13" LineHeight="20"/>
+                        <TextBlock Text="请确保从官方渠道下载。第三方渠道提供的版本可能存在被篡改或报毒的风险。" TextWrapping="Wrap" Foreground="#C53030" FontSize="13" LineHeight="20"/>
                     </StackPanel>
                 </Border>
 

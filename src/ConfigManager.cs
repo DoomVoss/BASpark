@@ -25,6 +25,7 @@ namespace BASpark
         public static string LastNoticeContent { get; set; } = "";
         public static bool EnableAlwaysTrailEffect { get; set; } = false;
         public static bool StartSilent { get; set; } = false;
+        public static bool RunAsAdmin { get; set; } = false;
         public static double EffectScale { get; set; } = 1.5;
         public static double EffectOpacity { get; set; } = 1.0;
         public static double EffectSpeed { get; set; } = 1.0;
@@ -52,6 +53,7 @@ namespace BASpark
                         LastNoticeContent = key.GetValue("LastNoticeContent", "")?.ToString() ?? "";
                         EnableAlwaysTrailEffect = Convert.ToBoolean(key.GetValue("EnableAlwaysTrailEffect", false));
                         StartSilent = Convert.ToBoolean(key.GetValue("StartSilent", false));
+                        RunAsAdmin = Convert.ToBoolean(key.GetValue("RunAsAdmin", false));
                         EffectScale = Math.Clamp(Convert.ToDouble(key.GetValue("EffectScale", 1.5)), 0.5, 3.0);
                         EffectOpacity = Math.Clamp(Convert.ToDouble(key.GetValue("EffectOpacity", 1.0)), 0.1, 1.0);
                         EffectSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("EffectSpeed", 1.0)), 0.2, 3.0);
@@ -164,6 +166,7 @@ namespace BASpark
                 LastNoticeContent = "";
                 EnableAlwaysTrailEffect = false;
                 StartSilent = false;
+                RunAsAdmin = false;
                 EffectScale = 1.5;
                 EffectOpacity = 1.0;
                 EffectSpeed = 1.0;

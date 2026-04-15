@@ -3,6 +3,9 @@ using System.Threading;
 using System.Windows;
 using Microsoft.Win32;
 using System.Windows.Interop;
+using System.Diagnostics;
+using System.Security.Principal;
+using System.Linq;
 
 namespace BASpark
 {
@@ -19,7 +22,6 @@ namespace BASpark
         {
             const string appName = @"Global\BASpark_SingleInstance_Mutex";
             _mutex = new Mutex(true, appName, out bool createdNew);
-            bool launchedFromAutoStart = IsAutoStartLaunch(e.Args);
 
             if (!createdNew)
             {
@@ -30,12 +32,26 @@ namespace BASpark
                 return;
             }
 
-            // 新增：监听系统关机/注销事件
+            ConfigManager.Load();
+
+            if (ConfigManager.RunAsAdmin && !IsRunningAsAdmin())
+            {
+                try
+                {
+                    RestartWithAdminPrivileges(e.Args);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("自动请求管理员权限被拒绝或失败: " + ex.Message);
+                }
+            }
+
             SystemEvents.SessionEnding += OnSessionEnding;
 
             base.OnStartup(e);
 
-            ConfigManager.Load();
+            bool launchedFromAutoStart = IsAutoStartLaunch(e.Args);
 
             if (!ConfigManager.AgreedToPrivacy)
             {
@@ -59,22 +75,54 @@ namespace BASpark
             Overlay = new MainWindow();
             Overlay.Show();
 
-            // 仅手动启动/开机非静默启动时显示控制面板
             if (!(launchedFromAutoStart && ConfigManager.StartSilent))
             {
                 ShowControlPanel();
             }
         }
 
+        private bool IsRunningAsAdmin()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
+        private void RestartWithAdminPrivileges(string[] args)
+        {
+            string exePath = System.Environment.ProcessPath ?? 
+                             System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = exePath,
+                UseShellExecute = true,
+                Verb = "runas",
+                Arguments = string.Join(" ", args.Select(a => $"\"{a}\""))
+            };
+
+            try
+            {
+                Process.Start(startInfo);
+                if (_mutex != null)
+                {
+                    _mutex.ReleaseMutex();
+                    _mutex.Dispose();
+                    _mutex = null;
+                }
+                System.Windows.Application.Current.Shutdown();
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                throw new Exception("用户拒绝了管理员授权。");
+            }
+        }
+
         private static bool IsAutoStartLaunch(string[] args)
         {
-            foreach (string arg in args)
-            {
-                if (string.Equals(arg, "--autostart", StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
+            return args.Any(arg => string.Equals(arg, "--autostart", StringComparison.OrdinalIgnoreCase));
         }
 
         private void OnSessionEnding(object sender, SessionEndingEventArgs e)
@@ -137,7 +185,14 @@ namespace BASpark
             {
                 string exePath = System.Environment.ProcessPath ?? 
                                  System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exePath) { UseShellExecute = true });
+
+                ProcessStartInfo startInfo = new ProcessStartInfo(exePath) { UseShellExecute = true };
+                if (ConfigManager.RunAsAdmin)
+                {
+                    startInfo.Verb = "runas";
+                }
+
+                System.Diagnostics.Process.Start(startInfo);
                 ExitApplication();
             }
             catch (Exception ex)

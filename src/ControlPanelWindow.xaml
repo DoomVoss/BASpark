@@ -172,6 +172,8 @@
                             <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标常驻拖尾" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
                             <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
                             <CheckBox Name="CheckStartSilent" Content="静默启动 (最小化到托盘)" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8"/>
+                            <CheckBox Name="CheckRunAsAdmin" Content="以管理员权限运行程序" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckRunAsAdmin_Changed" Unchecked="CheckRunAsAdmin_Changed"/>
+                            <TextBlock Text="* 若需在任务管理器等部分高权限窗口显示特效，请勾选此项。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,10" TextWrapping="Wrap" Opacity="0.8"/>
                             <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" FontSize="12"/>
 
                             <Separator Background="#F0F2F5" Margin="0,4,0,12"/>
