@@ -211,43 +211,77 @@
 
                     <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="视觉表现" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,16"/>
+                            <TextBlock Text="视觉表现" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,8"/>
+                            <TextBlock Text="提示：可点击数字输入精确值后可按回车应用" FontSize="11" Foreground="#999" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="0,0,0,8"/>
                             
-                            <Grid Margin="0,0,0,15">
-                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                    <TextBlock Text="缩放比例" Foreground="#555" FontSize="13"/>
-                                    <TextBlock Name="TextScaleValue" Text="1.0x" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
-                                </StackPanel>
-                                <Slider Name="SliderScale" Grid.Row="1" Minimum="0.5" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                            </Grid>
+                            <StackPanel Margin="0,0,0,15">
+                                <DockPanel LastChildFill="False">
+                                    <TextBlock Text="缩放比例" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                 TextAlignment="Right" VerticalAlignment="Center" 
+                                                 BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                 Text="{Binding ElementName=SliderScale, Path=Value, StringFormat={}{0:F2}, UpdateSourceTrigger=LostFocus}"
+                                                 PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                 InputMethod.IsInputMethodEnabled="False"/>
+                                        <TextBlock Text=" X" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Slider Name="SliderScale" Minimum="0.5" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" 
+                                        ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                            </StackPanel>
 
-                            <Grid Margin="0,0,0,15">
-                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                    <TextBlock Text="全局不透明度" Foreground="#555" FontSize="13"/>
-                                    <TextBlock Name="TextOpacityValue" Text="100%" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
-                                </StackPanel>
-                                <Slider Name="SliderOpacity" Grid.Row="1" Minimum="0.1" Maximum="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                            </Grid>
+                            <StackPanel Margin="0,0,0,15">
+                                <DockPanel LastChildFill="False">
+                                    <TextBlock Text="全局不透明度" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                TextAlignment="Right" VerticalAlignment="Center" 
+                                                BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                Text="{Binding ElementName=SliderOpacity, Path=Value, StringFormat={}{0:F0}, UpdateSourceTrigger=LostFocus}"
+                                                PreviewTextInput="NumberValidationTextBox" 
+                                                KeyDown="TextBox_KeyDown"
+                                                InputMethod.IsInputMethodEnabled="False"/>
+                                        <TextBlock Text=" %" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Slider Name="SliderOpacity" Minimum="10" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" 
+                                        ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                            </StackPanel>
 
-                            <Grid Margin="0,0,0,15">
-                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                    <TextBlock Text="动画播放速度" Foreground="#555" FontSize="13"/>
-                                    <TextBlock Name="TextSpeedValue" Text="1.0x" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
-                                </StackPanel>
-                                <Slider Name="SliderSpeed" Grid.Row="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                            </Grid>
+                            <StackPanel Margin="0,0,0,15">
+                                <DockPanel LastChildFill="False">
+                                    <TextBlock Text="动画播放速度" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                 TextAlignment="Right" VerticalAlignment="Center" 
+                                                 BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                 Text="{Binding ElementName=SliderSpeed, Path=Value, StringFormat={}{0:F2}, UpdateSourceTrigger=LostFocus}"
+                                                 PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                 InputMethod.IsInputMethodEnabled="False"/>
+                                        <TextBlock Text=" X" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Slider Name="SliderSpeed" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" 
+                                        ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                            </StackPanel>
 
-                            <Grid Margin="0,0,0,15">
-                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                    <TextBlock Text="拖尾刷新率 (Hz)" Foreground="#555" FontSize="13"/>
-                                    <TextBlock Name="TextTrailRefreshValue" Text="100%" Foreground="#45AFFF" Margin="8,0,0,0" FontWeight="Bold"/>
-                                </StackPanel>
-                                <Slider Name="SliderTrailRefresh" Grid.Row="1" Minimum="10" Maximum="240" TickFrequency="10" IsSnapToTickEnabled="True" ValueChanged="EffectSlider_ValueChanged"/>
-                            </Grid>
+                            <StackPanel Margin="0,0,0,15">
+                                <DockPanel LastChildFill="False">
+                                    <TextBlock Text="拖尾刷新率" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                 TextAlignment="Right" VerticalAlignment="Center" 
+                                                 BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                 Text="{Binding ElementName=SliderTrailRefresh, Path=Value, StringFormat={}{0:F0}, UpdateSourceTrigger=LostFocus}"
+                                                 PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                 InputMethod.IsInputMethodEnabled="False"/>
+                                        <TextBlock Text=" Hz" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Slider Name="SliderTrailRefresh" Minimum="10" Maximum="240" TickFrequency="10" IsSnapToTickEnabled="True" 
+                                        ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 

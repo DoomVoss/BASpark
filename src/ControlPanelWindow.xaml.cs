@@ -16,6 +16,8 @@ using System.Windows.Data;
 using Microsoft.Toolkit.Uwp.Notifications;
 using System.Security.Principal;
 using Microsoft.Win32;
+using System.Text.RegularExpressions;
+using System.Windows.Input;
 
 namespace BASpark
 {
@@ -59,6 +61,38 @@ namespace BASpark
             _noticeTimer.Interval = TimeSpan.FromHours(3);
             _noticeTimer.Tick += (s, e) => LoadRemoteNotice();
             _noticeTimer.Start();
+        }
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9.]+");
+            bool isInvalid = regex.IsMatch(e.Text);
+
+            if (!isInvalid && e.Text == ".")
+            {
+                var textBox = sender as System.Windows.Controls.TextBox;
+                if (textBox != null && textBox.Text.Contains("."))
+                {
+                    isInvalid = true;
+                }
+            }
+
+            e.Handled = isInvalid;
+        }
+
+        private void TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                var textBox = sender as System.Windows.Controls.TextBox;
+                if (textBox != null)
+                {
+                    System.Windows.Input.Keyboard.ClearFocus();
+                var binding = System.Windows.Data.BindingOperations.GetBindingExpression(textBox, System.Windows.Controls.TextBox.TextProperty);
+                binding?.UpdateSource();
+                }
+            e.Handled = true;
+            }
         }
 
         private void CheckAdminStatus()
@@ -355,7 +389,7 @@ namespace BASpark
             UpdateEnvironmentFilterInterlock();
 
             SliderScale.Value = ConfigManager.EffectScale;
-            SliderOpacity.Value = ConfigManager.EffectOpacity;
+            SliderOpacity.Value = ConfigManager.EffectOpacity * 100;
             SliderSpeed.Value = ConfigManager.EffectSpeed;
             SliderTrailRefresh.Value = ConfigManager.TrailRefreshRate;
             UpdateEffectValueTexts();
@@ -432,16 +466,11 @@ namespace BASpark
 
         private void UpdateEffectValueTexts()
         {
-            TextScaleValue.Text = $"{SliderScale.Value:F2}x";
-            TextOpacityValue.Text = $"{SliderOpacity.Value:P0}";
-            TextSpeedValue.Text = $"{SliderSpeed.Value:F2}x";
-            TextTrailRefreshValue.Text = $"{Math.Round(SliderTrailRefresh.Value)}";
         }
 
         private void EffectSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!IsLoaded) return;
-            UpdateEffectValueTexts();
         }
 
         private void UpdateColorPreview(string rgbString)
@@ -511,7 +540,7 @@ namespace BASpark
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
             double effectScale = Math.Round(SliderScale.Value, 2);
-            double effectOpacity = Math.Round(SliderOpacity.Value, 2);
+            double effectOpacity = Math.Round(SliderOpacity.Value / 100.0, 2);
             double effectSpeed = Math.Round(SliderSpeed.Value, 2);
             int trailRefreshRate = (int)Math.Round(SliderTrailRefresh.Value);
             bool autoStartEnabled = CheckAutoStart.IsChecked ?? false;
