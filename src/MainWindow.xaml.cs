@@ -128,6 +128,9 @@ namespace BASpark
 
         public MainWindow()
         {
+            // 强制 WPF 使用软件渲染，以避免在 WebView2 透明背景下 DWM 占用过高 GPU 的问题
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+
             InitializeComponent();
             webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
             UpdateTrailRefreshRate(ConfigManager.TrailRefreshRate);
@@ -442,19 +445,6 @@ namespace BASpark
             try
             {
                 using Process process = Process.GetProcessById(unchecked((int)processId));
-
-                try
-                {
-                    string? moduleName = process.MainModule?.ModuleName;
-                    if (!string.IsNullOrWhiteSpace(moduleName))
-                    {
-                        return moduleName.ToLowerInvariant();
-                    }
-                }
-                catch
-                {
-                    // 某些系统进程可能无法读取 MainModule，回退到 ProcessName。
-                }
 
                 string fallbackName = process.ProcessName;
                 if (!fallbackName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
