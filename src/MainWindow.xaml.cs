@@ -108,6 +108,7 @@ namespace BASpark
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_LAYERED = 0x00080000;
         private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const int WS_EX_NOACTIVATE = 0x08000000;
 
         private const Int32 CURSOR_SHOWING = 0x00000001; // 光标可见状态码
         private const int SM_XVIRTUALSCREEN = 76;
@@ -165,7 +166,7 @@ namespace BASpark
             base.OnSourceInitialized(e);
             _hwnd = new WindowInteropHelper(this).Handle;
             int style = GetWindowLong(_hwnd, GWL_EXSTYLE);
-            SetWindowLong(_hwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+            SetWindowLong(_hwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
 
             UpdateOverlayBounds();
             SystemEvents.DisplaySettingsChanged += HandleDisplaySettingsChanged;
