@@ -34,16 +34,17 @@ namespace BASpark
         private DispatcherTimer _noticeTimer;
         private bool _isCheckingUpdate = false;
 
-        public ObservableCollection<ProcessItem> ProcessList { get; set; } = new ObservableCollection<ProcessItem>();
+        public ObservableCollection<FilterProfile> Profiles { get; set; } = new ObservableCollection<FilterProfile>();
+        public ObservableCollection<string> CurrentProfileProcesses { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<ProcessItem> RunningProcessList { get; set; } = new ObservableCollection<ProcessItem>();
 
         public ControlPanelWindow()
         {
             InitializeComponent();
             
-            if (ListProcessSelection != null)
-            {
-                ListProcessSelection.ItemsSource = ProcessList;
-            }
+            ComboProfiles.ItemsSource = Profiles;
+            ListConfiguredProcesses.ItemsSource = CurrentProfileProcesses;
+            ListRunningProcesses.ItemsSource = RunningProcessList;
 
             LoadVersion();
             LoadSettings();
@@ -88,10 +89,10 @@ namespace BASpark
                 if (textBox != null)
                 {
                     System.Windows.Input.Keyboard.ClearFocus();
-                var binding = System.Windows.Data.BindingOperations.GetBindingExpression(textBox, System.Windows.Controls.TextBox.TextProperty);
-                binding?.UpdateSource();
+                    var binding = System.Windows.Data.BindingOperations.GetBindingExpression(textBox, System.Windows.Controls.TextBox.TextProperty);
+                    binding?.UpdateSource();
                 }
-            e.Handled = true;
+                e.Handled = true;
             }
         }
 
@@ -289,15 +290,9 @@ namespace BASpark
             }
         }
 
-        private void RefreshProcessList_Click(object sender, RoutedEventArgs e)
+        private void RefreshRunningProcessList()
         {
-            RefreshProcessList();
-        }
-
-        private void RefreshProcessList()
-        {
-            var currentlySelected = ProcessList.Where(p => p.IsSelected).Select(p => p.ProcessName).ToList();
-            ProcessList.Clear();
+            RunningProcessList.Clear();
             try
             {
                 var processes = Process.GetProcesses()
@@ -307,7 +302,7 @@ namespace BASpark
                 foreach (var p in processes)
                 {
                     string pName = p.ProcessName + ".exe";
-                    if (ProcessList.Any(item => item.ProcessName.Equals(pName, StringComparison.OrdinalIgnoreCase))) continue;
+                    if (RunningProcessList.Any(item => item.ProcessName.Equals(pName, StringComparison.OrdinalIgnoreCase))) continue;
 
                     string dName = pName;
                     try 
@@ -317,21 +312,21 @@ namespace BASpark
                     } 
                     catch { }
 
-                    ProcessList.Add(new ProcessItem
+                    RunningProcessList.Add(new ProcessItem
                     {
                         DisplayName = dName,
                         ProcessName = pName,
-                        IsSelected = currentlySelected.Contains(pName, StringComparer.OrdinalIgnoreCase)
+                        IsSelected = false
                     });
                 }
             }
             catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
-        private void SearchProcess_TextChanged(object sender, TextChangedEventArgs e)
+        private void SearchRunningProcess_TextChanged(object sender, TextChangedEventArgs e)
         {
             string? filter = (sender as System.Windows.Controls.TextBox)?.Text;
-            ICollectionView view = CollectionViewSource.GetDefaultView(ProcessList);
+            ICollectionView view = CollectionViewSource.GetDefaultView(RunningProcessList);
             if (view == null) return;
 
             if (string.IsNullOrWhiteSpace(filter))
@@ -361,29 +356,15 @@ namespace BASpark
             CheckAlwaysTrailEffectSwitch.IsChecked = ConfigManager.EnableAlwaysTrailEffect;
             CheckEnvironmentFilter.IsChecked = ConfigManager.EnableEnvironmentFilter;
             CheckHideInFullscreen.IsChecked = ConfigManager.HideInFullscreen;
+            CheckShowEffectOnDesktop.IsChecked = ConfigManager.ShowEffectOnDesktop;
             CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin; 
             CheckTouchscreenMode.IsChecked = ConfigManager.IsTouchscreenMode;
 
-            SelectProcessFilterMode(ConfigManager.ProcessFilterMode);
-            
-            string savedList = ConfigManager.ProcessFilterList ?? "";
-            var savedNames = savedList.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                                      .Select(s => s.Trim()).ToList();
+            Profiles.Clear();
+            foreach (var p in ConfigManager.GetProfiles()) Profiles.Add(p);
 
-            RefreshProcessList();
-
-            foreach (var name in savedNames)
-            {
-                var existing = ProcessList.FirstOrDefault(p => p.ProcessName.Equals(name, StringComparison.OrdinalIgnoreCase));
-                if (existing == null)
-                {
-                    ProcessList.Insert(0, new ProcessItem { DisplayName = name, ProcessName = name, IsSelected = true });
-                }
-                else
-                {
-                    existing.IsSelected = true;
-                }
-            }
+            var active = ConfigManager.GetActiveProfile();
+            ComboProfiles.SelectedItem = active;
 
             UpdateColorPreview(ConfigManager.ParticleColor);
             UpdateStartSilentInterlock();
@@ -393,7 +374,6 @@ namespace BASpark
             SliderOpacity.Value = ConfigManager.EffectOpacity * 100;
             SliderSpeed.Value = ConfigManager.EffectSpeed;
             SliderTrailRefresh.Value = ConfigManager.TrailRefreshRate;
-            UpdateEffectValueTexts();
         }
 
         private void CheckAutoStart_Changed(object sender, RoutedEventArgs e)
@@ -427,6 +407,10 @@ namespace BASpark
         private void ProcessFilterMode_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (!IsLoaded) return;
+            if (ComboProfiles.SelectedItem is FilterProfile active)
+            {
+                active.Mode = GetSelectedProcessFilterMode();
+            }
             UpdateEnvironmentFilterInterlock();
         }
 
@@ -437,13 +421,16 @@ namespace BASpark
             bool processFilterEnabled = environmentFilterEnabled && selectedMode != ProcessFilterModeOption.Disabled;
 
             CheckHideInFullscreen.IsEnabled = environmentFilterEnabled;
+            CheckShowEffectOnDesktop.IsEnabled = environmentFilterEnabled;
+            ComboProfiles.IsEnabled = environmentFilterEnabled;
             ComboProcessFilterMode.IsEnabled = environmentFilterEnabled;
             
-            if (ListProcessSelection != null)
+            if (ListConfiguredProcesses != null)
             {
-                ListProcessSelection.IsEnabled = processFilterEnabled;
-                ListProcessSelection.Opacity = processFilterEnabled ? 1.0 : 0.65;
+                ListConfiguredProcesses.IsEnabled = processFilterEnabled;
+                ListConfiguredProcesses.Opacity = processFilterEnabled ? 1.0 : 0.65;
             }
+            ManualProcessInput.IsEnabled = processFilterEnabled;
         }
 
         private void SelectProcessFilterMode(ProcessFilterModeOption mode)
@@ -463,35 +450,6 @@ namespace BASpark
                 return mode;
             }
             return ProcessFilterModeOption.Disabled;
-        }
-
-        private void UpdateEffectValueTexts()
-        {
-        }
-
-        private void EffectSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (!IsLoaded) return;
-        }
-
-        private void UpdateColorPreview(string rgbString)
-        {
-            try
-            {
-                var parts = rgbString.Split(',');
-                if (parts.Length == 3)
-                {
-                    byte r = byte.Parse(parts[0].Trim());
-                    byte g = byte.Parse(parts[1].Trim());
-                    byte b = byte.Parse(parts[2].Trim());
-                    ColorPreview.Background = new System.Windows.Media.SolidColorBrush(
-                        System.Windows.Media.Color.FromRgb(r, g, b));
-                }
-            }
-            catch
-            {
-                ColorPreview.Background = System.Windows.Media.Brushes.Gray;
-            }
         }
 
         private void Tab_Click(object sender, RoutedEventArgs e)
@@ -526,6 +484,26 @@ namespace BASpark
             }
         }
 
+        private void UpdateColorPreview(string rgbString)
+        {
+            try
+            {
+                var parts = rgbString.Split(',');
+                if (parts.Length == 3)
+                {
+                    byte r = byte.Parse(parts[0].Trim());
+                    byte g = byte.Parse(parts[1].Trim());
+                    byte b = byte.Parse(parts[2].Trim());
+                    ColorPreview.Background = new System.Windows.Media.SolidColorBrush(
+                        System.Windows.Media.Color.FromRgb(r, g, b));
+                }
+            }
+            catch
+            {
+                ColorPreview.Background = System.Windows.Media.Brushes.Gray;
+            }
+        }
+
         private void OpenLink_Click(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Button btn && btn.Tag is string url)
@@ -534,6 +512,136 @@ namespace BASpark
                 catch (Exception ex)
                 {
                     System.Windows.MessageBox.Show("无法打开链接: " + ex.Message);
+                }
+            }
+        }
+
+        // --- 配置组管理 ---
+        private void ComboProfiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ComboProfiles.SelectedItem is FilterProfile selected)
+            {
+                CurrentProfileProcesses.Clear();
+                foreach (var p in selected.Processes) CurrentProfileProcesses.Add(p);
+                SelectProcessFilterMode(selected.Mode);
+                UpdateEnvironmentFilterInterlock();
+            }
+        }
+
+        private void AddProfile_Click(object sender, RoutedEventArgs e)
+        {
+            var newProfile = new FilterProfile { Name = "新配置组 " + (Profiles.Count + 1) };
+            Profiles.Add(newProfile);
+            ComboProfiles.SelectedItem = newProfile;
+        }
+
+        private void RenameProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (ComboProfiles.SelectedItem is FilterProfile active)
+            {
+                // 简易重命名逻辑，实际项目中可使用自定义输入框
+                string newName = Microsoft.VisualBasic.Interaction.InputBox("输入新名称:", "重命名配置组", active.Name);
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    active.Name = newName;
+                    // 刷新 ComboBox 显示
+                    int index = Profiles.IndexOf(active);
+                    Profiles.RemoveAt(index);
+                    Profiles.Insert(index, active);
+                    ComboProfiles.SelectedItem = active;
+                }
+            }
+        }
+
+        private void DeleteProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (Profiles.Count <= 1)
+            {
+                System.Windows.MessageBox.Show("至少需要保留一个配置组。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (ComboProfiles.SelectedItem is FilterProfile active)
+            {
+                if (System.Windows.MessageBox.Show($"确定要删除 '{active.Name}' 吗？", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    Profiles.Remove(active);
+                    ComboProfiles.SelectedIndex = 0;
+                }
+            }
+        }
+
+        // --- 进程管理 ---
+        private void RemoveProcess_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button btn && btn.DataContext is string processName)
+            {
+                CurrentProfileProcesses.Remove(processName);
+                if (ComboProfiles.SelectedItem is FilterProfile active)
+                {
+                    active.Processes.Remove(processName);
+                }
+            }
+        }
+
+        private void AddManualProcess_Click(object sender, RoutedEventArgs e)
+        {
+            string input = ManualProcessInput.Text.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(input)) return;
+            if (!input.EndsWith(".exe")) input += ".exe";
+
+            AddProcessToActiveProfile(input);
+            ManualProcessInput.Clear();
+        }
+
+        private void BrowseProcess_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "可执行文件 (*.exe)|*.exe",
+                Title = "选择应用进程"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string fileName = System.IO.Path.GetFileName(dialog.FileName).ToLowerInvariant();
+                AddProcessToActiveProfile(fileName);
+            }
+        }
+
+        private void SelectRunningProcess_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshRunningProcessList();
+            RunningProcessOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void CloseRunningProcessOverlay_Click(object sender, RoutedEventArgs e)
+        {
+            RunningProcessOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void ConfirmAddRunningProcesses_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = RunningProcessList.Where(p => p.IsSelected).Select(p => p.ProcessName).ToList();
+            foreach (var p in selected)
+            {
+                AddProcessToActiveProfile(p);
+            }
+            RunningProcessOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void AddProcessToActiveProfile(string processName)
+        {
+            if (ComboProfiles.SelectedItem is FilterProfile active)
+            {
+                if (!active.Processes.Contains(processName, StringComparer.OrdinalIgnoreCase))
+                {
+                    active.Processes.Add(processName);
+                    CurrentProfileProcesses.Add(processName);
+                }
+                else
+                {
+                    // 已存在，不重复添加
                 }
             }
         }
@@ -548,11 +656,10 @@ namespace BASpark
             bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
             bool runAsAdminEnabled = CheckRunAsAdmin.IsChecked ?? false;
             bool isTouchscreenEnabled = CheckTouchscreenMode?.IsChecked ?? false;
-            ProcessFilterModeOption processFilterMode = GetSelectedProcessFilterMode();
             
-            string selectedProcesses = string.Join(Environment.NewLine, 
-                ProcessList.Where(p => p.IsSelected).Select(p => p.ProcessName));
-            string normalizedProcessFilterList = ConfigManager.NormalizeProcessFilterList(selectedProcesses);
+            // 保存配置组
+            string activeId = (ComboProfiles.SelectedItem as FilterProfile)?.Id ?? "";
+            ConfigManager.SaveProfiles(Profiles.ToList(), activeId);
 
             ConfigManager.Save("RunAsAdmin", runAsAdminEnabled);
             ConfigManager.Save("IsTouchscreenMode", isTouchscreenEnabled);
@@ -569,8 +676,7 @@ namespace BASpark
             ConfigManager.Save("StartSilent", startSilentEnabled);
             ConfigManager.Save("EnableEnvironmentFilter", CheckEnvironmentFilter.IsChecked ?? false);
             ConfigManager.Save("HideInFullscreen", CheckHideInFullscreen.IsChecked ?? true);
-            ConfigManager.Save("ProcessFilterMode", processFilterMode.ToString());
-            ConfigManager.Save("ProcessFilterList", normalizedProcessFilterList);
+            ConfigManager.Save("ShowEffectOnDesktop", CheckShowEffectOnDesktop.IsChecked ?? true);
 
             App.SetAutoStart(ConfigManager.AutoStart);
             ApplyAutoStartSettings();
@@ -708,6 +814,11 @@ namespace BASpark
         {
             ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
             base.OnClosing(e);
+        }
+
+        private void EffectSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!IsLoaded) return;
         }
 
         private void ResetConfig_Click(object sender, RoutedEventArgs e)

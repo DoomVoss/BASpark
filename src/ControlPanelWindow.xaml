@@ -313,40 +313,73 @@
                             <TextBlock Text="环境过滤" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,12"/>
                             
                             <CheckBox Name="CheckEnvironmentFilter" Content="启用智能环境探测" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10" Checked="EnvironmentFilterSetting_Changed" Unchecked="EnvironmentFilterSetting_Changed"/>
-                            <CheckBox Name="CheckHideInFullscreen" Content="全屏应用前台运行时自动暂停" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,15"/>
+                            <CheckBox Name="CheckHideInFullscreen" Content="全屏应用前台运行时自动暂停" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
+                            <CheckBox Name="CheckShowEffectOnDesktop" Content="在桌面上显示特效" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,15"/>
 
                             <Separator Background="#F0F2F5" Margin="0,5,0,15"/>
 
-                            <TextBlock Text="应用过滤 (名单管理)" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
-                            <ComboBox Name="ComboProcessFilterMode" Width="180" Margin="0,0,0,12" SelectionChanged="ProcessFilterMode_Changed" Height="28" VerticalContentAlignment="Center">
+                            <TextBlock Text="配置组管理" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <DockPanel Margin="0,0,0,12">
+                                <Button Content="删除" Click="DeleteProfile_Click" DockPanel.Dock="Right" Margin="5,0,0,0" Padding="8,0" Height="28" Background="#FFF0F0" Foreground="#CC0000" BorderBrush="#FFCCCC">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                </Button>
+                                <Button Content="重命名" Click="RenameProfile_Click" DockPanel.Dock="Right" Margin="5,0,0,0" Padding="8,0" Height="28" Background="#F8FAFF" BorderBrush="#D6DEE8">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                </Button>
+                                <Button Content="新建" Click="AddProfile_Click" DockPanel.Dock="Right" Margin="5,0,0,0" Padding="8,0" Height="28" Background="#F8FAFF" BorderBrush="#D6DEE8">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                </Button>
+                                <ComboBox Name="ComboProfiles" SelectionChanged="ComboProfiles_SelectionChanged" Height="28" VerticalContentAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </DockPanel>
+
+                            <TextBlock Text="过滤模式" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <ComboBox Name="ComboProcessFilterMode" Width="180" Margin="0,0,0,12" SelectionChanged="ProcessFilterMode_Changed" Height="28" VerticalContentAlignment="Center" HorizontalAlignment="Left">
                                 <ComboBoxItem Content="🚫 关闭过滤" Tag="Disabled"/>
                                 <ComboBoxItem Content="❌ 黑名单模式" Tag="Blacklist"/>
                                 <ComboBoxItem Content="✅ 白名单模式" Tag="Whitelist"/>
                             </ComboBox>
 
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <TextBox x:Name="SearchProcess" Height="30" Padding="26,0,5,0" VerticalContentAlignment="Center" TextChanged="SearchProcess_TextChanged" Background="#F8FAFF" BorderBrush="#D6DEE8">
-                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
-                                </TextBox>
-                                <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" Foreground="#AAA" IsHitTestVisible="False"/>
-                                <Button Grid.Column="1" Content="刷新列表" Margin="8,0,0,0" Padding="12,0" Height="30" Click="RefreshProcessList_Click" Background="White">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                                </Button>
-                            </Grid>
-                            
-                            <ListBox Name="ListProcessSelection" Height="140" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1">
+                            <TextBlock Text="已配置进程列表" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <ListBox Name="ListConfiguredProcesses" Height="120" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1" Margin="0,0,0,10">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <CheckBox IsChecked="{Binding IsSelected}" Margin="2,4" VerticalContentAlignment="Center">
-                                            <StackPanel Orientation="Vertical" Margin="8,0,0,0">
-                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13" Foreground="#333"/>
-                                                <TextBlock Text="{Binding ProcessName}" FontSize="10" Foreground="#999"/>
-                                            </StackPanel>
-                                        </CheckBox>
+                                        <DockPanel LastChildFill="True" Margin="2">
+                                            <Button Content="移除" Click="RemoveProcess_Click" DockPanel.Dock="Right" Padding="5,0" Height="22" FontSize="11" Background="#FFF0F0" Foreground="#CC0000" BorderBrush="#FFCCCC">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
+                                            </Button>
+                                            <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="5,0"/>
+                                        </DockPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
+
+                            <TextBlock Text="添加进程" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ManualProcessInput" Height="30" VerticalContentAlignment="Center" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="5,0">
+                                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                </TextBox>
+                                <Button Grid.Column="1" Content="添加" Margin="5,0,0,0" Padding="12,0" Height="30" Click="AddManualProcess_Click" Background="#45AFFF" Foreground="White">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                </Button>
+                                <Button Grid.Column="2" Content="浏览..." Margin="5,0,0,0" Padding="12,0" Height="30" Click="BrowseProcess_Click" Background="White">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                </Button>
+                                <Button Grid.Column="3" Content="从运行中选择" Margin="5,0,0,0" Padding="12,0" Height="30" Click="SelectRunningProcess_Click" Background="White">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                </Button>
+                            </Grid>
                         </StackPanel>
                     </Border>
                     
@@ -395,5 +428,50 @@
                 
             </Grid>
         </ScrollViewer>
+
+        <!-- 运行中进程选择弹窗 (Overlay) -->
+        <Grid Name="RunningProcessOverlay" Grid.ColumnSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="12" Width="400" Height="500" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Text="从运行中进程添加" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+                    
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <TextBox x:Name="SearchRunningProcess" Height="30" VerticalContentAlignment="Center" TextChanged="SearchRunningProcess_TextChanged" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="26,0,5,0">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                        </TextBox>
+                        <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" Foreground="#AAA" IsHitTestVisible="False"/>
+                    </Grid>
+
+                    <ListBox Name="ListRunningProcesses" Grid.Row="2" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}" Margin="2,4" VerticalContentAlignment="Center">
+                                    <StackPanel Orientation="Vertical" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13" Foreground="#333"/>
+                                        <TextBlock Text="{Binding ProcessName}" FontSize="10" Foreground="#999"/>
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="取消" Click="CloseRunningProcessOverlay_Click" Width="80" Height="32" Background="White" BorderBrush="#DDD" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button Content="确认添加" Click="ConfirmAddRunningProcesses_Click" Width="100" Height="32" Background="#45AFFF" Foreground="White" BorderThickness="0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

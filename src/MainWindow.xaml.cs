@@ -396,6 +396,23 @@ namespace BASpark
                 return _isSuppressedByEnvironment;
             }
 
+            // 桌面判断逻辑
+            string className = GetWindowClassName(targetWindow);
+            if (string.IsNullOrEmpty(className))
+            {
+                className = GetWindowClassName(GetForegroundWindow());
+            }
+
+            bool isDesktop = string.Equals(className, "Progman", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(className, "WorkerW", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(className, "SHELLDLL_DefView", StringComparison.OrdinalIgnoreCase);
+
+            if (isDesktop)
+            {
+                UpdateSuppressionState(nowTicks, !ConfigManager.ShowEffectOnDesktop);
+                return _isSuppressedByEnvironment;
+            }
+
             if (!TryGetForegroundProcessName(targetWindow, out string processName))
             {
                 if (!TryGetForegroundProcessName(GetForegroundWindow(), out processName))
@@ -426,20 +443,14 @@ namespace BASpark
 
         private bool IsSuppressedByProcessFilter(string processName)
         {
-            ProcessFilterModeOption mode = ConfigManager.ProcessFilterMode;
-            if (mode == ProcessFilterModeOption.Disabled)
+            var profile = ConfigManager.GetActiveProfile();
+            if (profile == null || profile.Mode == ProcessFilterModeOption.Disabled)
             {
                 return false;
             }
 
-            var filterEntries = ConfigManager.GetProcessFilterEntries();
-            if (filterEntries.Count == 0)
-            {
-                return false;
-            }
-
-            bool isListed = filterEntries.Contains(processName);
-            return mode switch
+            bool isListed = profile.Processes.Contains(processName, StringComparer.OrdinalIgnoreCase);
+            return profile.Mode switch
             {
                 ProcessFilterModeOption.Blacklist => isListed,
                 ProcessFilterModeOption.Whitelist => !isListed,

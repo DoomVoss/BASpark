@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseVisualBasic>true</UseVisualBasic>
     <ApplicationIcon>app.ico</ApplicationIcon>
 
     <Version>1.2.0</Version>
