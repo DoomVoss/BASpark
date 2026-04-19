@@ -583,7 +583,7 @@ namespace BASpark
                 _virtualScreenLeft,
                 _virtualScreenTop,
                 _virtualScreenWidth,
-                _virtualScreenHeight,
+                _virtualScreenHeight - 1,
                 SWP_NOACTIVATE);
         }
 
