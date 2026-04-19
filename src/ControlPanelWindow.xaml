@@ -1,7 +1,7 @@
 <Window x:Class="BASpark.ControlPanelWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BASpark - 控制面板" Height="650" Width="680"
+        Title="BASpark - 控制面板" Height="710" Width="680"
         WindowStartupLocation="CenterScreen" Background="#F5F7FA" Icon="app.ico">
 
     <Window.Resources>
@@ -151,7 +151,25 @@
                 </StackPanel>
 
                 <StackPanel Name="PageSettings" Visibility="Collapsed">
-                    <TextBlock Text="参数配置" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" Foreground="#333"/>
+                <Grid Margin="0,0,0,25">
+                <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="参数配置" FontSize="24" FontWeight="Bold" Foreground="#333" VerticalAlignment="Center"/>
+
+                    <Button Grid.Column="1" Content="应用更改" Click="SaveSettings_Click" Width="120" Height="36" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" FontWeight="Bold" FontSize="14">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="18"/>
+                            </Style>
+                        </Button.Resources>
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.15"/>
+                        </Button.Effect>
+                    </Button>
+                </Grid>
 
                 <StackPanel>
                     <StackPanel.Style>
@@ -189,14 +207,6 @@
                             </StackPanel>
                         </StackPanel>
                     </Border>
-
-                    <Button Content="应用更改" Click="SaveSettings_Click" Width="180" Height="42" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" FontWeight="Bold" FontSize="15">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                        <Button.Effect>
-                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
-                        </Button.Effect>
-                    </Button>
-                    <Rectangle Height="40"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -286,15 +296,7 @@
                             </StackPanel>
                         </StackPanel>
                     </Border>
-
-                        <Button Content="应用更改" Click="SaveSettings_Click" Width="180" Height="42" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" FontWeight="Bold" FontSize="15">
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                            <Button.Effect>
-                                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
-                            </Button.Effect>
-                        </Button>
-                        <Rectangle Height="40"/>
-                    </StackPanel>
+                </StackPanel>
 
                     <StackPanel>
                         <StackPanel.Style>
@@ -382,14 +384,6 @@
                             </Grid>
                         </StackPanel>
                     </Border>
-                    
-                    <Button Content="应用更改" Click="SaveSettings_Click" Width="180" Height="42" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" FontWeight="Bold" FontSize="15">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                        <Button.Effect>
-                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
-                        </Button.Effect>
-                    </Button>
-                    <Rectangle Height="40"/>
                 </StackPanel>
 
                 </StackPanel>
@@ -471,6 +465,26 @@
                         </Button>
                     </StackPanel>
                 </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Name="RenameProfileOverlay" Grid.ColumnSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="12" Width="350" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="重命名配置组" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+                    <TextBlock Text="请输入新的配置组名称：" FontSize="13" Foreground="#666" Margin="0,0,0,10"/>
+                    <TextBox x:Name="NewProfileNameInput" Height="32" VerticalContentAlignment="Center" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="8,0">
+                        <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                    </TextBox>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Content="取消" Click="CloseRenameOverlay_Click" Width="80" Height="32" Background="White" BorderBrush="#DDD" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button Content="确认修改" Click="ConfirmRenameProfile_Click" Width="100" Height="32" Background="#45AFFF" Foreground="White" BorderThickness="0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

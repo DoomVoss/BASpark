@@ -539,18 +539,36 @@ namespace BASpark
         {
             if (ComboProfiles.SelectedItem is FilterProfile active)
             {
-                // 简易重命名逻辑，实际项目中可使用自定义输入框
-                string newName = Microsoft.VisualBasic.Interaction.InputBox("输入新名称:", "重命名配置组", active.Name);
-                if (!string.IsNullOrWhiteSpace(newName))
+                // 使用自定义输入框
+                NewProfileNameInput.Text = active.Name;
+                RenameProfileOverlay.Visibility = Visibility.Visible;
+                NewProfileNameInput.Focus();
+                NewProfileNameInput.SelectAll();
+            }
+        }
+
+        private void ConfirmRenameProfile_Click(object sender, RoutedEventArgs e)
+        {
+            string newName = NewProfileNameInput.Text.Trim();
+            
+            if (!string.IsNullOrWhiteSpace(newName) && ComboProfiles.SelectedItem is FilterProfile active)
+            {
+                active.Name = newName;
+                // 刷新 ComboBox 显示
+                int index = Profiles.IndexOf(active);
+                if (index != -1)
                 {
-                    active.Name = newName;
-                    // 刷新 ComboBox 显示
-                    int index = Profiles.IndexOf(active);
                     Profiles.RemoveAt(index);
                     Profiles.Insert(index, active);
                     ComboProfiles.SelectedItem = active;
                 }
             }
+            RenameProfileOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void CloseRenameOverlay_Click(object sender, RoutedEventArgs e)
+        {
+            RenameProfileOverlay.Visibility = Visibility.Collapsed;
         }
 
         private void DeleteProfile_Click(object sender, RoutedEventArgs e)
