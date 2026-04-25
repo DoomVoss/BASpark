@@ -72,6 +72,7 @@ namespace BASpark
         private IntPtr _hwnd;
         private string? _lastReportedInputMode;
         private bool? _lastReportedAlwaysTrail;
+        private bool? _lastReportedMultiTouch;
         private const string InputModeMouse = "mouse";
         private const string InputModeTouch = "touch";
 
@@ -264,15 +265,23 @@ namespace BASpark
         private string BuildInputContextScript(string inputMode)
         {
             bool alwaysTrailEnabled = ConfigManager.EnableAlwaysTrailEffect;
-            if (_lastReportedInputMode == inputMode && _lastReportedAlwaysTrail == alwaysTrailEnabled)
+            bool multiTouchEnabled = ConfigManager.EnableMultiTouch;
+
+            if (_lastReportedInputMode == inputMode && 
+                _lastReportedAlwaysTrail == alwaysTrailEnabled &&
+                _lastReportedMultiTouch == multiTouchEnabled)
             {
                 return string.Empty;
             }
 
             _lastReportedInputMode = inputMode;
             _lastReportedAlwaysTrail = alwaysTrailEnabled;
+            _lastReportedMultiTouch = multiTouchEnabled;
+
             string alwaysTrailLiteral = alwaysTrailEnabled ? "true" : "false";
-            return $"if(window.setInputContext) window.setInputContext('{inputMode}', {alwaysTrailLiteral});";
+            string multiTouchLiteral = multiTouchEnabled ? "true" : "false";
+
+            return $"if(window.setInputContext) window.setInputContext('{inputMode}', {alwaysTrailLiteral}, {multiTouchLiteral});";
         }
 
         private void SyncInputContext(string inputMode)
