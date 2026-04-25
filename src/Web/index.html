@@ -304,14 +304,16 @@ let lastMoveX = -1, lastMoveY = -1;
 window.currentInputMode = "mouse";
 window.enableAlwaysTrailEffect = false;
 window.effectiveAlwaysTrail = false;
+window.enableMultiTouch = false;
 
-window.setInputContext = (mode, alwaysTrailEnabled) => {
+window.setInputContext = (mode, alwaysTrailEnabled, multiTouchEnabled) => {
     window.currentInputMode = mode === "touch" ? "touch" : "mouse";
     window.enableAlwaysTrailEffect = Boolean(alwaysTrailEnabled);
+    window.enableMultiTouch = Boolean(multiTouchEnabled);
     window.effectiveAlwaysTrail = window.currentInputMode === "mouse" && window.enableAlwaysTrailEffect;
 };
 
-window.setInputContext("mouse", false);
+window.setInputContext("mouse", false, false);
 
 // 接收 C# 传来的物理百分比 (0.0 ~ 1.0)，由前端根据真实的画布宽度自行计算
 window.externalBoom = (percentX, percentY) => {
