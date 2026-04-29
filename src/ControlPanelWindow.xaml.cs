@@ -856,40 +856,31 @@ namespace BASpark
             bool autoStart = CheckAutoStart.IsChecked == true;
             bool runAsAdmin = CheckRunAsAdmin.IsChecked == true;
             
-            string? exePath = Assembly.GetExecutingAssembly().Location;
-            if (string.IsNullOrEmpty(exePath))
-            {
-                exePath = Process.GetCurrentProcess().MainModule?.FileName;
-            }
+            string? exePath = AutoStartManager.ResolveExecutablePath(
+                Environment.ProcessPath,
+                Process.GetCurrentProcess().MainModule?.FileName,
+                Assembly.GetExecutingAssembly().Location,
+                AppDomain.CurrentDomain.BaseDirectory);
 
             if (string.IsNullOrEmpty(exePath)) return;
 
-            string taskName = "BASparkAutoStart";
             string regKeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+            AutoStartPlan plan = AutoStartManager.CreatePlan(autoStart, runAsAdmin);
             
             try
             {
-                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(regKeyPath, true))
+                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(regKeyPath, true))
                 {
-                    if (autoStart)
+                    if (plan.RegistryRunEnabled)
                     {
-                        if (runAsAdmin)
-                        {
-                            if (key?.GetValue("BASpark") != null)
-                            {
-                                key.DeleteValue("BASpark", false);
-                            }
-                            ManageTaskScheduler(taskName, exePath, true);
-                        }
-                        else
-                        {
-                            ManageTaskScheduler(taskName, exePath, false);
-                        }
+                        key?.SetValue(AutoStartManager.RunValueName, AutoStartManager.BuildRunCommand(exePath));
                     }
                     else
                     {
-                        ManageTaskScheduler(taskName, exePath, false);
+                        key?.DeleteValue(AutoStartManager.RunValueName, false);
                     }
+
+                    ManageTaskScheduler(AutoStartManager.TaskName, exePath, plan.ScheduledTaskEnabled);
                 }
             }
             catch (Exception ex)
