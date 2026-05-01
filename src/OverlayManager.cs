@@ -100,6 +100,7 @@ namespace BASpark
             public uint PointerId;
             public int LastX, LastY;
             public bool IsDown;
+            public long LastMoveTicks;
             public MainWindow? TargetOverlay;
         }
 
@@ -215,9 +216,10 @@ namespace BASpark
             if (!_activePointers.TryGetValue(pointerId, out var state) || !state.IsDown) return;
             if (state.TargetOverlay == null) return;
 
+            // 每个触控点独立节流，避免多指互相阻塞
             long currentTicks = DateTime.Now.Ticks;
-            if (currentTicks - _lastMoveTicks < _touchMoveIntervalTicks) return;
-            _lastMoveTicks = currentTicks;
+            if (currentTicks - state.LastMoveTicks < _touchMoveIntervalTicks) return;
+            state.LastMoveTicks = currentTicks;
 
             state.LastX = x;
             state.LastY = y;
@@ -383,7 +385,7 @@ namespace BASpark
                 return false;
             }
 
-            if (!ConfigManager.IsTouchscreenMode && !CursorIsVisible())
+            if (!ConfigManager.IsTouchscreenMode && !CursorIsVisible() && _activePointers.Count == 0)
             {
                 ReleasePointerState();
                 return false;

@@ -815,6 +815,7 @@ namespace BASpark
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
             App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, effectSpeed);
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
+            App.Overlay?.RefreshEnvironmentFilterState();
             App.Overlay?.UpdateTouchMode(isTouchscreenEnabled);
             App.Overlay?.UpdateMultiTouchMode(isMultiTouchEnabled);
             if (!enabledScreenIds.SetEquals(selectedIds))

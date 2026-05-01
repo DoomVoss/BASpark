@@ -181,48 +181,6 @@ class MouseSpark {
                 }
             }
 
-        }
-
-    renderTrail(trailArray, isPointerDown, frameScale) {
-        for (let i = trailArray.length - 1; i >= 0; i--) {
-            let t = trailArray[i];
-            if (window.effectiveAlwaysTrail) {
-                t.life -= 0.085 * frameScale;
-            } else {
-                t.life -= (isPointerDown ? 0.085 : 0.18) * frameScale;
-            }
-            if (t.life <= 0) trailArray.splice(i, 1);
-        }
-
-        if (trailArray.length > 1) {
-            this.ctx.lineWidth = 5.0;
-            this.ctx.shadowColor = `rgba(${this.color}, 0.6)`;
-            this.ctx.shadowBlur = 3;
-            this.ctx.shadowOffsetX = 0;
-            this.ctx.shadowOffsetY = 0;
-
-            const lastIdx = trailArray.length - 1;
-            for (let i = 0; i < lastIdx; i++) {
-                const alphaStart = i / lastIdx;
-                const alphaEnd = (i + 1) / lastIdx;
-                const a0 = trailArray[i];
-                const a1 = trailArray[i + 1];
-
-                const segGrad = this.ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
-                segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
-                segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
-
-                this.ctx.beginPath();
-                this.ctx.moveTo(a0.x, a0.y);
-                this.ctx.lineTo(a1.x, a1.y);
-                this.ctx.strokeStyle = segGrad;
-                this.ctx.stroke();
-            }
-
-            this.ctx.shadowColor = 'transparent';
-        }
-    }
-
             for (let i = this.waves.length - 1; i >= 0; i--) {
                 let w = this.waves[i];
                 w.life += frameScale;
@@ -288,6 +246,46 @@ class MouseSpark {
             this.ctx.globalCompositeOperation = "source-over";
         }
         requestAnimationFrame((nextNow) => this.loop(nextNow));
+    }
+
+    renderTrail(trailArray, isPointerDown, frameScale) {
+        for (let i = trailArray.length - 1; i >= 0; i--) {
+            let t = trailArray[i];
+            if (window.effectiveAlwaysTrail) {
+                t.life -= 0.085 * frameScale;
+            } else {
+                t.life -= (isPointerDown ? 0.085 : 0.18) * frameScale;
+            }
+            if (t.life <= 0) trailArray.splice(i, 1);
+        }
+
+        if (trailArray.length > 1) {
+            this.ctx.lineWidth = 5.0;
+            this.ctx.shadowColor = `rgba(${this.color}, 0.6)`;
+            this.ctx.shadowBlur = 3;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+
+            const lastIdx = trailArray.length - 1;
+            for (let i = 0; i < lastIdx; i++) {
+                const alphaStart = i / lastIdx;
+                const alphaEnd = (i + 1) / lastIdx;
+                const a0 = trailArray[i];
+                const a1 = trailArray[i + 1];
+
+                const segGrad = this.ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
+                segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
+                segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(a0.x, a0.y);
+                this.ctx.lineTo(a1.x, a1.y);
+                this.ctx.strokeStyle = segGrad;
+                this.ctx.stroke();
+            }
+
+            this.ctx.shadowColor = 'transparent';
+        }
     }
 }
 
