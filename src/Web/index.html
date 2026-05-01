@@ -28,6 +28,7 @@ class MouseSpark {
         this.waves = [];
         this.sparks = [];
         this.trail = [];
+        this.touchPointers = new Map(); // 多指追踪: pointerId -> { trail: [], isDown: bool, lastPos: null }
         this.isDown = false;
         this.lastPos = null;
         this.baseFrameMs = 1000 / 60;
@@ -164,66 +165,63 @@ class MouseSpark {
         this.lastFrameTime = now;
         const frameScale = (deltaMs / this.baseFrameMs) * this.speed;
 
-        if (this.waves.length > 0 || this.sparks.length > 0 || this.trail.length > 0) {
+        if (this.waves.length > 0 || this.sparks.length > 0 || this.trail.length > 0 || this.touchPointers.size > 0) {
             this.ctx.clearRect(0, 0, this.c.width, this.c.height);
             // 优化：减少全局合成模式的使用
             this.ctx.globalCompositeOperation = "lighter";
 
-            for (let i = this.trail.length - 1; i >= 0; i--) {
-                let t = this.trail[i];
-                if (window.effectiveAlwaysTrail) {
-                    t.life -= 0.085 * frameScale;
-                } else {
-                    t.life -= (this.isDown ? 0.085 : 0.18) * frameScale;
+            // 渲染主鼠标拖尾
+            this.renderTrail(this.trail, this.isDown, frameScale);
+
+            // 渲染多指拖尾
+            for (let [id, pointer] of this.touchPointers.entries()) {
+                this.renderTrail(pointer.trail, pointer.isDown, frameScale);
+                if (!pointer.isDown && pointer.trail.length === 0) {
+                    this.touchPointers.delete(id);
                 }
-                if (t.life <= 0) this.trail.splice(i, 1);
             }
 
-            if (this.trail.length > 1) {
-                // this.ctx.beginPath();
-                // this.ctx.moveTo(this.trail[0].x, this.trail[0].y);
-                // for (let i = 1; i < this.trail.length; i++) {
-                //     this.ctx.lineTo(this.trail[i].x, this.trail[i].y);
-                // }
-                // this.ctx.lineWidth = 8.0;
+        }
 
-
-                // this.ctx.strokeStyle = `rgba(${this.color},${this.alpha(0.35)})`;
-                // this.ctx.stroke();
-                
-
-                // 逐段渲染：每段的透明度基于数组索引位置，而非空间位置
-                // 防止当鼠标锐角转动时，尾迹变淡后突然出现的问题
-                this.ctx.lineWidth = 5.0;
-                this.ctx.shadowColor = `rgba(${this.color}, 0.6)`;
-                this.ctx.shadowBlur = 3;
-                this.ctx.shadowOffsetX = 0;
-                this.ctx.shadowOffsetY = 0;
-
-                const lastIdx = this.trail.length - 1;
-                for (let i = 0; i < lastIdx; i++) {
-                    const alphaStart = i / lastIdx;
-                    const alphaEnd = (i + 1) / lastIdx;
-                    const a0 = this.trail[i];
-                    const a1 = this.trail[i + 1];
-
-                    // 每段使用独立的两点渐变，只覆盖该段自身
-                    const segGrad = this.ctx.createLinearGradient(
-                        a0.x, a0.y, a1.x, a1.y
-                    );
-                    segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
-                    segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
-
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(a0.x, a0.y);
-                    this.ctx.lineTo(a1.x, a1.y);
-                    this.ctx.strokeStyle = segGrad;
-                    this.ctx.stroke();
-                }
-
-                this.ctx.shadowColor = 'transparent';
-
+    renderTrail(trailArray, isPointerDown, frameScale) {
+        for (let i = trailArray.length - 1; i >= 0; i--) {
+            let t = trailArray[i];
+            if (window.effectiveAlwaysTrail) {
+                t.life -= 0.085 * frameScale;
+            } else {
+                t.life -= (isPointerDown ? 0.085 : 0.18) * frameScale;
             }
+            if (t.life <= 0) trailArray.splice(i, 1);
+        }
+
+        if (trailArray.length > 1) {
+            this.ctx.lineWidth = 5.0;
+            this.ctx.shadowColor = `rgba(${this.color}, 0.6)`;
+            this.ctx.shadowBlur = 3;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+
+            const lastIdx = trailArray.length - 1;
+            for (let i = 0; i < lastIdx; i++) {
+                const alphaStart = i / lastIdx;
+                const alphaEnd = (i + 1) / lastIdx;
+                const a0 = trailArray[i];
+                const a1 = trailArray[i + 1];
+
+                const segGrad = this.ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
+                segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
+                segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(a0.x, a0.y);
+                this.ctx.lineTo(a1.x, a1.y);
+                this.ctx.strokeStyle = segGrad;
+                this.ctx.stroke();
+            }
+
+            this.ctx.shadowColor = 'transparent';
+        }
+    }
 
             for (let i = this.waves.length - 1; i >= 0; i--) {
                 let w = this.waves[i];
@@ -338,6 +336,41 @@ window.externalMove = (percentX, percentY) => {
 };
 window.externalUp = () => {
     window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+};
+
+// 多点触控接口
+window.externalTouchDown = (pointerId, percentX, percentY) => {
+    if (!window.spark || !window.enableMultiTouch) return;
+    let cx = percentX * window.innerWidth;
+    let cy = percentY * window.innerHeight;
+
+    if (window.spark.touchPointers.size > 5) return; // 限制最多5指
+
+    let pointer = window.spark.touchPointers.get(pointerId) || { trail: [], isDown: false, lastPos: null };
+    pointer.isDown = true;
+    pointer.lastPos = { x: cx, y: cy };
+    window.spark.touchPointers.set(pointerId, pointer);
+
+    window.spark.boom(cx, cy);
+};
+
+window.externalTouchMove = (pointerId, percentX, percentY) => {
+    if (!window.spark || !window.enableMultiTouch) return;
+    let pointer = window.spark.touchPointers.get(pointerId);
+    if (!pointer || !pointer.isDown) return;
+
+    let cx = percentX * window.innerWidth;
+    let cy = percentY * window.innerHeight;
+
+    pointer.trail.push({ x: cx, y: cy, life: 1 });
+    if (pointer.trail.length > window.spark.maxTrail) pointer.trail.shift();
+    pointer.lastPos = { x: cx, y: cy };
+};
+
+window.externalTouchUp = (pointerId) => {
+    if (!window.spark) return;
+    let pointer = window.spark.touchPointers.get(pointerId);
+    if (pointer) pointer.isDown = false;
 };
 
 window.updateColor = (rgbString) => {

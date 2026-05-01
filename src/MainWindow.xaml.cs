@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -330,6 +330,27 @@ namespace BASpark
         {
             string inputMode = touchLike ? InputModeTouch : InputModeMouse;
             ExecuteWithInputContext(inputMode, "if(window.externalUp) window.externalUp();");
+        }
+
+        public void EmitTouchDown(uint pointerId, int x, int y)
+        {
+            if (!TryConvertScreenToOverlayPoint(x, y, out System.Windows.Point clientPoint)) return;
+            string px = FormatCoordinate(clientPoint.X);
+            string py = FormatCoordinate(clientPoint.Y);
+            ExecuteWithInputContext(InputModeTouch, $"if(window.externalTouchDown) window.externalTouchDown({pointerId}, {px}, {py});");
+        }
+
+        public void EmitTouchMove(uint pointerId, int x, int y, bool touchLike)
+        {
+            if (!TryConvertScreenToOverlayPoint(x, y, out System.Windows.Point clientPoint)) return;
+            string px = FormatCoordinate(clientPoint.X);
+            string py = FormatCoordinate(clientPoint.Y);
+            ExecuteWithInputContext(InputModeTouch, $"if(window.externalTouchMove) window.externalTouchMove({pointerId}, {px}, {py});");
+        }
+
+        public void EmitTouchUp(uint pointerId, bool touchLike)
+        {
+            ExecuteWithInputContext(InputModeTouch, $"if(window.externalTouchUp) window.externalTouchUp({pointerId});");
         }
 
         private void UpdateOverlayBounds()
