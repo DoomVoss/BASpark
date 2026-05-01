@@ -135,7 +135,7 @@ namespace BASpark
 
         private async Task CheckForUpdates(bool isManual)
         {
-            string updateUrl = "https://qq.catbotstudio.top/update.json"; 
+            string updateUrl = "https://api.catbotstudio.cn/baspark/update.json"; 
             try
             {
                 using HttpClient client = new HttpClient();
@@ -220,7 +220,7 @@ namespace BASpark
 
         private async void LoadRemoteNotice()
         {
-            string noticeUrl = "https://qq.catbotstudio.top/notice.json";
+            string noticeUrl = "https://api.catbotstudio.cn/baspark/notice.json";
             try
             {
                 using HttpClient client = new HttpClient();
