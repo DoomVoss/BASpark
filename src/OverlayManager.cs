@@ -52,56 +52,10 @@ namespace BASpark
         [DllImport("user32.dll")]
         private static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
         [DllImport("user32.dll")]
-        private static extern bool RegisterRawInputDevices(RAWINPUTDEVICE[] pRawInputDevices, uint uiNumDevices, uint cbSize);
-        [DllImport("user32.dll")]
-        private static extern uint GetRawInputData(IntPtr hRawInput, uint uiCommand, IntPtr pData, ref uint pcbSize, uint cbSizeHeader);
-        [DllImport("user32.dll")]
         private static extern bool RegisterPointerInputTarget(IntPtr hwnd, uint scope);
 
         private const uint PP_SCOPE_RECENT_INPUT = 1;
         private const uint PP_SCOPE_GLOBAL = 2;
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RAWINPUTDEVICE
-        {
-            public ushort usUsagePage;
-            public ushort usUsage;
-            public uint dwFlags;
-            public IntPtr hwndTarget;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RAWINPUTHEADER
-        {
-            public uint dwType;
-            public uint dwSize;
-            public IntPtr hDevice;
-            public IntPtr wParam;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RAWHID
-        {
-            public uint dwSizeHid;
-            public uint dwCount;
-            public byte bRawData;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct RAWINPUT
-        {
-            [FieldOffset(0)]
-            public RAWINPUTHEADER header;
-            [FieldOffset(16)] // 在 64 位系统上 header 是 24 字节，但在 32 位是 16。
-                             // .NET 会自动处理，但为了安全我们使用 IntPtr 偏移。
-            public RAWHID hid;
-        }
-
-        private const uint RID_INPUT = 0x10000003;
-        private const uint RIM_TYPEHID = 2;
-        private const ushort HID_USAGE_PAGE_DIGITIZER = 0x0D;
-        private const ushort HID_USAGE_TOUCH_SCREEN = 0x04;
-        private const uint RIDEV_INPUTSINK = 0x00000100;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int x; public int y; }
@@ -126,7 +80,7 @@ namespace BASpark
 
         private readonly Dictionary<string, MainWindow> _overlays = new(StringComparer.OrdinalIgnoreCase);
         private IKeyboardMouseEvents? _globalHook;
-        private RawInputWindow? _rawInputWindow;
+        private PointerInputWindow? _rawInputWindow;
         private MainWindow? _activePointerOverlay;
         private long _lastMoveTicks;
         private long _lastClickTicks;
