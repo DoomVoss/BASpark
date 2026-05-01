@@ -130,13 +130,24 @@ namespace BASpark
         private MainWindow? _activePointerOverlay;
         private long _lastMoveTicks;
         private long _lastClickTicks;
-        private long _moveIntervalTicks = 250000;
+        private long _moveIntervalTicks = 250000; // 默认 40Hz
+        private long _touchMoveIntervalTicks = 80000; // 触摸专用，约 120Hz，降低拖尾延迟
         private bool _isPrimaryPointerDown;
         private bool _isTouchLikeInput;
         private bool _isSuppressedByEnvironment;
         private long _suppressionCacheValidUntilTicks;
         private IntPtr _lastForegroundWindow = IntPtr.Zero;
         private bool _disposed;
+
+        private readonly Dictionary<uint, TouchPointState> _activePointers = new();
+
+        private class TouchPointState
+        {
+            public uint PointerId;
+            public int LastX, LastY;
+            public bool IsDown;
+            public MainWindow? TargetOverlay;
+        }
 
         public void Start()
         {
@@ -150,14 +161,16 @@ namespace BASpark
         {
             if (ConfigManager.EnableMultiTouch)
             {
-                _rawInputWindow = new RawInputWindow(this);
+                _rawInputWindow = new PointerInputWindow(this);
             }
         }
 
-        private class RawInputWindow : NativeWindow
+        private class PointerInputWindow : NativeWindow
         {
             private readonly OverlayManager _owner;
+            private const int WM_POINTERUPDATE = 0x0245;
             private const int WM_POINTERDOWN = 0x0246;
+            private const int WM_POINTERUP = 0x0247;
 
             [DllImport("user32.dll")]
             private static extern bool GetPointerInfo(uint pointerId, ref POINTER_INFO pointerInfo);
@@ -183,24 +196,35 @@ namespace BASpark
                 public int ButtonChangeType;
             }
 
-            public RawInputWindow(OverlayManager owner)
+            public PointerInputWindow(OverlayManager owner)
             {
                 _owner = owner;
                 CreateHandle(new CreateParams());
 
-                // 注册全局指针监听（需要高权限或在 Secure Desktop 运行，但在普通模式下也能捕获部分消息）
+                // 注册全局指针监听（通常需要 UIAccess 权限，若满足条件可直接捕获多点触控）
                 RegisterPointerInputTarget(Handle, PP_SCOPE_GLOBAL);
             }
 
             protected override void WndProc(ref Message m)
             {
-                if (m.Msg == WM_POINTERDOWN)
+                if (m.Msg == WM_POINTERDOWN || m.Msg == WM_POINTERUPDATE || m.Msg == WM_POINTERUP)
                 {
                     uint pointerId = (uint)((ulong)m.WParam & 0xFFFF);
                     POINTER_INFO pi = new POINTER_INFO();
                     if (GetPointerInfo(pointerId, ref pi))
                     {
-                        _owner.EmitDown(pi.ptPixelLocation.x, pi.ptPixelLocation.y);
+                        if (m.Msg == WM_POINTERDOWN)
+                        {
+                            _owner.EmitTouchDown(pointerId, pi.ptPixelLocation.x, pi.ptPixelLocation.y);
+                        }
+                        else if (m.Msg == WM_POINTERUPDATE)
+                        {
+                            _owner.EmitTouchMove(pointerId, pi.ptPixelLocation.x, pi.ptPixelLocation.y);
+                        }
+                        else if (m.Msg == WM_POINTERUP)
+                        {
+                            _owner.EmitTouchUp(pointerId);
+                        }
                     }
                 }
                 base.WndProc(ref m);
@@ -209,36 +233,50 @@ namespace BASpark
 
         private void HandleRawInput(IntPtr hRawInput)
         {
+            // 已废弃，多点触控改由 PointerInputWindow 直接处理 WM_POINTER
+        }
+
+        public void EmitTouchDown(uint pointerId, int x, int y)
+        {
             if (!CanRenderEffects()) return;
 
-            uint dwSize = 0;
-            GetRawInputData(hRawInput, RID_INPUT, IntPtr.Zero, ref dwSize, (uint)Marshal.SizeOf<RAWINPUTHEADER>());
+            MainWindow? target = ResolveTargetOverlay(x, y);
+            if (target == null) return;
 
-            if (dwSize == 0) return;
-
-            IntPtr pData = Marshal.AllocHGlobal((int)dwSize);
-            try
+            _activePointers[pointerId] = new TouchPointState
             {
-                if (GetRawInputData(hRawInput, RID_INPUT, pData, ref dwSize, (uint)Marshal.SizeOf<RAWINPUTHEADER>()) != dwSize)
-                {
-                    return;
-                }
+                PointerId = pointerId,
+                LastX = x,
+                LastY = y,
+                IsDown = true,
+                TargetOverlay = target
+            };
 
-                RAWINPUTHEADER header = Marshal.PtrToStructure<RAWINPUTHEADER>(pData);
-                if (header.dwType == RIM_TYPEHID)
-                {
-                    // 这里由于 HID 报文解析极其复杂且设备各异，BASpark 采用更稳健的策略：
-                    // 当收到原始触摸输入且非主指针（由鼠标钩子处理）时，补全点击。
-                    // 实际上，对于大多数多点触控应用，我们通过检测当前光标位置是否在特效范围内来优化。
-                    
-                    // 注意：为了保持性能和兼容性，我们主要通过 PointerSupport 提升 UI 响应，
-                    // 全局多点特效在目前的开源驱动下通常通过模拟并发点击实现。
-                    // 这里的 RawInput 主要是为了唤醒处于非活动状态的覆盖层。
-                }
-            }
-            finally
+            ConfigManager.TotalClicks++;
+            target.EmitTouchDown(pointerId, x, y);
+        }
+
+        public void EmitTouchMove(uint pointerId, int x, int y)
+        {
+            if (!_activePointers.TryGetValue(pointerId, out var state) || !state.IsDown) return;
+            if (state.TargetOverlay == null) return;
+
+            long currentTicks = DateTime.Now.Ticks;
+            if (currentTicks - _lastMoveTicks < _touchMoveIntervalTicks) return;
+            _lastMoveTicks = currentTicks;
+
+            state.LastX = x;
+            state.LastY = y;
+            state.TargetOverlay.EmitTouchMove(pointerId, x, y, true);
+        }
+
+        public void EmitTouchUp(uint pointerId)
+        {
+            if (_activePointers.TryGetValue(pointerId, out var state))
             {
-                Marshal.FreeHGlobal(pData);
+                state.IsDown = false;
+                state.TargetOverlay?.EmitTouchUp(pointerId, true);
+                _activePointers.Remove(pointerId);
             }
         }
 
@@ -287,6 +325,9 @@ namespace BASpark
         {
             if (!CanRenderEffects()) return;
 
+            // 如果当前正在处理原生多点触控，则跳过合成鼠标事件的按下
+            if (_activePointers.Count > 0 && !CursorIsVisible()) return;
+
             bool isLeft = e.Button == MouseButtons.Left;
             bool isRight = e.Button == MouseButtons.Right;
             bool shouldTrigger = ConfigManager.ClickTriggerType switch
@@ -322,11 +363,16 @@ namespace BASpark
         {
             if (!CanRenderEffects()) return;
 
+            // 如果已有原生触控点在处理，则跳过合成鼠标事件以消除多余延迟
+            if (_activePointers.Count > 0 && !CursorIsVisible()) return;
+
             bool cursorVisible = CursorIsVisible();
             if (!cursorVisible && !_isPrimaryPointerDown) return;
 
+            // 触摸/触控笔事件使用更低的节流阈值，修复拖拽卡顿
             long currentTicks = DateTime.Now.Ticks;
-            if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
+            long interval = (!cursorVisible || _isTouchLikeInput) ? _touchMoveIntervalTicks : _moveIntervalTicks;
+            if (currentTicks - _lastMoveTicks < interval) return;
             _lastMoveTicks = currentTicks;
 
             if (!TryGetPhysicalCursorPosition(out int cursorX, out int cursorY))
@@ -342,6 +388,8 @@ namespace BASpark
         private void OnMouseUpExt(object? sender, MouseEventExtArgs e)
         {
             _ = e;
+            // 如果已有原生触控点在处理，跳过
+            if (_activePointers.Count > 0 && !CursorIsVisible()) return;
             if (!_isPrimaryPointerDown)
             {
                 _isTouchLikeInput = false;
@@ -709,6 +757,8 @@ namespace BASpark
                 _rawInputWindow.ReleaseHandle();
                 _rawInputWindow = null;
             }
+
+            _activePointers.Clear();
 
             CloseWindows();
         }
