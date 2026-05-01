@@ -245,7 +245,7 @@
                                     </Style>
                                 </StackPanel.Style>
                                 <CheckBox Name="CheckMultiTouch" Content="启用多点触控支持" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,2"/>
-                                <TextBlock Text="* 开启后，支持多指同时触发特效 (需重启应用生效)。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,12" TextWrapping="Wrap" Opacity="0.8"/>
+                                <TextBlock Text="* 开启后，支持多指同时触发独立拖尾与点击特效。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,12" TextWrapping="Wrap" Opacity="0.8"/>
                             </StackPanel>
                             <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" FontSize="12"/>
                         </StackPanel>

@@ -289,6 +289,19 @@ namespace BASpark
             ForEachOverlay(w => w.UpdateTrailRefreshRate(hz));
         }
         public void UpdateTouchMode(bool enabled) => ForEachOverlay(w => w.UpdateTouchMode(enabled));
+        public void UpdateMultiTouchMode(bool enabled)
+        {
+            if (enabled && _rawInputWindow == null)
+            {
+                _rawInputWindow = new PointerInputWindow(this);
+            }
+            else if (!enabled && _rawInputWindow != null)
+            {
+                _rawInputWindow.ReleaseHandle();
+                _rawInputWindow = null;
+                _activePointers.Clear();
+            }
+        }
         public bool IsEffectSuppressedByEnvironment() => ShouldSuppressEffects();
         public void RefreshEnvironmentFilterState()
         {
