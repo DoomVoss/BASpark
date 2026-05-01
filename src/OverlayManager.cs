@@ -52,10 +52,7 @@ namespace BASpark
         [DllImport("user32.dll")]
         private static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
         [DllImport("user32.dll")]
-        private static extern bool RegisterPointerInputTarget(IntPtr hwnd, uint scope);
-
-        private const uint PP_SCOPE_RECENT_INPUT = 1;
-        private const uint PP_SCOPE_GLOBAL = 2;
+        private static extern IntPtr GetMessageExtraInfo();
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int x; public int y; }
@@ -80,7 +77,7 @@ namespace BASpark
 
         private readonly Dictionary<string, MainWindow> _overlays = new(StringComparer.OrdinalIgnoreCase);
         private IKeyboardMouseEvents? _globalHook;
-        private PointerInputWindow? _rawInputWindow;
+        private TouchInputCapture? _touchCapture;
         private MainWindow? _activePointerOverlay;
         private long _lastMoveTicks;
         private long _lastClickTicks;
@@ -108,87 +105,25 @@ namespace BASpark
         {
             RebuildWindows(forceRebuild: true);
             SetupGlobalHooks();
-            SetupRawInput();
+            SetupTouchCapture();
             SystemEvents.DisplaySettingsChanged += HandleDisplaySettingsChanged;
         }
 
-        private void SetupRawInput()
+        private void SetupTouchCapture()
         {
             if (ConfigManager.EnableMultiTouch)
             {
-                _rawInputWindow = new PointerInputWindow(this);
-            }
-        }
-
-        private class PointerInputWindow : NativeWindow
-        {
-            private readonly OverlayManager _owner;
-            private const int WM_POINTERUPDATE = 0x0245;
-            private const int WM_POINTERDOWN = 0x0246;
-            private const int WM_POINTERUP = 0x0247;
-
-            [DllImport("user32.dll")]
-            private static extern bool GetPointerInfo(uint pointerId, ref POINTER_INFO pointerInfo);
-
-            [StructLayout(LayoutKind.Sequential)]
-            private struct POINTER_INFO
-            {
-                public uint pointerType;
-                public uint pointerId;
-                public IntPtr frameId;
-                public uint pointerFlags;
-                public IntPtr sourceDevice;
-                public IntPtr hwndTarget;
-                public POINT ptPixelLocation;
-                public POINT ptHimetricLocation;
-                public POINT ptPixelLocationRaw;
-                public POINT ptHimetricLocationRaw;
-                public uint dwTime;
-                public uint historyCount;
-                public int InputData;
-                public uint dwKeyStates;
-                public ulong PerformanceCount;
-                public int ButtonChangeType;
-            }
-
-            public PointerInputWindow(OverlayManager owner)
-            {
-                _owner = owner;
-                CreateHandle(new CreateParams());
-
-                // 注册全局指针监听（通常需要 UIAccess 权限，若满足条件可直接捕获多点触控）
-                RegisterPointerInputTarget(Handle, PP_SCOPE_GLOBAL);
-            }
-
-            protected override void WndProc(ref Message m)
-            {
-                if (m.Msg == WM_POINTERDOWN || m.Msg == WM_POINTERUPDATE || m.Msg == WM_POINTERUP)
-                {
-                    uint pointerId = (uint)((ulong)m.WParam & 0xFFFF);
-                    POINTER_INFO pi = new POINTER_INFO();
-                    if (GetPointerInfo(pointerId, ref pi))
-                    {
-                        if (m.Msg == WM_POINTERDOWN)
-                        {
-                            _owner.EmitTouchDown(pointerId, pi.ptPixelLocation.x, pi.ptPixelLocation.y);
-                        }
-                        else if (m.Msg == WM_POINTERUPDATE)
-                        {
-                            _owner.EmitTouchMove(pointerId, pi.ptPixelLocation.x, pi.ptPixelLocation.y);
-                        }
-                        else if (m.Msg == WM_POINTERUP)
-                        {
-                            _owner.EmitTouchUp(pointerId);
-                        }
-                    }
-                }
-                base.WndProc(ref m);
+                _touchCapture = new TouchInputCapture();
+                _touchCapture.TouchDown += (id, x, y) => EmitTouchDown(id, x, y);
+                _touchCapture.TouchMove += (id, x, y) => EmitTouchMove(id, x, y);
+                _touchCapture.TouchUp += (id) => EmitTouchUp(id);
+                _touchCapture.Start();
             }
         }
 
         private void HandleRawInput(IntPtr hRawInput)
         {
-            // 已废弃，多点触控改由 PointerInputWindow 直接处理 WM_POINTER
+            // 已废弃，多点触控改由 TouchInputCapture 处理
         }
 
         public void EmitTouchDown(uint pointerId, int x, int y)
@@ -247,14 +182,18 @@ namespace BASpark
         public void UpdateTouchMode(bool enabled) => ForEachOverlay(w => w.UpdateTouchMode(enabled));
         public void UpdateMultiTouchMode(bool enabled)
         {
-            if (enabled && _rawInputWindow == null)
+            if (enabled && _touchCapture == null)
             {
-                _rawInputWindow = new PointerInputWindow(this);
+                _touchCapture = new TouchInputCapture();
+                _touchCapture.TouchDown += (id, x, y) => EmitTouchDown(id, x, y);
+                _touchCapture.TouchMove += (id, x, y) => EmitTouchMove(id, x, y);
+                _touchCapture.TouchUp += (id) => EmitTouchUp(id);
+                _touchCapture.Start();
             }
-            else if (!enabled && _rawInputWindow != null)
+            else if (!enabled && _touchCapture != null)
             {
-                _rawInputWindow.ReleaseHandle();
-                _rawInputWindow = null;
+                _touchCapture.Dispose();
+                _touchCapture = null;
                 _activePointers.Clear();
             }
         }
@@ -721,10 +660,10 @@ namespace BASpark
                 _globalHook = null;
             }
 
-            if (_rawInputWindow != null)
+            if (_touchCapture != null)
             {
-                _rawInputWindow.ReleaseHandle();
-                _rawInputWindow = null;
+                _touchCapture.Dispose();
+                _touchCapture = null;
             }
 
             _activePointers.Clear();
