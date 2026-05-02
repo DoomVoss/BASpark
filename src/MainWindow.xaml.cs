@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -77,9 +78,11 @@ namespace BASpark
 
         private System.Windows.Threading.DispatcherTimer? _topmostTimer;
         private EventHandler<CoreWebView2NavigationCompletedEventArgs>? _navigationCompletedHandler;
+        private CoreWebView2? _coreWebView;
         private WinEventDelegate? _winEventDelegate;
         private IntPtr _winEventHook = IntPtr.Zero;
         private long _lastEnsureTopmostTicks;
+        private bool _isClosing;
         private static readonly long EnsureTopmostDebounceTicks = TimeSpan.FromMilliseconds(80).Ticks;
 
         private delegate void WinEventDelegate(
@@ -180,20 +183,16 @@ namespace BASpark
 
         public void UpdateColor(string color)
         {
-            if (webView?.CoreWebView2 != null)
-                _ = webView.CoreWebView2.ExecuteScriptAsync($"if(window.updateColor) window.updateColor('{color}');");
+            ExecuteScript($"if(window.updateColor) window.updateColor('{color}');");
         }
 
         public void UpdateEffectSettings(double scale, double opacity, double speed)
         {
-            if (webView?.CoreWebView2 == null) return;
-
             string scaleStr = scale.ToString("F2", CultureInfo.InvariantCulture);
             string opacityStr = opacity.ToString("F2", CultureInfo.InvariantCulture);
             string speedStr = speed.ToString("F2", CultureInfo.InvariantCulture);
 
-            _ = webView.CoreWebView2.ExecuteScriptAsync(
-                $"if(window.updateEffectSettings) window.updateEffectSettings({scaleStr}, {opacityStr}, {speedStr});");
+            ExecuteScript($"if(window.updateEffectSettings) window.updateEffectSettings({scaleStr}, {opacityStr}, {speedStr});");
         }
 
         public void UpdateTrailRefreshRate(int hz)
@@ -221,28 +220,37 @@ namespace BASpark
                     "BASpark_WebView2");
 
                 var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
-                await webView.EnsureCoreWebView2Async(env);
+                if (_isClosing) return;
 
-                webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
-                webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-                webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                await webView.EnsureCoreWebView2Async(env);
+                if (_isClosing || !TryGetCoreWebView2(out CoreWebView2? coreWebView)) return;
+
+                _coreWebView = coreWebView;
+                coreWebView.Settings.IsZoomControlEnabled = false;
+                coreWebView.Settings.AreDefaultContextMenusEnabled = false;
+                coreWebView.Settings.IsStatusBarEnabled = false;
 
                 var streamInfo = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Web/index.html"));
                 if (streamInfo != null)
                 {
                     using var reader = new System.IO.StreamReader(streamInfo.Stream);
                     string htmlContent = reader.ReadToEnd();
-                    webView.CoreWebView2.NavigateToString(htmlContent);
+                    coreWebView.NavigateToString(htmlContent);
                     _navigationCompletedHandler = (s, e) =>
                     {
+                        if (_isClosing) return;
+
                         _lastReportedInputMode = null;
                         _lastReportedAlwaysTrail = null;
                         UpdateColor(ConfigManager.ParticleColor);
                         UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, ConfigManager.EffectSpeed);
                         SyncInputContext(InputModeMouse);
                     };
-                    webView.CoreWebView2.NavigationCompleted += _navigationCompletedHandler;
+                    coreWebView.NavigationCompleted += _navigationCompletedHandler;
                 }
+            }
+            catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
+            {
             }
             catch (Exception ex)
             {
@@ -268,7 +276,7 @@ namespace BASpark
             {
                 return string.Empty;
             }
-
+            
             _lastReportedInputMode = inputMode;
             _lastReportedAlwaysTrail = alwaysTrailEnabled;
             string alwaysTrailLiteral = alwaysTrailEnabled ? "true" : "false";
@@ -277,20 +285,74 @@ namespace BASpark
 
         private void SyncInputContext(string inputMode)
         {
-            if (webView?.CoreWebView2 == null) return;
+            if (!TryGetCoreWebView2(out CoreWebView2? coreWebView)) return;
 
             string script = BuildInputContextScript(inputMode);
             if (string.IsNullOrEmpty(script)) return;
 
-            _ = webView.CoreWebView2.ExecuteScriptAsync(script);
+            ExecuteScript(coreWebView, script);
         }
 
         private void ExecuteWithInputContext(string inputMode, string actionScript)
         {
-            if (webView?.CoreWebView2 == null) return;
+            if (!TryGetCoreWebView2(out CoreWebView2? coreWebView)) return;
 
             string contextScript = BuildInputContextScript(inputMode);
-            _ = webView.CoreWebView2.ExecuteScriptAsync(contextScript + actionScript);
+            ExecuteScript(coreWebView, contextScript + actionScript);
+        }
+
+        // 统一 JS 脚本执行入口
+        private void ExecuteScript(string script)
+        {
+            if (string.IsNullOrEmpty(script) || !TryGetCoreWebView2(out CoreWebView2? coreWebView))
+            {
+                return;
+            }
+
+            ExecuteScript(coreWebView, script);
+        }
+
+        private void ExecuteScript(CoreWebView2 coreWebView, string script)
+        {
+            if (string.IsNullOrEmpty(script))
+            {
+                return;
+            }
+
+            try
+            {
+                _ = coreWebView.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
+            {
+            }
+        }
+
+        private bool TryGetCoreWebView2([NotNullWhen(true)] out CoreWebView2? coreWebView)
+        {
+            coreWebView = null;
+            if (_isClosing)
+            {
+                return false;
+            }
+
+            try
+            {
+                coreWebView = _coreWebView ?? webView?.CoreWebView2;
+                return coreWebView != null;
+            }
+            catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
+            {
+                return false;
+            }
+        }
+
+        private bool IsExpectedWebViewShutdownException(Exception ex)
+        {
+            return _isClosing ||
+                   ex is ObjectDisposedException ||
+                   (ex is InvalidOperationException &&
+                    ex.Message.Contains("disposed", StringComparison.OrdinalIgnoreCase));
         }
 
         public bool ContainsScreenPoint(int x, int y)
@@ -380,19 +442,34 @@ namespace BASpark
             }
         }
 
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            _isClosing = true;
+            base.OnClosing(e);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
+            _isClosing = true;
+
             if (_topmostTimer != null)
             {
                 _topmostTimer.Stop();
                 _topmostTimer = null;
             }
 
-            if (webView?.CoreWebView2 != null && _navigationCompletedHandler != null)
+            if (_coreWebView != null && _navigationCompletedHandler != null)
             {
-                webView.CoreWebView2.NavigationCompleted -= _navigationCompletedHandler;
+                try
+                {
+                    _coreWebView.NavigationCompleted -= _navigationCompletedHandler;
+                }
+                catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
+                {
+                }
                 _navigationCompletedHandler = null;
             }
+            _coreWebView = null;
 
             if (_winEventHook != IntPtr.Zero)
             {
@@ -400,6 +477,7 @@ namespace BASpark
                 _winEventHook = IntPtr.Zero;
             }
             _winEventDelegate = null;
+            _hwnd = IntPtr.Zero;
 
             webView?.Dispose();
             base.OnClosed(e);
