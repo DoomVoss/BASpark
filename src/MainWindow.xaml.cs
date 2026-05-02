@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -72,6 +72,7 @@ namespace BASpark
         private IntPtr _hwnd;
         private string? _lastReportedInputMode;
         private bool? _lastReportedAlwaysTrail;
+        private bool? _lastReportedMultiTouch;
         private const string InputModeMouse = "mouse";
         private const string InputModeTouch = "touch";
 
@@ -264,15 +265,23 @@ namespace BASpark
         private string BuildInputContextScript(string inputMode)
         {
             bool alwaysTrailEnabled = ConfigManager.EnableAlwaysTrailEffect;
-            if (_lastReportedInputMode == inputMode && _lastReportedAlwaysTrail == alwaysTrailEnabled)
+            bool multiTouchEnabled = ConfigManager.EnableMultiTouch;
+
+            if (_lastReportedInputMode == inputMode && 
+                _lastReportedAlwaysTrail == alwaysTrailEnabled &&
+                _lastReportedMultiTouch == multiTouchEnabled)
             {
                 return string.Empty;
             }
 
             _lastReportedInputMode = inputMode;
             _lastReportedAlwaysTrail = alwaysTrailEnabled;
+            _lastReportedMultiTouch = multiTouchEnabled;
+
             string alwaysTrailLiteral = alwaysTrailEnabled ? "true" : "false";
-            return $"if(window.setInputContext) window.setInputContext('{inputMode}', {alwaysTrailLiteral});";
+            string multiTouchLiteral = multiTouchEnabled ? "true" : "false";
+
+            return $"if(window.setInputContext) window.setInputContext('{inputMode}', {alwaysTrailLiteral}, {multiTouchLiteral});";
         }
 
         private void SyncInputContext(string inputMode)
@@ -321,6 +330,27 @@ namespace BASpark
         {
             string inputMode = touchLike ? InputModeTouch : InputModeMouse;
             ExecuteWithInputContext(inputMode, "if(window.externalUp) window.externalUp();");
+        }
+
+        public void EmitTouchDown(uint pointerId, int x, int y)
+        {
+            if (!TryConvertScreenToOverlayPoint(x, y, out System.Windows.Point clientPoint)) return;
+            string px = FormatCoordinate(clientPoint.X);
+            string py = FormatCoordinate(clientPoint.Y);
+            ExecuteWithInputContext(InputModeTouch, $"if(window.externalTouchDown) window.externalTouchDown({pointerId}, {px}, {py});");
+        }
+
+        public void EmitTouchMove(uint pointerId, int x, int y, bool touchLike)
+        {
+            if (!TryConvertScreenToOverlayPoint(x, y, out System.Windows.Point clientPoint)) return;
+            string px = FormatCoordinate(clientPoint.X);
+            string py = FormatCoordinate(clientPoint.Y);
+            ExecuteWithInputContext(InputModeTouch, $"if(window.externalTouchMove) window.externalTouchMove({pointerId}, {px}, {py});");
+        }
+
+        public void EmitTouchUp(uint pointerId, bool touchLike)
+        {
+            ExecuteWithInputContext(InputModeTouch, $"if(window.externalTouchUp) window.externalTouchUp({pointerId});");
         }
 
         private void UpdateOverlayBounds()

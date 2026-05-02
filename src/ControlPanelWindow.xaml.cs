@@ -388,6 +388,7 @@ namespace BASpark
             CheckShowEffectOnDesktop.IsChecked = ConfigManager.ShowEffectOnDesktop;
             CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin; 
             CheckTouchscreenMode.IsChecked = ConfigManager.IsTouchscreenMode;
+            CheckMultiTouch.IsChecked = ConfigManager.EnableMultiTouch;
 
             int mode = ConfigManager.ClickTriggerType;
             if (mode == 1) RadioRightClick.IsChecked = true;
@@ -765,6 +766,7 @@ namespace BASpark
             bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
             bool runAsAdminEnabled = CheckRunAsAdmin.IsChecked ?? false;
             bool isTouchscreenEnabled = CheckTouchscreenMode?.IsChecked ?? false;
+            bool isMultiTouchEnabled = CheckMultiTouch?.IsChecked ?? false;
 
             int clickType = 0;
             if (RadioRightClick.IsChecked == true) clickType = 1;
@@ -776,6 +778,7 @@ namespace BASpark
 
             ConfigManager.Save("RunAsAdmin", runAsAdminEnabled);
             ConfigManager.Save("IsTouchscreenMode", isTouchscreenEnabled);
+            ConfigManager.Save("EnableMultiTouch", isMultiTouchEnabled);
             ConfigManager.Save("IsEffectEnabled", CheckMasterSwitch.IsChecked ?? true);
             ConfigManager.Save("AutoStart", autoStartEnabled);
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
@@ -814,6 +817,7 @@ namespace BASpark
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
             App.Overlay?.RefreshEnvironmentFilterState();
             App.Overlay?.UpdateTouchMode(isTouchscreenEnabled);
+            App.Overlay?.UpdateMultiTouchMode(isMultiTouchEnabled);
             if (!enabledScreenIds.SetEquals(selectedIds))
             {
                 App.Overlay?.RefreshScreenSelection();

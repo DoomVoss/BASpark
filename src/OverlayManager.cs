@@ -51,9 +51,12 @@ namespace BASpark
         private static extern IntPtr WindowFromPoint(POINT Point);
         [DllImport("user32.dll")]
         private static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetMessageExtraInfo();
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int x; public int y; }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -74,10 +77,12 @@ namespace BASpark
 
         private readonly Dictionary<string, MainWindow> _overlays = new(StringComparer.OrdinalIgnoreCase);
         private IKeyboardMouseEvents? _globalHook;
+        private TouchInputCapture? _touchCapture;
         private MainWindow? _activePointerOverlay;
         private long _lastMoveTicks;
         private long _lastClickTicks;
-        private long _moveIntervalTicks = 250000;
+        private long _moveIntervalTicks = 250000; // 默认 40Hz
+        private long _touchMoveIntervalTicks = 80000; // 触摸专用，约 120Hz，降低拖尾延迟
         private bool _isPrimaryPointerDown;
         private bool _isTouchLikeInput;
         private bool _isSuppressedByEnvironment;
@@ -85,11 +90,85 @@ namespace BASpark
         private IntPtr _lastForegroundWindow = IntPtr.Zero;
         private bool _disposed;
 
+        private readonly Dictionary<uint, TouchPointState> _activePointers = new();
+
+        private class TouchPointState
+        {
+            public uint PointerId;
+            public int LastX, LastY;
+            public bool IsDown;
+            public long LastMoveTicks;
+            public MainWindow? TargetOverlay;
+        }
+
         public void Start()
         {
             RebuildWindows(forceRebuild: true);
             SetupGlobalHooks();
+            SetupTouchCapture();
             SystemEvents.DisplaySettingsChanged += HandleDisplaySettingsChanged;
+        }
+
+        private void SetupTouchCapture()
+        {
+            if (ConfigManager.EnableMultiTouch)
+            {
+                _touchCapture = new TouchInputCapture();
+                _touchCapture.TouchDown += (id, x, y) => EmitTouchDown(id, x, y);
+                _touchCapture.TouchMove += (id, x, y) => EmitTouchMove(id, x, y);
+                _touchCapture.TouchUp += (id) => EmitTouchUp(id);
+                _touchCapture.Start();
+            }
+        }
+
+        private void HandleRawInput(IntPtr hRawInput)
+        {
+            // 已废弃，多点触控改由 TouchInputCapture 处理
+        }
+
+        public void EmitTouchDown(uint pointerId, int x, int y)
+        {
+            if (!CanRenderEffects()) return;
+
+            MainWindow? target = ResolveTargetOverlay(x, y);
+            if (target == null) return;
+
+            _activePointers[pointerId] = new TouchPointState
+            {
+                PointerId = pointerId,
+                LastX = x,
+                LastY = y,
+                IsDown = true,
+                TargetOverlay = target
+            };
+
+            ConfigManager.TotalClicks++;
+            target.EmitTouchDown(pointerId, x, y);
+        }
+
+        public void EmitTouchMove(uint pointerId, int x, int y)
+        {
+            if (!_activePointers.TryGetValue(pointerId, out var state) || !state.IsDown) return;
+            if (state.TargetOverlay == null) return;
+
+            // 每个触控点独立节流，避免多指互相阻塞
+            long currentTicks = DateTime.Now.Ticks;
+            if (currentTicks - state.LastMoveTicks < _touchMoveIntervalTicks) return;
+            state.LastMoveTicks = currentTicks;
+
+            state.LastX = x;
+            state.LastY = y;
+            state.TargetOverlay.EmitTouchMove(pointerId, x, y, true);
+        }
+
+        public void EmitTouchUp(uint pointerId)
+        {
+            if (_activePointers.TryGetValue(pointerId, out var state))
+            {
+                state.IsDown = false;
+                state.TargetOverlay?.EmitTouchUp(pointerId, true);
+                _activePointers.Remove(pointerId);
+            }
         }
 
         public void UpdateColor(string color) => ForEachOverlay(w => w.UpdateColor(color));
@@ -101,6 +180,23 @@ namespace BASpark
             ForEachOverlay(w => w.UpdateTrailRefreshRate(hz));
         }
         public void UpdateTouchMode(bool enabled) => ForEachOverlay(w => w.UpdateTouchMode(enabled));
+        public void UpdateMultiTouchMode(bool enabled)
+        {
+            if (enabled && _touchCapture == null)
+            {
+                _touchCapture = new TouchInputCapture();
+                _touchCapture.TouchDown += (id, x, y) => EmitTouchDown(id, x, y);
+                _touchCapture.TouchMove += (id, x, y) => EmitTouchMove(id, x, y);
+                _touchCapture.TouchUp += (id) => EmitTouchUp(id);
+                _touchCapture.Start();
+            }
+            else if (!enabled && _touchCapture != null)
+            {
+                _touchCapture.Dispose();
+                _touchCapture = null;
+                _activePointers.Clear();
+            }
+        }
         public bool IsEffectSuppressedByEnvironment() => ShouldSuppressEffects();
         public void RefreshEnvironmentFilterState()
         {
@@ -122,9 +218,23 @@ namespace BASpark
             _globalHook.MouseUpExt += OnMouseUpExt;
         }
 
+        public void EmitDown(int x, int y)
+        {
+            if (!CanRenderEffects()) return;
+
+            MainWindow? target = ResolveTargetOverlay(x, y);
+            if (target == null) return;
+
+            ConfigManager.TotalClicks++;
+            target.EmitDown(x, y);
+        }
+
         private void OnMouseDownExt(object? sender, MouseEventExtArgs e)
         {
             if (!CanRenderEffects()) return;
+
+            // 如果当前正在处理原生多点触控，则跳过合成鼠标事件的按下
+            if (_activePointers.Count > 0 && !CursorIsVisible()) return;
 
             bool isLeft = e.Button == MouseButtons.Left;
             bool isRight = e.Button == MouseButtons.Right;
@@ -161,11 +271,16 @@ namespace BASpark
         {
             if (!CanRenderEffects()) return;
 
+            // 如果已有原生触控点在处理，则跳过合成鼠标事件以消除多余延迟
+            if (_activePointers.Count > 0 && !CursorIsVisible()) return;
+
             bool cursorVisible = CursorIsVisible();
             if (!cursorVisible && !_isPrimaryPointerDown) return;
 
+            // 触摸/触控笔事件使用更低的节流阈值，修复拖拽卡顿
             long currentTicks = DateTime.Now.Ticks;
-            if (currentTicks - _lastMoveTicks < _moveIntervalTicks) return;
+            long interval = (!cursorVisible || _isTouchLikeInput) ? _touchMoveIntervalTicks : _moveIntervalTicks;
+            if (currentTicks - _lastMoveTicks < interval) return;
             _lastMoveTicks = currentTicks;
 
             if (!TryGetPhysicalCursorPosition(out int cursorX, out int cursorY))
@@ -181,6 +296,8 @@ namespace BASpark
         private void OnMouseUpExt(object? sender, MouseEventExtArgs e)
         {
             _ = e;
+            // 如果已有原生触控点在处理，跳过
+            if (_activePointers.Count > 0 && !CursorIsVisible()) return;
             if (!_isPrimaryPointerDown)
             {
                 _isTouchLikeInput = false;
@@ -207,7 +324,7 @@ namespace BASpark
                 return false;
             }
 
-            if (!ConfigManager.IsTouchscreenMode && !CursorIsVisible())
+            if (!ConfigManager.IsTouchscreenMode && !CursorIsVisible() && _activePointers.Count == 0)
             {
                 ReleasePointerState();
                 return false;
@@ -542,6 +659,14 @@ namespace BASpark
                 _globalHook.Dispose();
                 _globalHook = null;
             }
+
+            if (_touchCapture != null)
+            {
+                _touchCapture.Dispose();
+                _touchCapture = null;
+            }
+
+            _activePointers.Clear();
 
             CloseWindows();
         }

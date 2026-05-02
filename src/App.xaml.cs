@@ -20,6 +20,9 @@ namespace BASpark
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // 启用现代指针支持以修复触屏拖拽卡顿并支持多点触控
+            AppContext.SetSwitch("Switch.System.Windows.Input.Stylus.EnablePointerSupport", true);
+
             const string appName = @"Global\BASpark_SingleInstance_Mutex";
             _mutex = new Mutex(true, appName, out bool createdNew);
 
