@@ -226,7 +226,10 @@
                                         <RadioButton Name="RadioBothClick" Content="左右键" GroupName="ClickType" Style="{StaticResource SegmentBtn}"/>
                                     </StackPanel>
                                 </Border>
+                                <CheckBox Name="CheckMiddleClickTrigger" Content="鼠标中键按下时触发特效" Style="{StaticResource ToggleSwitch}" Margin="0,10,0,0"/>
                             </StackPanel>
+                            <CheckBox Name="CheckScreenshotCompatibilityMode" Content="截图兼容模式" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,2"/>
+                            <TextBlock Text="* (实验性功能) 开启后截图画面将不包含特效：检测到系统截图界面或 QQ 默认截图快捷键时会短暂隐藏叠加层以便框选窗口。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,12" TextWrapping="Wrap" Opacity="0.8"/>
                             <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
                             <CheckBox Name="CheckStartSilent" Content="静默启动 (最小化到托盘)" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8"/>
                             <CheckBox Name="CheckRunAsAdmin" Content="以管理员权限运行程序" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckRunAsAdmin_Changed" Unchecked="CheckRunAsAdmin_Changed"/>
@@ -444,7 +447,7 @@
                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                                 </Button>
                             </DockPanel>
-                            <TextBlock Text="勾选要启用特效窗口的显示器。" FontSize="12" Foreground="#666" Margin="0,0,0,12" TextWrapping="Wrap"/>
+                            <TextBlock Text="勾选要启用特效窗口的显示器。设置会按显示器名称和硬件 ID 记忆，显示屏变更后自动恢复。" FontSize="12" Foreground="#666" Margin="0,0,0,12" TextWrapping="Wrap"/>
 
                             <ListBox Name="ListScreenOptions" Background="Transparent" BorderThickness="0" MinHeight="180">
                                 <ListBox.ItemTemplate>

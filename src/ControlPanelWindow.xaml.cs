@@ -37,6 +37,8 @@ namespace BASpark
         public string ResolutionText { get; set; } = string.Empty;
         public string DetailText { get; set; } = string.Empty;
         public string DeviceName { get; set; } = string.Empty;
+        public string IdentityKey { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
         public bool IsEnabled { get; set; }
     }
 
@@ -388,6 +390,8 @@ namespace BASpark
             CheckShowEffectOnDesktop.IsChecked = ConfigManager.ShowEffectOnDesktop;
             CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin; 
             CheckTouchscreenMode.IsChecked = ConfigManager.IsTouchscreenMode;
+            CheckMiddleClickTrigger.IsChecked = ConfigManager.EnableMiddleClickTrigger;
+            CheckScreenshotCompatibilityMode.IsChecked = ConfigManager.ScreenshotCompatibilityMode;
 
             int mode = ConfigManager.ClickTriggerType;
             if (mode == 1) RadioRightClick.IsChecked = true;
@@ -412,18 +416,22 @@ namespace BASpark
 
         private void LoadScreenOptions()
         {
-            var selectedIds = ConfigManager.GetEnabledScreenIds();
-
             ScreenOptions.Clear();
             var screens = Screen.AllScreens.OrderBy(s => s.Bounds.Left).ThenBy(s => s.Bounds.Top).ToList();
+            var screenInfos = screens
+                .Select(screen => new { Screen = screen, Identity = ScreenIdentity.FromScreen(screen) })
+                .ToList();
+            var enabledDeviceNames = ConfigManager.ResolveEnabledScreenDeviceNames(screenInfos.Select(item => item.Identity));
 
             for (int i = 0; i < screens.Count; i++)
             {
-                var screen = screens[i];
-                bool enabled = selectedIds.Count == 0 || selectedIds.Contains(screen.DeviceName);
-                string title = $"显示器 {i + 1}" + (screen.Primary ? " (主显示器)" : string.Empty);
+                var screen = screenInfos[i].Screen;
+                var identity = screenInfos[i].Identity;
+                bool enabled = enabledDeviceNames.Contains(screen.DeviceName);
+                // 显示真实显示器名称，减少 DISPLAY1/2 变化误判
+                string title = identity.DisplayName + (screen.Primary ? " (主显示器)" : string.Empty);
                 string resolution = $"{screen.Bounds.Width} x {screen.Bounds.Height}";
-                string detail = $"{GetScaleText(screen)}  ·  位置 ({screen.Bounds.Left}, {screen.Bounds.Top})";
+                string detail = $"{GetScaleText(screen)}  ·  位置 ({screen.Bounds.Left}, {screen.Bounds.Top})  ·  {screen.DeviceName}";
 
                 ScreenOptions.Add(new ScreenOptionItem
                 {
@@ -432,6 +440,8 @@ namespace BASpark
                     ResolutionText = resolution,
                     DetailText = detail,
                     DeviceName = screen.DeviceName,
+                    IdentityKey = identity.IdentityKey,
+                    DisplayName = identity.DisplayName,
                     IsEnabled = enabled
                 });
             }
@@ -765,6 +775,8 @@ namespace BASpark
             bool startSilentEnabled = CheckStartSilent.IsChecked ?? false;
             bool runAsAdminEnabled = CheckRunAsAdmin.IsChecked ?? false;
             bool isTouchscreenEnabled = CheckTouchscreenMode?.IsChecked ?? false;
+            bool middleClickEnabled = CheckMiddleClickTrigger.IsChecked ?? false;
+            bool screenshotCompatibilityEnabled = CheckScreenshotCompatibilityMode.IsChecked ?? false;
 
             int clickType = 0;
             if (RadioRightClick.IsChecked == true) clickType = 1;
@@ -791,8 +803,10 @@ namespace BASpark
             ConfigManager.Save("HideInFullscreen", CheckHideInFullscreen.IsChecked ?? true);
             ConfigManager.Save("ShowEffectOnDesktop", CheckShowEffectOnDesktop.IsChecked ?? true);
             ConfigManager.Save("ClickTriggerType", clickType);
+            ConfigManager.Save("EnableMiddleClickTrigger", middleClickEnabled);
+            ConfigManager.Save("ScreenshotCompatibilityMode", screenshotCompatibilityEnabled);
 
-            var enabledScreenIds = ConfigManager.GetEnabledScreenIds();
+            var previousEnabledScreenIds = ConfigManager.ResolveEnabledScreenDeviceNames(ScreenOptions.Select(CreateScreenIdentityInfo));
             var selectedIds = ScreenOptions
                 .Where(s => s.IsEnabled)
                 .Select(s => s.DeviceName)
@@ -804,7 +818,14 @@ namespace BASpark
                 return;
             }
 
-            ConfigManager.SaveEnabledScreenIds(selectedIds);
+            // 保存当前可见屏幕的启用状态，离线屏幕的旧设置会在 ConfigManager 中保留
+            ConfigManager.SaveScreenSelections(ScreenOptions.Select(item => new ScreenSelectionState
+            {
+                IdentityKey = item.IdentityKey,
+                DeviceName = item.DeviceName,
+                DisplayName = item.DisplayName,
+                IsEnabled = item.IsEnabled
+            }));
 
             App.SetAutoStart(ConfigManager.AutoStart);
             ApplyAutoStartSettings();
@@ -814,7 +835,8 @@ namespace BASpark
             App.Overlay?.UpdateTrailRefreshRate(trailRefreshRate);
             App.Overlay?.RefreshEnvironmentFilterState();
             App.Overlay?.UpdateTouchMode(isTouchscreenEnabled);
-            if (!enabledScreenIds.SetEquals(selectedIds))
+            App.Overlay?.UpdateScreenshotCompatibilityMode(screenshotCompatibilityEnabled);
+            if (!previousEnabledScreenIds.SetEquals(selectedIds))
             {
                 App.Overlay?.RefreshScreenSelection();
             }
@@ -842,13 +864,27 @@ namespace BASpark
         {
             _ = sender;
             _ = e;
+            var selectedKeys = ScreenOptions.Where(s => s.IsEnabled).Select(s => s.IdentityKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var selectedIds = ScreenOptions.Where(s => s.IsEnabled).Select(s => s.DeviceName).ToHashSet(StringComparer.OrdinalIgnoreCase);
             LoadScreenOptions();
             foreach (var item in ScreenOptions)
             {
-                item.IsEnabled = selectedIds.Count == 0 || selectedIds.Contains(item.DeviceName);
+                // 手动刷新时保留当前勾选，避免刷新列表本身改变尚未保存的选择
+                item.IsEnabled = (selectedKeys.Count == 0 && selectedIds.Count == 0) ||
+                                 selectedKeys.Contains(item.IdentityKey) ||
+                                 selectedIds.Contains(item.DeviceName);
             }
             ListScreenOptions.Items.Refresh();
+        }
+
+        private static ScreenIdentityInfo CreateScreenIdentityInfo(ScreenOptionItem item)
+        {
+            return new ScreenIdentityInfo
+            {
+                DeviceName = item.DeviceName,
+                IdentityKey = item.IdentityKey,
+                DisplayName = item.DisplayName
+            };
         }
 
         private void ApplyAutoStartSettings()

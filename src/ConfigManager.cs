@@ -20,6 +20,15 @@ namespace BASpark
         public List<string> Processes { get; set; } = new List<string>();
     }
 
+    // 新增：多屏记忆
+    public class ScreenSelectionState
+    {
+        public string IdentityKey { get; set; } = string.Empty;
+        public string DeviceName { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public bool IsEnabled { get; set; } = true;
+    }
+
     public static class ConfigManager
     {
         private const string RegPath = @"Software\BASpark";
@@ -45,7 +54,10 @@ namespace BASpark
         public static string ActiveProfileId { get; set; } = "";
         public static bool IsTouchscreenMode { get; set; } = false;
         public static int ClickTriggerType { get; set; } = 0; // 0:左, 1:右, 2:左右
+        public static bool EnableMiddleClickTrigger { get; set; } = false;
+        public static bool ScreenshotCompatibilityMode { get; set; } = false;
         public static string EnabledScreenIds { get; set; } = "";
+        public static string ScreenSelections { get; set; } = "";
 
         private static List<FilterProfile> _profiles = new List<FilterProfile>();
 
@@ -77,7 +89,10 @@ namespace BASpark
                         ShowEffectOnDesktop = Convert.ToBoolean(key.GetValue("ShowEffectOnDesktop", true));
                         IsTouchscreenMode = Convert.ToBoolean(key.GetValue("IsTouchscreenMode", false));
                         ClickTriggerType = Convert.ToInt32(key.GetValue("ClickTriggerType", 0));
+                        EnableMiddleClickTrigger = Convert.ToBoolean(key.GetValue("EnableMiddleClickTrigger", false));
+                        ScreenshotCompatibilityMode = Convert.ToBoolean(key.GetValue("ScreenshotCompatibilityMode", false));
                         EnabledScreenIds = key.GetValue("EnabledScreenIds", "")?.ToString() ?? "";
+                        ScreenSelections = key.GetValue("ScreenSelections", "")?.ToString() ?? "";
 
                         FilterProfiles = key.GetValue("FilterProfiles", "")?.ToString() ?? "";
                         ActiveProfileId = key.GetValue("ActiveProfileId", "")?.ToString() ?? "";
@@ -222,6 +237,106 @@ namespace BASpark
             Save("EnabledScreenIds", json);
         }
 
+        public static List<ScreenSelectionState> GetScreenSelections()
+        {
+            if (string.IsNullOrWhiteSpace(ScreenSelections))
+            {
+                return new List<ScreenSelectionState>();
+            }
+
+            try
+            {
+                return System.Text.Json.JsonSerializer.Deserialize<List<ScreenSelectionState>>(ScreenSelections) ?? new List<ScreenSelectionState>();
+            }
+            catch
+            {
+                return new List<ScreenSelectionState>();
+            }
+        }
+
+        public static HashSet<string> ResolveEnabledScreenDeviceNames(IEnumerable<ScreenIdentityInfo> currentScreens)
+        {
+            var screens = currentScreens.ToList();
+            var selections = GetScreenSelections();
+            var legacyEnabledIds = GetEnabledScreenIds();
+            bool hasSavedPreference = selections.Count > 0 || legacyEnabledIds.Count > 0;
+
+            // 没有已记忆的可用屏幕时自动启用现有屏幕，避免 Sunshine 虚拟屏场景丢失特效(Issue #104)
+            var enabled = screens
+                .Where(screen => IsScreenEnabledByPreference(screen, selections, legacyEnabledIds))
+                .Select(screen => screen.DeviceName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (enabled.Count == 0 && hasSavedPreference)
+            {
+                enabled = screens.Select(screen => screen.DeviceName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return enabled;
+        }
+
+        public static void SaveScreenSelections(IEnumerable<ScreenSelectionState> screenSelections)
+        {
+            var incoming = screenSelections
+                .Where(s => !string.IsNullOrWhiteSpace(s.IdentityKey) || !string.IsNullOrWhiteSpace(s.DeviceName))
+                .Select(s => new ScreenSelectionState
+                {
+                    IdentityKey = NormalizeScreenValue(s.IdentityKey),
+                    DeviceName = NormalizeScreenValue(s.DeviceName),
+                    DisplayName = NormalizeScreenValue(s.DisplayName),
+                    IsEnabled = s.IsEnabled
+                })
+                .ToList();
+
+            var merged = GetScreenSelections();
+            foreach (var item in incoming)
+            {
+                merged.RemoveAll(existing => IsSameSavedScreen(existing, item));
+                merged.Add(item);
+            }
+
+            string json = System.Text.Json.JsonSerializer.Serialize(merged);
+            Save("ScreenSelections", json);
+            SaveEnabledScreenIds(incoming.Where(s => s.IsEnabled).Select(s => s.DeviceName));
+        }
+
+        private static bool IsScreenEnabledByPreference(
+            ScreenIdentityInfo screen,
+            List<ScreenSelectionState> selections,
+            HashSet<string> legacyEnabledIds)
+        {
+            ScreenSelectionState? saved = selections.FirstOrDefault(selection => IsSameScreen(selection, screen));
+            if (saved != null)
+            {
+                return saved.IsEnabled;
+            }
+
+            if (selections.Count > 0)
+            {
+                return true;
+            }
+
+            return legacyEnabledIds.Count == 0 || legacyEnabledIds.Contains(screen.DeviceName);
+        }
+
+        private static bool IsSameScreen(ScreenSelectionState selection, ScreenIdentityInfo screen)
+        {
+            return (!string.IsNullOrWhiteSpace(selection.IdentityKey) &&
+                    string.Equals(selection.IdentityKey, screen.IdentityKey, StringComparison.OrdinalIgnoreCase)) ||
+                   (!string.IsNullOrWhiteSpace(selection.DeviceName) &&
+                    string.Equals(selection.DeviceName, screen.DeviceName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool IsSameSavedScreen(ScreenSelectionState left, ScreenSelectionState right)
+        {
+            return (!string.IsNullOrWhiteSpace(left.IdentityKey) &&
+                    string.Equals(left.IdentityKey, right.IdentityKey, StringComparison.OrdinalIgnoreCase)) ||
+                   (!string.IsNullOrWhiteSpace(left.DeviceName) &&
+                    string.Equals(left.DeviceName, right.DeviceName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string NormalizeScreenValue(string value) => value.Trim();
+
         public static void ResetAndClear()
         {
             try
@@ -256,7 +371,10 @@ namespace BASpark
                 _profiles.Clear();
                 IsTouchscreenMode = false;
                 ClickTriggerType = 0;
+                EnableMiddleClickTrigger = false;
+                ScreenshotCompatibilityMode = false;
                 EnabledScreenIds = "";
+                ScreenSelections = "";
             }
             catch { }
         }

@@ -28,6 +28,8 @@ namespace BASpark
         private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
         [DllImport("user32.dll")]
         private static extern bool GetCursorInfo(out CURSORINFO pci);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT
@@ -63,6 +65,9 @@ namespace BASpark
         private const int CURSOR_SHOWING = 0x00000001;
         private const uint EVENT_OBJECT_REORDER = 0x8004;
         private const uint WINEVENT_OUTOFCONTEXT = 0;
+        private const uint WDA_NONE = 0x00000000;
+        private const uint WDA_MONITOR = 0x00000001;
+        private const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         private const uint SWP_NOACTIVATE = 0x0010;
@@ -83,7 +88,9 @@ namespace BASpark
         private IntPtr _winEventHook = IntPtr.Zero;
         private long _lastEnsureTopmostTicks;
         private bool _isClosing;
+        private bool _screenshotCompatibilityMode = ConfigManager.ScreenshotCompatibilityMode;
         private static readonly long EnsureTopmostDebounceTicks = TimeSpan.FromMilliseconds(80).Ticks;
+        private bool _hiddenForExternalScreenshotCapture;
 
         private delegate void WinEventDelegate(
             IntPtr hWinEventHook,
@@ -113,6 +120,7 @@ namespace BASpark
 
             int style = GetWindowLong(_hwnd, GWL_EXSTYLE);
             SetWindowLong(_hwnd, GWL_EXSTYLE, style | WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT);
+            ApplyScreenshotCompatibilityMode();
 
             UpdateOverlayBounds();
             InitRealtimeTopmostHook();
@@ -171,7 +179,8 @@ namespace BASpark
 
         private void SafeEnsureTopmost()
         {
-            if (_hwnd == IntPtr.Zero) return;
+            if (_hwnd == IntPtr.Zero || !IsVisible) return;
+
             Rectangle bounds = GetScreenBounds();
             SetWindowPos(_hwnd, HWND_TOPMOST,
                 bounds.Left,
@@ -203,6 +212,49 @@ namespace BASpark
         public void UpdateTouchMode(bool enabled)
         {
             ConfigManager.IsTouchscreenMode = enabled;
+        }
+
+        public void UpdateScreenshotCompatibilityMode(bool enabled)
+        {
+            _screenshotCompatibilityMode = enabled;
+            ApplyScreenshotCompatibilityMode();
+        }
+
+        /// 截图工具框选窗口期间暂时隐藏叠加层
+        public void SetHiddenForExternalScreenshotCapture(bool hidden)
+        {
+            if (_hiddenForExternalScreenshotCapture == hidden)
+            {
+                return;
+            }
+
+            _hiddenForExternalScreenshotCapture = hidden;
+            if (hidden)
+            {
+                Hide();
+            }
+            else
+            {
+                Show();
+                ApplyScreenshotCompatibilityMode();
+            }
+        }
+
+        private void ApplyScreenshotCompatibilityMode()
+        {
+            if (_hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            // 把特效窗口从系统捕获结果中排除
+            uint affinity = _screenshotCompatibilityMode ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE;
+            if (!SetWindowDisplayAffinity(_hwnd, affinity) && _screenshotCompatibilityMode)
+            {
+                SetWindowDisplayAffinity(_hwnd, WDA_MONITOR);
+            }
+
+            SafeEnsureTopmost();
         }
 
         public IntPtr Handle => _hwnd;

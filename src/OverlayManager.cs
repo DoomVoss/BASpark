@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Threading;
 using Gma.System.MouseKeyHook;
 using Microsoft.Win32;
 
@@ -51,6 +52,10 @@ namespace BASpark
         private static extern IntPtr WindowFromPoint(POINT Point);
         [DllImport("user32.dll")]
         private static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventProcDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int x; public int y; }
@@ -67,6 +72,8 @@ namespace BASpark
 
         private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
         private const uint GA_ROOT = 2;
+        private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+        private const uint WINEVENT_OUTOFCONTEXT = 0;
         private const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
         private const int FullscreenTolerance = 2;
         private static readonly long SuppressionCacheDurationTicks = TimeSpan.FromMilliseconds(250).Ticks;
@@ -85,6 +92,32 @@ namespace BASpark
         private IntPtr _lastForegroundWindow = IntPtr.Zero;
         private bool _disposed;
 
+        private bool _screenshotCompatCaptureWired;
+        private bool _screenshotCaptureSessionActive;
+        private bool _winKeyDown;
+        private bool _shiftKeyDown;
+        private IntPtr _foregroundWinEventHook = IntPtr.Zero;
+        private WinEventProcDelegate? _foregroundWinEventDelegate;
+        private System.Threading.Timer? _screenshotFailsafeTimer;
+        private DispatcherTimer? _screenshotEndDebounceTimer;
+
+        private delegate void WinEventProcDelegate(
+            IntPtr hWinEventHook,
+            uint eventType,
+            IntPtr hwnd,
+            int idObject,
+            int idChild,
+            uint dwEventThread,
+            uint dwmsEventTime);
+
+        private static readonly HashSet<string> ScreenshotForegroundHostExe = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "SnippingTool.exe",
+            "ScreenSketch.exe",
+            "ScreenClippingHost.exe",
+            "ms-screenclip.exe",
+        };
+
         public void Start()
         {
             RebuildWindows(forceRebuild: true);
@@ -101,6 +134,11 @@ namespace BASpark
             ForEachOverlay(w => w.UpdateTrailRefreshRate(hz));
         }
         public void UpdateTouchMode(bool enabled) => ForEachOverlay(w => w.UpdateTouchMode(enabled));
+        public void UpdateScreenshotCompatibilityMode(bool enabled)
+        {
+            ForEachOverlay(w => w.UpdateScreenshotCompatibilityMode(enabled));
+            SyncScreenshotCompatCaptureSurfaces();
+        }
         public bool IsEffectSuppressedByEnvironment() => ShouldSuppressEffects();
         public void RefreshEnvironmentFilterState()
         {
@@ -115,11 +153,326 @@ namespace BASpark
 
         private void SetupGlobalHooks()
         {
+            TeardownScreenshotCompatCaptureSurfaces();
             _globalHook?.Dispose();
             _globalHook = Hook.GlobalEvents();
             _globalHook.MouseDownExt += OnMouseDownExt;
             _globalHook.MouseMoveExt += OnMouseMoveExt;
             _globalHook.MouseUpExt += OnMouseUpExt;
+            SyncScreenshotCompatCaptureSurfaces();
+        }
+
+        private void SyncScreenshotCompatCaptureSurfaces()
+        {
+            if (!ConfigManager.ScreenshotCompatibilityMode)
+            {
+                if (_screenshotCompatCaptureWired)
+                {
+                    TeardownScreenshotCompatCaptureSurfaces();
+                }
+
+                EndScreenshotCaptureSession();
+                return;
+            }
+
+            if (_globalHook == null)
+            {
+                return;
+            }
+
+            if (!_screenshotCompatCaptureWired)
+            {
+                _globalHook.KeyDown += OnScreenshotCompatKeyDown;
+                _globalHook.KeyUp += OnScreenshotCompatKeyUp;
+                InstallForegroundScreenshotHook();
+                _screenshotCompatCaptureWired = true;
+            }
+        }
+
+        private void TeardownScreenshotCompatCaptureSurfaces()
+        {
+            if (!_screenshotCompatCaptureWired)
+            {
+                return;
+            }
+
+            if (_globalHook != null)
+            {
+                _globalHook.KeyDown -= OnScreenshotCompatKeyDown;
+                _globalHook.KeyUp -= OnScreenshotCompatKeyUp;
+            }
+            UninstallForegroundScreenshotHook();
+            StopScreenshotEndDebounce();
+            CancelScreenshotFailsafeTimer();
+            _screenshotCompatCaptureWired = false;
+        }
+
+        private void InstallForegroundScreenshotHook()
+        {
+            if (_foregroundWinEventHook != IntPtr.Zero)
+            {
+                return;
+            }
+
+            _foregroundWinEventDelegate ??= ForegroundWinEventProc;
+            _foregroundWinEventHook = SetWinEventHook(
+                EVENT_SYSTEM_FOREGROUND,
+                EVENT_SYSTEM_FOREGROUND,
+                IntPtr.Zero,
+                _foregroundWinEventDelegate,
+                0,
+                0,
+                WINEVENT_OUTOFCONTEXT);
+        }
+
+        private void UninstallForegroundScreenshotHook()
+        {
+            if (_foregroundWinEventHook == IntPtr.Zero)
+            {
+                return;
+            }
+
+            UnhookWinEvent(_foregroundWinEventHook);
+            _foregroundWinEventHook = IntPtr.Zero;
+        }
+
+        private void ForegroundWinEventProc(
+            IntPtr hWinEventHook,
+            uint eventType,
+            IntPtr hwnd,
+            int idObject,
+            int idChild,
+            uint dwEventThread,
+            uint dwmsEventTime)
+        {
+            _ = hWinEventHook;
+            _ = hwnd;
+            _ = idObject;
+            _ = idChild;
+            _ = dwEventThread;
+            _ = dwmsEventTime;
+            if (eventType != EVENT_SYSTEM_FOREGROUND)
+            {
+                return;
+            }
+
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(EvaluateScreenshotForegroundForCapture));
+        }
+
+        private void EvaluateScreenshotForegroundForCapture()
+        {
+            if (_disposed || !ConfigManager.ScreenshotCompatibilityMode)
+            {
+                return;
+            }
+
+            if (IsForegroundScreenshotHost())
+            {
+                StopScreenshotEndDebounce();
+                BeginScreenshotCaptureSession();
+                return;
+            }
+
+            if (_screenshotCaptureSessionActive)
+            {
+                ScheduleEndScreenshotCaptureSessionDebounced();
+            }
+        }
+
+        private bool IsForegroundScreenshotHost()
+        {
+            return IsKnownScreenshotHostWindow(GetForegroundWindow());
+        }
+
+        private bool IsKnownScreenshotHostWindow(IntPtr hwnd)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            IntPtr root = GetAncestor(hwnd, GA_ROOT);
+            if (root == IntPtr.Zero)
+            {
+                root = hwnd;
+            }
+
+            if (IsOverlayWindow(root))
+            {
+                return false;
+            }
+
+            if (!IsWindow(root) || !IsWindowVisible(root))
+            {
+                return false;
+            }
+
+            GetWindowThreadProcessId(root, out uint pid);
+            if (pid == 0 || pid == (uint)Environment.ProcessId)
+            {
+                return false;
+            }
+
+            string exe = GetProcessExecutableName(pid);
+            return ScreenshotForegroundHostExe.Contains(exe);
+        }
+
+        private void OnScreenshotCompatKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (_disposed || !ConfigManager.ScreenshotCompatibilityMode)
+            {
+                return;
+            }
+
+            if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
+            {
+                _winKeyDown = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.LShiftKey || e.KeyCode == Keys.RShiftKey || e.KeyCode == Keys.ShiftKey)
+            {
+                _shiftKeyDown = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.S && _winKeyDown && (e.Shift || _shiftKeyDown))
+            {
+                BeginScreenshotCaptureSession();
+                return;
+            }
+
+            if (e.KeyCode == Keys.A && e.Control && e.Alt)
+            {
+                BeginScreenshotCaptureSession();
+                return;
+            }
+
+            if (e.KeyCode == Keys.Escape && _screenshotCaptureSessionActive)
+            {
+                ScheduleEndScreenshotCaptureSessionDebounced();
+            }
+        }
+
+        private void OnScreenshotCompatKeyUp(object? sender, KeyEventArgs e)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
+            {
+                _winKeyDown = false;
+            }
+
+            if (e.KeyCode == Keys.LShiftKey || e.KeyCode == Keys.RShiftKey || e.KeyCode == Keys.ShiftKey)
+            {
+                _shiftKeyDown = false;
+            }
+        }
+
+        private void BeginScreenshotCaptureSession()
+        {
+            if (_disposed || !ConfigManager.ScreenshotCompatibilityMode)
+            {
+                return;
+            }
+
+            if (_screenshotCaptureSessionActive)
+            {
+                ArmScreenshotFailsafeTimer();
+                return;
+            }
+
+            ReleasePointerState();
+            _screenshotCaptureSessionActive = true;
+            ForEachOverlay(w => w.SetHiddenForExternalScreenshotCapture(true));
+            ArmScreenshotFailsafeTimer();
+        }
+
+        private void EndScreenshotCaptureSession()
+        {
+            if (!_screenshotCaptureSessionActive)
+            {
+                return;
+            }
+
+            _screenshotCaptureSessionActive = false;
+            StopScreenshotEndDebounce();
+            CancelScreenshotFailsafeTimer();
+            ForEachOverlay(w => w.SetHiddenForExternalScreenshotCapture(false));
+        }
+
+        private void ScheduleEndScreenshotCaptureSessionDebounced()
+        {
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(ScheduleEndOnDispatcherThread));
+        }
+
+        private void ScheduleEndOnDispatcherThread()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            StopScreenshotEndDebounce();
+            _screenshotEndDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(360) };
+            _screenshotEndDebounceTimer.Tick += OnScreenshotEndDebounceTick;
+            _screenshotEndDebounceTimer.Start();
+        }
+
+        private void OnScreenshotEndDebounceTick(object? sender, EventArgs e)
+        {
+            StopScreenshotEndDebounce();
+            if (_disposed || !ConfigManager.ScreenshotCompatibilityMode)
+            {
+                return;
+            }
+
+            if (!IsForegroundScreenshotHost())
+            {
+                EndScreenshotCaptureSession();
+            }
+        }
+
+        private void StopScreenshotEndDebounce()
+        {
+            if (_screenshotEndDebounceTimer != null)
+            {
+                _screenshotEndDebounceTimer.Stop();
+                _screenshotEndDebounceTimer.Tick -= OnScreenshotEndDebounceTick;
+                _screenshotEndDebounceTimer = null;
+            }
+        }
+
+        private void ArmScreenshotFailsafeTimer()
+        {
+            CancelScreenshotFailsafeTimer();
+            _screenshotFailsafeTimer = new System.Threading.Timer(_ =>
+            {
+                try
+                {
+                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (_disposed)
+                        {
+                            return;
+                        }
+
+                        EndScreenshotCaptureSession();
+                    }));
+                }
+                catch
+                {
+                }
+            }, null, 90000, Timeout.Infinite);
+        }
+
+        private void CancelScreenshotFailsafeTimer()
+        {
+            _screenshotFailsafeTimer?.Dispose();
+            _screenshotFailsafeTimer = null;
         }
 
         private void OnMouseDownExt(object? sender, MouseEventExtArgs e)
@@ -128,12 +481,15 @@ namespace BASpark
 
             bool isLeft = e.Button == MouseButtons.Left;
             bool isRight = e.Button == MouseButtons.Right;
-            bool shouldTrigger = ConfigManager.ClickTriggerType switch
+            bool isMiddle = e.Button == MouseButtons.Middle;
+            bool shouldPrimaryTrigger = ConfigManager.ClickTriggerType switch
             {
                 1 => isRight,
                 2 => isLeft || isRight,
                 _ => isLeft
             };
+            // 中键触发
+            bool shouldTrigger = shouldPrimaryTrigger || (ConfigManager.EnableMiddleClickTrigger && isMiddle);
             if (!shouldTrigger) return;
 
             if (!TryGetPhysicalCursorPosition(out int cursorX, out int cursorY))
@@ -247,9 +603,14 @@ namespace BASpark
 
         private void RebuildWindows(bool forceRebuild)
         {
-            var enabledIds = ConfigManager.GetEnabledScreenIds();
-            var targetScreens = Screen.AllScreens
-                .Where(screen => enabledIds.Count == 0 || enabledIds.Contains(screen.DeviceName))
+            var screenInfos = Screen.AllScreens
+                .Select(screen => new { Screen = screen, Identity = ScreenIdentity.FromScreen(screen) })
+                .ToList();
+            var enabledIds = ConfigManager.ResolveEnabledScreenDeviceNames(screenInfos.Select(item => item.Identity));
+
+            var targetScreens = screenInfos
+                .Where(item => enabledIds.Contains(item.Screen.DeviceName))
+                .Select(item => item.Screen)
                 .ToDictionary(screen => screen.DeviceName, screen => screen, StringComparer.OrdinalIgnoreCase);
 
             if (forceRebuild)
@@ -534,6 +895,8 @@ namespace BASpark
             _disposed = true;
 
             SystemEvents.DisplaySettingsChanged -= HandleDisplaySettingsChanged;
+            TeardownScreenshotCompatCaptureSurfaces();
+            EndScreenshotCaptureSession();
             if (_globalHook != null)
             {
                 _globalHook.MouseDownExt -= OnMouseDownExt;
