@@ -31,9 +31,32 @@
 <body>
     <canvas id="sparkCanvas"></canvas>
     <script>
-        // 原来是多文件编辑的
-        // 现在整合成了一个文件
-        // 所以可能更加石山（）
+        // re: 动画常量集中定义，避免每帧 new 对象
+        const FILLED_CIRCLE_CFG = { rAddRate: 26, maxLife: 16 };
+        const RINGS_ANIM_CFG = {
+            rsList: [0, 0.08, 0.1],
+            rRoundRateList: [0, 1, 1.5, 2],
+            len: 1.1 * Math.PI,
+            maxLife: 23,
+            segNum: 10,
+            minW: 0.4,
+            maxW: 3.3,
+            lenStopAddPoint: 0.1,
+            lenStartDimPoint: 0.4,
+        };
+        const CREATE_CLICK_CFG = {
+            rings: {
+                rsList: [0, 0.03, 0.06],
+                rRoundRateList: [0, 1, 1.5, 2],
+                len: 1.1 * Math.PI,
+            },
+            sparksCount: 4,
+        };
+
+        function ringsEndColorFromRgb(rgbString) {
+            return rgbString.split(',').map(Number).map((n) => (n + 255 * 2) / 3);
+        }
+
         class MouseSpark {
             constructor(opts = {}) {
                 this.color = opts.color || '45,175,255';
@@ -58,7 +81,7 @@
 
                 this.ringsStartColor = [250, 252, 252];
                 //this.ringsEndColor = [200, 250, 255];
-                this.ringsEndColor = this.color.split(',').map(Number).map(n => (n + 255 * 2) / 3);
+                this.ringsEndColor = ringsEndColorFromRgb(this.color);
 
                 this.initCanvas();
                 this.bindEvents();
@@ -69,13 +92,13 @@
                 const getPos = (e) => ({ x: e.clientX, y: e.clientY });
                 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-                window.addEventListener("mousedown", e => {
+                window.addEventListener("mousedown", (e) => {
                     this.isDown = true;
                     this.lastPos = getPos(e);
                     this.createEffects(this.lastPos.x, this.lastPos.y);
                 });
 
-                window.addEventListener("mousemove", e => {
+                window.addEventListener("mousemove", (e) => {
                     if (!this.isDown && !window.effectiveAlwaysTrail) return;
                     const p = getPos(e);
                     if (!this.lastPos) this.lastPos = p;
@@ -86,8 +109,8 @@
                         if (this.trail.length > this.maxTrail) this.trail.shift();
 
                         if (Math.random() < 0.3) {
-                            let a = Math.random() * Math.PI * 2;
-                            let speedAdjust = this.scale / 1.5;
+                            const a = Math.random() * Math.PI * 2;
+                            const speedAdjust = this.scale / 1.5;
                             this.sparks.push({
                                 x: p.x + Math.cos(a) * 10 * this.scale,
                                 y: p.y + Math.sin(a) * 10 * this.scale,
@@ -98,16 +121,19 @@
                                 s: 9 * this.scale,
                                 a: 0.7,
                                 f: 0.95,
-                                fromClick: false
+                                fromClick: false,
                             });
                         }
                     }
                 });
 
-                window.addEventListener("mouseup", () => this.isDown = false);
+                window.addEventListener("mouseup", () => {
+                    this.isDown = false;
+                });
             }
 
-            // 初始化画布
+            // 初始化画布 可见层 + 离屏缓冲
+            // lighter合成后贴回，减轻主画布混合开销
             initCanvas() {
                 // 主画布
                 this.mainCanvas = document.getElementById("sparkCanvas");
@@ -117,7 +143,6 @@
                 this.bufferCanvas = document.createElement("canvas");
                 this.bufferCtx = this.bufferCanvas.getContext("2d");
 
-                //
                 this.resize();
 
                 // 监听窗口缩放
@@ -129,15 +154,14 @@
             }
 
             resize() {
-                let dpr = window.devicePixelRatio || 1;
+                const dpr = window.devicePixelRatio || 1;
+                const w = Math.max(1, Math.floor(window.innerWidth * dpr));
+                const h = Math.max(1, Math.floor(window.innerHeight * dpr));
 
-                // 主画布尺寸
-                this.mainCanvas.width = window.innerWidth * dpr;
-                this.mainCanvas.height = window.innerHeight * dpr;
-
-                // 缓冲画布尺寸
-                this.bufferCanvas.width = this.mainCanvas.width;
-                this.bufferCanvas.height = this.mainCanvas.height;
+                this.mainCanvas.width = w;
+                this.mainCanvas.height = h;
+                this.bufferCanvas.width = w;
+                this.bufferCanvas.height = h;
 
                 this.bufferCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
@@ -148,319 +172,291 @@
 
 
             // -=创建点击效果=-
-            createEffects = function (x, y) {
-                const ringsConfig = {
-                    rsList: [0, 0.03, 0.06],    // 圆弧整体旋转速度
-                    rRoundRateList: [0, 1, 1.5, 2],   // 圆弧半径增加比例
-                    len: 1.1 * Math.PI     // 圆弧长度
+            createEffects(x, y) {
+                const rc = CREATE_CLICK_CFG.rings;
+                const sparksCount = CREATE_CLICK_CFG.sparksCount;
+
+                let wave;
+                if (this.wavesPool.length > 0) {
+                    wave = this.wavesPool.pop();
+                } else {
+                    wave = {};
+                }
+                if (!wave.ring) wave.ring = { segs: [] };
+
+                // 赋值
+                wave.x = x;
+                wave.y = y;
+                wave.r = 0;
+                wave.life = 0;
+                wave.ring.ang = Math.random() * Math.PI * 2;
+                wave.ring.rs = rc.rsList[Math.floor(Math.random() * rc.rsList.length)];
+                wave.ring.segs[0] = {
+                    off: 0,
+                    len: rc.len,
+                    rRoundRate: rc.rRoundRateList[Math.floor(Math.random() * rc.rRoundRateList.length)],
                 };
-                const sparksConfig = {
-                    sparksCount: 4    // 点击产生的粒子数
+                wave.ring.segs[1] = {
+                    off: (Math.random() * 3 - 1.5) * Math.PI,
+                    len: rc.len,
+                    rRoundRate: rc.rRoundRateList[Math.floor(Math.random() * rc.rRoundRateList.length)],
                 };
-                // 创建波
-                function createWave(x, y) {
+
+                // 进入循环
+                this.waves.push(wave);
+
+                const speedAdjust = this.scale / 1.5;
+                for (let i = 0; i < sparksCount; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const speed = (4.8 + Math.random() * 2) * speedAdjust;
+
                     // 创建
-                    let wave;
-                    if (this.wavesPool.length > 0) {
-                        wave = this.wavesPool.pop();
+                    let spark;
+                    if (this.sparksPool.length > 0) {
+                        spark = this.sparksPool.pop();
                     } else {
-                        wave = {};
+                        spark = {};
                     }
-                    if (!wave.ring) wave.ring = { segs: [] };
 
                     // 赋值
-                    wave.x = x;
-                    wave.y = y;
-                    wave.r = 0;
-                    wave.life = 0;
-                    wave.ring.ang = Math.random() * Math.PI * 2;
-                    wave.ring.rs = ringsConfig.rsList[Math.floor(Math.random() * ringsConfig.rsList.length)];
-                    wave.ring.segs[0] = {
-                        off: 0,
-                        len: ringsConfig.len,
-                        rRoundRate: ringsConfig.rRoundRateList[Math.floor(Math.random() * ringsConfig.rRoundRateList.length)]
-                    };
-                    wave.ring.segs[1] = {
-                        off: (Math.random() * 3 - 1.5) * Math.PI,
-                        len: ringsConfig.len,
-                        rRoundRate: ringsConfig.rRoundRateList[Math.floor(Math.random() * ringsConfig.rRoundRateList.length)]
-                    };
-
-                    // 进入循环
-                    this.waves.push(wave);
+                    spark.x = x;
+                    spark.y = y;
+                    spark.vx = Math.cos(a) * speed;
+                    spark.vy = Math.sin(a) * speed;
+                    spark.rot = Math.random() * Math.PI * 2;
+                    spark.rs = (Math.random() - 0.5) * 0.28;
+                    spark.s = (4 + Math.random() * 3) * this.scale;
+                    spark.a = 1;
+                    spark.f = 0.9;
+                    spark.fromClick = true;
+                    this.sparks.push(spark);
                 }
-                // 创建粒子
-                function createSpark(x, y) {
-                    let speedAdjust = this.scale / 1.5;
-                    for (let i = 0; i < sparksConfig.sparksCount; i++) {
-                        let a = Math.random() * Math.PI * 2;
-                        let speed = (4.8 + Math.random() * 2) * speedAdjust;
+            }
 
-                        // 创建
-                        let spark;
-                        if (this.sparksPool.length > 0) {
-                            spark = this.sparksPool.pop();
+            _clearBuffer() {
+                const ctx = this.bufferCtx;
+                ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+            }
+
+            _updateTrail(frameScale) {
+                const ctx = this.bufferCtx;
+                for (let i = this.trail.length - 1; i >= 0; i--) {
+                    const t = this.trail[i];
+                    if (window.effectiveAlwaysTrail) {
+                        t.life -= 0.085 * frameScale;
+                    } else {
+                        t.life -= (this.isDown ? 0.085 : 0.18) * frameScale;
+                    }
+                    if (t.life <= 0) this.trail.splice(i, 1);
+                }
+
+                if (this.trail.length > 1) {
+                    // 逐段渲染：每段的透明度基于数组索引位置，而非空间位置
+                    // 防止当鼠标锐角转动时，尾迹变淡后突然出现的问题
+                    ctx.lineWidth = 5.0;
+                    ctx.shadowColor = `rgba(${this.color}, 0.6)`;
+                    ctx.shadowBlur = 3;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+
+                    const lastIdx = this.trail.length - 1;
+                    for (let i = 0; i < lastIdx; i++) {
+                        const alphaStart = i / lastIdx;
+                        const alphaEnd = (i + 1) / lastIdx;
+                        const a0 = this.trail[i];
+                        const a1 = this.trail[i + 1];
+
+                        const segGrad = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
+                        segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
+                        segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
+
+                        ctx.beginPath();
+                        ctx.moveTo(a0.x, a0.y);
+                        ctx.lineTo(a1.x, a1.y);
+                        ctx.strokeStyle = segGrad;
+                        ctx.stroke();
+                    }
+
+                    ctx.shadowColor = 'transparent';
+                }
+            }
+
+            _strokeRingSegment(wx, wy, radius, a0, a1, lineWidth, strokeStyle) {
+                const ctx = this.bufferCtx;
+                ctx.beginPath();
+                ctx.arc(wx, wy, radius, a0, a1);
+                ctx.lineWidth = lineWidth;
+                ctx.strokeStyle = strokeStyle;
+                ctx.stroke();
+            }
+
+            _updateWaves(clickFrameScale) {
+                const filled = FILLED_CIRCLE_CFG;
+                const rings = RINGS_ANIM_CFG;
+                const ctx = this.bufferCtx;
+
+                const updateFilledCircle = (w, waveProg) => {
+                    w.life += clickFrameScale;
+                    const ease = 1 - Math.pow(1 - waveProg, 3);
+                    w.r = filled.rAddRate * this.scale * ease;
+                    const alpha = Math.max(0, 1 - waveProg);
+                    if (alpha > 0) {
+                        ctx.beginPath();
+                        ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${this.color},${this.alpha(alpha)})`;
+                        // 优化：减少阴影效果
+                        ctx.fill();
+                    }
+                };
+
+                const updateRings = (w, ringProg) => {
+                    const getWeightProp = (t) => Math.min(2 - Math.abs(4 * (t - 0.5)), 1);
+                    const ringRgbAt = (rProg) => {
+                        const t = Math.min(1.2 * rProg, 1);
+                        const r = this.ringsStartColor[0] * (1 - t) + this.ringsEndColor[0] * t;
+                        const g = this.ringsStartColor[1] * (1 - t) + this.ringsEndColor[1] * t;
+                        const b = this.ringsStartColor[2] * (1 - t) + this.ringsEndColor[2] * t;
+                        return [Math.round(r), Math.round(g), Math.round(b)];
+                    };
+                    const getAlpha = (rProg) => Math.min(1.1 - 0.3 * rProg, 1);
+
+                    const r = w.ring;
+                    r.ang -= r.rs * clickFrameScale;
+
+                    let start = 0;
+                    let end = 0;
+                    let len = 0;
+                    let seg;
+
+                    for (let i = 0; i < 2; i++) {
+                        seg = r.segs[i];
+                        const base = r.ang + seg.off;
+
+                        if (ringProg <= rings.lenStopAddPoint) {
+                            len = seg.len * (ringProg / rings.lenStopAddPoint);
+                            end = base + seg.len;
+                            start = end - len;
+                        } else if (ringProg > rings.lenStartDimPoint) {
+                            len = seg.len * (1 - (ringProg - rings.lenStartDimPoint) / (1 - rings.lenStartDimPoint));
+                            start = base;
+                            end = start + len;
                         } else {
-                            spark = {};
+                            len = seg.len;
+                            start = base;
+                            end = start + len;
                         }
 
-                        // 赋值
-                        spark.x = x;
-                        spark.y = y;
-                        spark.vx = Math.cos(a) * speed;
-                        spark.vy = Math.sin(a) * speed;
-                        spark.rot = Math.random() * Math.PI * 2;
-                        spark.rs = (Math.random() - 0.5) * 0.28;
-                        spark.s = (4 + Math.random() * 3) * this.scale;
-                        spark.a = 1;
-                        spark.f = 0.9;
+                        const lineWidthMul = Math.min(-0.8 * (ringProg - 0.8) + 1, 1);
+                        const [rr, gg, bb] = ringRgbAt(ringProg);
+                        const alphaRing = getAlpha(ringProg);
 
-                        // 进入循环
-                        this.sparks.push(spark);
+                        for (let k = 0; k < rings.segNum; k++) {
+                            const t0 = k / rings.segNum;
+                            const t1 = (k + 1) / rings.segNum;
+                            const a0 = start + (end - start) * t0;
+                            const a1 = start + (end - start) * t1;
+
+                            if (Math.abs(a1 - a0) < 0.01) continue;
+
+                            const wT = getWeightProp(t0);
+                            const lw = (rings.minW * (1 - wT) + rings.maxW * wT) * lineWidthMul;
+                            const strokeStyle = `rgba(${rr},${gg},${bb},${alphaRing})`;
+                            const radius = w.r + seg.rRoundRate * this.scale;
+                            // 光弧
+                            this._strokeRingSegment(w.x, w.y, radius, a0, a1, lw, strokeStyle);
+                        }
+                    }
+                };
+
+                for (let i = this.waves.length - 1; i >= 0; i--) {
+                    const w = this.waves[i];
+                    const waveProg = Math.min(w.life / filled.maxLife, 1);
+                    const ringProg = Math.min(w.life / rings.maxLife, 1);
+
+                    updateFilledCircle(w, waveProg);
+                    updateRings(w, ringProg);
+
+                    // 回收对象到对象池
+                    if (ringProg >= 1 && waveProg >= 1) {
+                        this.wavesPool.push(this.waves[i]);
+                        this.waves.splice(i, 1);
                     }
                 }
+            }
 
-                createWave.call(this, x, y);
-                createSpark.call(this, x, y);
-            };
+            _updateSparks(clickFrameScale, trailFrameScale) {
+                const ctx = this.bufferCtx;
+                for (let i = this.sparks.length - 1; i >= 0; i--) {
+                    const s = this.sparks[i];
+                    const fs = s.fromClick ? clickFrameScale : trailFrameScale;
+                    s.x += s.vx * fs;
+                    s.y += s.vy * fs;
+                    s.vx *= Math.pow(s.f, fs);
+                    s.vy *= Math.pow(s.f, fs);
+                    s.rot += s.rs * fs;
+                    s.a -= 0.032 * fs;
+                    if (s.a <= 0) {
+                        this.sparksPool.push(this.sparks[i]);
+                        this.sparks.splice(i, 1);
+                        continue;
+                    }
 
-            // -=执行动画循环=-
+                    ctx.save();
+                    ctx.translate(s.x, s.y);
+                    ctx.rotate(s.rot);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -s.s);
+                    ctx.lineTo(s.s * 0.6, s.s * 0.6);
+                    ctx.lineTo(-s.s * 0.6, s.s * 0.6);
+                    ctx.fillStyle = `rgba(255,255,255,${this.alpha(s.a)})`;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            _renderToMain() {
+                const { mainCtx, mainCanvas, bufferCanvas } = this;
+                mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+                mainCtx.drawImage(bufferCanvas, 0, 0);
+            }
+
+            // 执行动画循环
             animationLoops(now) {
-                const ringsConfig = {
-                    // ==Start-整合的数据==
-                    rsList: [0, 0.08, 0.1],    // 圆弧整体旋转速度
-                    rRoundRateList: [0, 1, 1.5, 2],   // 圆弧半径增加比例
-                    len: 1.1 * Math.PI,         // 圆弧长度
-                    // ==End-整合的数据==
+                const hasWork =
+                    this.waves.length > 0 ||
+                    this.sparks.length > 0 ||
+                    this.trail.length > 0;
 
-                    maxLife: 23,
-                    segNum: 16,                 // 拆成的段数
-                    minW: 0.4,                  // 最小宽度
-                    maxW: 3.3,                    // 最大宽度
-                    lenStopAddPoint: 0.1,       // 停止延长的时间比例 
-                    lenStartDimPoint: 0.4,      // 开始缩短的时间比例
-                };
-                const filledCirclesConfig = {
-                    rAddRate: 26,                  // 半径增加比例
-                    maxLife: 16
-                };
-
-                function clearBufferCanvas() {
-                    this.bufferCtx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-                }
-                function updateTrail(frameScale) {
-
-                    for (let i = this.trail.length - 1; i >= 0; i--) {
-                        let t = this.trail[i];
-                        if (window.effectiveAlwaysTrail) {
-                            t.life -= 0.085 * frameScale;
-                        } else {
-                            t.life -= (this.isDown ? 0.085 : 0.18) * frameScale;
-                        }
-                        if (t.life <= 0) this.trail.splice(i, 1);
-                    }
-
-                    if (this.trail.length > 1) {
-                        // 逐段渲染：每段的透明度基于数组索引位置，而非空间位置
-                        // 防止当鼠标锐角转动时，尾迹变淡后突然出现的问题
-                        this.bufferCtx.lineWidth = 5.0;
-                        this.bufferCtx.shadowColor = `rgba(${this.color}, 0.6)`;
-                        this.bufferCtx.shadowBlur = 3;
-                        this.bufferCtx.shadowOffsetX = 0;
-                        this.bufferCtx.shadowOffsetY = 0;
-
-                        const lastIdx = this.trail.length - 1;
-                        for (let i = 0; i < lastIdx; i++) {
-                            const alphaStart = i / lastIdx;
-                            const alphaEnd = (i + 1) / lastIdx;
-                            const a0 = this.trail[i];
-                            const a1 = this.trail[i + 1];
-
-                            // 每段使用独立的两点渐变，只覆盖该段自身
-                            const segGrad = this.bufferCtx.createLinearGradient(
-                                a0.x, a0.y, a1.x, a1.y
-                            );
-                            segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
-                            segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
-
-                            this.bufferCtx.beginPath();
-                            this.bufferCtx.moveTo(a0.x, a0.y);
-                            this.bufferCtx.lineTo(a1.x, a1.y);
-                            this.bufferCtx.strokeStyle = segGrad;
-                            this.bufferCtx.stroke();
-                        }
-
-                        this.bufferCtx.shadowColor = 'transparent';
-
-                    }
-                }
-                function updateWaves(frameScale) {
-                    function updateFilledCircle(frameScale, w, rProg) {
-                        w.life += frameScale;
-                        let ease = 1 - Math.pow(1 - rProg, 3);
-                        w.r = filledCirclesConfig.rAddRate * this.scale * ease;
-                        let alpha = Math.max(0, 1 - rProg);
-                        if (alpha > 0) {
-                            this.bufferCtx.beginPath();
-                            this.bufferCtx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
-                            this.bufferCtx.fillStyle = `rgba(${this.color},${this.alpha(alpha)})`;
-                            // 优化：减少阴影效果
-                            this.bufferCtx.fill();
-                        }
-                    }
-                    function updateRings(frameScale, w, rProg) {
-                        function getWeightProp(t) {
-                            return Math.min(2 - Math.abs(4 * (t - 0.5)), 1);
-                        }
-                        function getColor(rProg) {
-                            const t = Math.min(1.2 * rProg, 1);
-                            const r = this.ringsStartColor[0] * (1 - t) + this.ringsEndColor[0] * t;
-                            const g = this.ringsStartColor[1] * (1 - t) + this.ringsEndColor[1] * t;
-                            const b = this.ringsStartColor[2] * (1 - t) + this.ringsEndColor[2] * t;
-                            return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}`;
-                        }
-                        function getAlpha(rProg) {
-                            return Math.min(1.1 - 0.3 * rProg, 1);
-                        }
-                        /* 声明段 */
-                        // 圆弧参数
-                        let start = 0, end = 0;     // 喵~
-                        let len = 0;                // 喵~
-                        let shrink = 0;             // 收缩系数
-                        let r = w.ring;
-                        let seg = null;             // 当前所要操控的seg
-
-                        let base = 0;       // 基准点
-
-                        // 段圆弧参数
-                        let t0 = 0;        // 段圆弧起始点比值
-                        let t1 = 0;        // 段圆弧结束点比值
-                        let a0 = 0;        // 启动子位置  （？
-                        let a1 = 0;        // 终止子位置  （？
-
-
-                        /* 计算段 */
-                        r.life += frameScale;                           // 
-                        r.ang -= r.rs * frameScale;                     // 圆环旋转
-
-                        for (let i = 0; i < 2; ++i) {
-                            seg = r.segs[i];
-
-                            base = r.ang + seg.off;
-
-                            if (rProg <= ringsConfig.lenStopAddPoint) {
-                                // 前段：终点固定，起点逆时针延伸
-                                len = seg.len * (rProg / ringsConfig.lenStopAddPoint);
-                                end = base + seg.len;
-                                start = end - len;
-                            }
-                            else if (rProg > ringsConfig.lenStartDimPoint) {
-                                // 后段：起点固定，终点逆时针收回
-                                len = seg.len * (1 - (rProg - ringsConfig.lenStartDimPoint) / (1 - ringsConfig.lenStartDimPoint));
-                                start = base;
-                                end = start + len;
-                            }
-                            else {
-                                // 中段：完整圆弧
-                                len = seg.len;
-                                start = base;
-                                end = start + len;
-                            }
-
-
-                            for (let k = 0; k < ringsConfig.segNum; k++) {
-                                t0 = k / ringsConfig.segNum;                        // 段圆弧起始点比值
-                                t1 = (k + 1) / ringsConfig.segNum;                  // 段圆弧结束点比值
-                                a0 = start + (end - start) * t0;        // 启动子位置  （？
-                                a1 = start + (end - start) * t1;        // 终止子位置  （？
-
-                                if (Math.abs(a1 - a0) < 0.01) continue;
-
-                                // 光弧
-                                let wT = getWeightProp(t0);
-                                this.bufferCtx.beginPath();
-                                this.bufferCtx.arc(w.x, w.y, w.r + seg.rRoundRate * this.scale, a0, a1);
-                                this.bufferCtx.lineWidth = (ringsConfig.minW * (1 - wT) + ringsConfig.maxW * wT) * Math.min((-0.8 * (rProg - 0.8) + 1), 1); // 看不懂了（？）
-                                this.bufferCtx.strokeStyle = `${getColor.call(this, rProg)}, ${getAlpha(rProg)})`;
-                                this.bufferCtx.stroke();
-                            }
-                        }
-                    }
-
-                    for (let i = this.waves.length - 1; i >= 0; i--) {
-                        let w = this.waves[i];
-                        let waveProg = Math.min(w.life / filledCirclesConfig.maxLife, 1);    // 动画进度 0->1
-                        let ringProg = Math.min(w.life / ringsConfig.maxLife, 1);    // 动画进度 0->1
-
-                        updateFilledCircle.call(this, frameScale, w, waveProg);
-                        updateRings.call(this, frameScale, w, ringProg);
-
-                        // 回收对象到对象池
-                        if (ringProg >= 1 && waveProg >= 1) {
-                            this.wavesPool.push(this.waves[i]);
-                            this.waves.splice(i, 1);
-                        }
-                    }
-                }
-                function updateSparks(clickFrameScale, trailFrameScale) {
-                    for (let i = this.sparks.length - 1; i >= 0; i--) {
-                        let s = this.sparks[i];
-                        const fs = s.fromClick ? clickFrameScale : trailFrameScale;
-                        s.x += s.vx * fs;
-                        s.y += s.vy * fs;
-                        s.vx *= Math.pow(s.f, fs);
-                        s.vy *= Math.pow(s.f, fs);
-                        s.rot += s.rs * fs;
-                        s.a -= 0.032 * fs;
-                        if (s.a <= 0) {
-                            this.sparksPool.push(this.sparks[i]);
-                            this.sparks.splice(i, 1);
-                            continue;
-                        }
-
-                        this.bufferCtx.save();
-                        this.bufferCtx.translate(s.x, s.y);
-                        this.bufferCtx.rotate(s.rot);
-                        this.bufferCtx.beginPath();
-                        this.bufferCtx.moveTo(0, -s.s);
-                        this.bufferCtx.lineTo(s.s * 0.6, s.s * 0.6);
-                        this.bufferCtx.lineTo(-s.s * 0.6, s.s * 0.6);
-                        this.bufferCtx.fillStyle = `rgba(255,255,255,${this.alpha(s.a)})`;
-                        this.bufferCtx.fill();
-                        this.bufferCtx.restore();
-                    }
-                }
-                function renderCanvas() {
+                // 无粒子时只清主画布，跳过缓冲层绘制与贴图
+                if (!hasWork) {
+                    // 同步时间基准，避免静止后再出现拖尾/波纹时首帧 delta 被顶到 maxDeltaMs
+                    this.lastFrameTime = now;
                     this.mainCtx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-                    this.mainCtx.drawImage(this.bufferCanvas, 0, 0);
+                    requestAnimationFrame((nextNow) => this.animationLoops(nextNow));
+                    return;
                 }
 
-                // 计算帧时比，稳定动画速率
                 const deltaMs = Math.min(now - this.lastFrameTime, this.maxDeltaMs);
                 this.lastFrameTime = now;
                 const baseScale = deltaMs / this.baseFrameMs;
                 const trailFrameScale = baseScale * this.trailSpeed;
                 const clickFrameScale = baseScale * this.clickSpeed;
 
-                // 设置合成操作模式
-                this.bufferCtx.globalCompositeOperation = "lighter";
+                const bctx = this.bufferCtx;
+                // 优化：减少全局合成模式的影响范围，仅在缓冲层使用 lighter
+                bctx.globalCompositeOperation = "lighter";
 
-                clearBufferCanvas.call(this);
-                if (this.waves.length > 0 || this.sparks.length > 0 || this.trail.length > 0) {
-                    updateTrail.call(this, trailFrameScale);
-                    updateWaves.call(this, clickFrameScale);
-                    updateSparks.call(this, clickFrameScale, trailFrameScale);
-                }
+                this._clearBuffer();
+                this._updateTrail(trailFrameScale);
+                this._updateWaves(clickFrameScale);
+                this._updateSparks(clickFrameScale, trailFrameScale);
 
-                // 恢复合成操作模式
-                this.bufferCtx.globalCompositeOperation = "source-over";
+                bctx.globalCompositeOperation = "source-over";
 
-                // 渲染画布
-                renderCanvas.call(this);
+                this._renderToMain();
 
-                //
                 requestAnimationFrame((nextNow) => this.animationLoops(nextNow));
-            };
+            }
         }
 
         window.spark = new MouseSpark();
@@ -487,23 +483,27 @@
         window.externalBoom = (percentX, percentY) => {
             const now = Date.now();
             if (percentX === lastBoomX && percentY === lastBoomY && (now - lastBoomTime) < 25) return;
-            lastBoomX = percentX; lastBoomY = percentY; lastBoomTime = now;
+            lastBoomX = percentX;
+            lastBoomY = percentY;
+            lastBoomTime = now;
 
             // 百分比乘以 WebView 当前真实的内部宽度
-            let cx = percentX * window.innerWidth;
-            let cy = percentY * window.innerHeight;
+            const cx = percentX * window.innerWidth;
+            const cy = percentY * window.innerHeight;
             window.dispatchEvent(new MouseEvent('mousedown', { clientX: cx, clientY: cy, bubbles: true }));
         };
 
         window.externalMove = (percentX, percentY) => {
             if (percentX === lastMoveX && percentY === lastMoveY) return;
-            lastMoveX = percentX; lastMoveY = percentY;
+            lastMoveX = percentX;
+            lastMoveY = percentY;
 
             // 方法与上述相同
-            let cx = percentX * window.innerWidth;
-            let cy = percentY * window.innerHeight;
+            const cx = percentX * window.innerWidth;
+            const cy = percentY * window.innerHeight;
             window.dispatchEvent(new MouseEvent('mousemove', { clientX: cx, clientY: cy, bubbles: true }));
         };
+
         window.externalUp = () => {
             window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
         };
@@ -511,7 +511,7 @@
         window.updateColor = (rgbString) => {
             if (window.spark) {
                 window.spark.color = rgbString;
-                window.spark.ringsEndColor = rgbString.split(',').map(Number).map(n => (n + 255 * 2) / 3);
+                window.spark.ringsEndColor = ringsEndColorFromRgb(rgbString);
             }
         };
 
@@ -528,5 +528,4 @@
         };
     </script>
 </body>
-
 </html>
