@@ -8,11 +8,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseVisualBasic>true</UseVisualBasic>
     <ApplicationIcon>app.ico</ApplicationIcon>
 
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
+    <Version>1.5.0</Version>
+    <AssemblyVersion>1.5.0</AssemblyVersion>
+    <FileVersion>1.5.0</FileVersion>
     
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     
@@ -33,5 +34,6 @@
     <Resource Include="app.ico" />
     <Resource Include="Web\index.html" />
   </ItemGroup>
+
 
 </Project>

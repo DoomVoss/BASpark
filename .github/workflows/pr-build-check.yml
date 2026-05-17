@@ -20,6 +20,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Run tests
+        shell: pwsh
+        run: dotnet test BASpark.sln -c Release --verbosity normal
+
       - name: Build Single EXE
         shell: pwsh
         run: |

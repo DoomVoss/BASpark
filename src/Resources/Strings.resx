@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <root>
+    <resheader name="resmimetype">
+      <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+      <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+      <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+      <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="About_Bilibili" xml:space="preserve">
+      <value>📺 关注 B 站官号</value>
+    </data>
+    <data name="About_CheckUpdate" xml:space="preserve">
+      <value>检查更新</value>
+    </data>
+    <data name="About_CheckingUpdate" xml:space="preserve">
+      <value>正在检查...</value>
+    </data>
+    <data name="About_Description" xml:space="preserve">
+      <value>深度复刻《蔚蓝档案》UI 风格动效的鼠标特效工具</value>
+    </data>
+    <data name="About_DevOptions" xml:space="preserve">
+      <value>开发者选项</value>
+    </data>
+    <data name="About_Discord" xml:space="preserve">
+      <value>💬 加入 Discord 社区</value>
+    </data>
+    <data name="About_Github" xml:space="preserve">
+      <value>🌐 访问 GitHub 官方仓库</value>
+    </data>
+    <data name="About_OfficialSite" xml:space="preserve">
+      <value>🌐 访问官方网站</value>
+    </data>
+    <data name="About_QQ" xml:space="preserve">
+      <value>💬 加入 QQ 交流群</value>
+    </data>
+    <data name="About_ResetAll" xml:space="preserve">
+      <value>重置所有设置并退出</value>
+    </data>
+    <data name="About_SecurityWarning" xml:space="preserve">
+      <value>安全提示：请务必确保从官方渠道下载。第三方分发渠道的版本可能存在报毒风险或恶意篡改。</value>
+    </data>
+    <data name="About_Sponsor" xml:space="preserve">
+      <value>☕ 赞助支持作者</value>
+    </data>
+    <data name="About_Support" xml:space="preserve">
+      <value>如果你喜欢本应用，欢迎支持开发者持续维护 ☕</value>
+    </data>
+    <data name="About_Title" xml:space="preserve">
+      <value>关于</value>
+    </data>
+    <data name="App_AlreadyRunning" xml:space="preserve">
+      <value>BASpark 已经在运行中，请检查系统托盘。</value>
+    </data>
+    <data name="App_AlreadyRunning_Title" xml:space="preserve">
+      <value>提示</value>
+    </data>
+    <data name="App_Title_ControlPanel" xml:space="preserve">
+      <value>BASpark - 控制面板</value>
+    </data>
+    <data name="Basic_AutoStart" xml:space="preserve">
+      <value>开机自动启动</value>
+    </data>
+    <data name="Basic_BothClick" xml:space="preserve">
+      <value>左右键</value>
+    </data>
+    <data name="Basic_ClickType" xml:space="preserve">
+      <value>触发按键类型</value>
+    </data>
+    <data name="Basic_Language" xml:space="preserve">
+      <value>界面语言</value>
+    </data>
+    <data name="Basic_LeftClick" xml:space="preserve">
+      <value>仅左键</value>
+    </data>
+    <data name="Basic_MasterSwitch" xml:space="preserve">
+      <value>启用鼠标点击特效</value>
+    </data>
+    <data name="Basic_MiddleClick" xml:space="preserve">
+      <value>鼠标中键按下时触发特效</value>
+    </data>
+    <data name="Basic_RightClick" xml:space="preserve">
+      <value>仅右键</value>
+    </data>
+    <data name="Basic_RunAsAdmin" xml:space="preserve">
+      <value>以管理员权限运行程序</value>
+    </data>
+    <data name="Basic_RunAsAdminHint" xml:space="preserve">
+      <value>* 若需在任务管理器等部分高权限窗口显示特效，请勾选此项。</value>
+    </data>
+    <data name="Basic_ScreenshotHint" xml:space="preserve">
+      <value>* (实验性功能) 开启后截图画面将不包含特效：检测到系统截图界面或 QQ 默认截图快捷键时会短暂隐藏叠加层以便框选窗口。</value>
+    </data>
+    <data name="Basic_ScreenshotMode" xml:space="preserve">
+      <value>截图兼容模式</value>
+    </data>
+    <data name="Basic_StartSilent" xml:space="preserve">
+      <value>静默启动 (最小化到托盘)</value>
+    </data>
+    <data name="Basic_Telemetry" xml:space="preserve">
+      <value>允许发送匿名运行数据以改进软件</value>
+    </data>
+    <data name="Basic_Title" xml:space="preserve">
+      <value>基础设置</value>
+    </data>
+    <data name="Basic_Touchscreen" xml:space="preserve">
+      <value>触摸屏模式</value>
+    </data>
+    <data name="Basic_TouchscreenHint" xml:space="preserve">
+      <value>* 开启后，即便系统隐藏了鼠标指针特效依然生效，仅适用于触摸屏或特定的全屏应用环境。</value>
+    </data>
+    <data name="Basic_TrailSwitch" xml:space="preserve">
+      <value>启用鼠标常驻拖尾</value>
+    </data>
+    <data name="Basic_ScrollbarVisibility" xml:space="preserve">
+      <value>滚动条显示</value>
+    </data>
+    <data name="Basic_ScrollbarAlways" xml:space="preserve">
+      <value>常驻显示</value>
+    </data>
+    <data name="Basic_ScrollbarOnScroll" xml:space="preserve">
+      <value>仅滚动时显示</value>
+    </data>
+    <data name="Basic_ScrollbarHint" xml:space="preserve">
+      <value>* 控制面板滚动条较细；仅滚动时显示可减少调整窗口大小时滚动条反复出现/消失的视觉割裂。</value>
+    </data>
+    <data name="Dialog_ExeFilter" xml:space="preserve">
+      <value>可执行文件 (*.exe)|*.exe</value>
+    </data>
+    <data name="Dialog_SelectProcess" xml:space="preserve">
+      <value>选择应用进程</value>
+    </data>
+    <data name="Filter_Add" xml:space="preserve">
+      <value>添加</value>
+    </data>
+    <data name="Filter_AddProcess" xml:space="preserve">
+      <value>添加进程</value>
+    </data>
+    <data name="Filter_Browse" xml:space="preserve">
+      <value>浏览...</value>
+    </data>
+    <data name="Filter_Delete" xml:space="preserve">
+      <value>删除</value>
+    </data>
+    <data name="Filter_Desktop" xml:space="preserve">
+      <value>在桌面上显示特效</value>
+    </data>
+    <data name="Filter_Enable" xml:space="preserve">
+      <value>启用智能环境探测</value>
+    </data>
+    <data name="Filter_Fullscreen" xml:space="preserve">
+      <value>全屏应用前台运行时自动暂停</value>
+    </data>
+    <data name="Filter_Mode" xml:space="preserve">
+      <value>过滤模式</value>
+    </data>
+    <data name="Filter_Mode_Blacklist" xml:space="preserve">
+      <value>❌ 黑名单模式</value>
+    </data>
+    <data name="Filter_Mode_Disabled" xml:space="preserve">
+      <value>🚫 关闭过滤</value>
+    </data>
+    <data name="Filter_Mode_Whitelist" xml:space="preserve">
+      <value>✅ 白名单模式</value>
+    </data>
+    <data name="Filter_New" xml:space="preserve">
+      <value>新建</value>
+    </data>
+    <data name="Filter_ProcessList" xml:space="preserve">
+      <value>已配置进程列表</value>
+    </data>
+    <data name="Filter_Profiles" xml:space="preserve">
+      <value>配置组管理</value>
+    </data>
+    <data name="Filter_Remove" xml:space="preserve">
+      <value>移除</value>
+    </data>
+    <data name="Filter_Rename" xml:space="preserve">
+      <value>重命名</value>
+    </data>
+    <data name="Filter_SelectRunning" xml:space="preserve">
+      <value>从运行中选择</value>
+    </data>
+    <data name="Filter_Title" xml:space="preserve">
+      <value>环境过滤</value>
+    </data>
+    <data name="LangSelect_Chinese" xml:space="preserve">
+      <value>简体中文</value>
+    </data>
+    <data name="LangSelect_Continue" xml:space="preserve">
+      <value>继续</value>
+    </data>
+    <data name="LangSelect_English" xml:space="preserve">
+      <value>English</value>
+    </data>
+    <data name="LangSelect_Japanese" xml:space="preserve">
+      <value>日本語</value>
+    </data>
+    <data name="LangSelect_Subtitle" xml:space="preserve">
+      <value>请选择界面显示语言。选择后可在设置中随时更改。</value>
+    </data>
+    <data name="LangSelect_Title" xml:space="preserve">
+      <value>选择语言</value>
+    </data>
+    <data name="Link_Discord_Url" xml:space="preserve">
+      <value>https://discord.gg/sgZMdqhfZu</value>
+    </data>
+    <data name="Msg_AdminRestart" xml:space="preserve">
+      <value>需要以管理员权限重启应用以应用设置，是否立即重启？</value>
+    </data>
+    <data name="Msg_AdminRestart_Title" xml:space="preserve">
+      <value>需要权限</value>
+    </data>
+    <data name="Msg_CheckUpdateFailed" xml:space="preserve">
+      <value>检查更新失败: 
+{0}</value>
+    </data>
+    <data name="Msg_CheckUpdate_Title" xml:space="preserve">
+      <value>检查更新</value>
+    </data>
+    <data name="Msg_ConfirmDeleteProfile" xml:space="preserve">
+      <value>确定要删除 '{0}' 吗？</value>
+    </data>
+    <data name="Msg_ConfirmDelete_Title" xml:space="preserve">
+      <value>确认删除</value>
+    </data>
+    <data name="Msg_ConfirmReset" xml:space="preserve">
+      <value>确定要重置所有配置吗？这将会清空所有配置，程序随后将关闭。</value>
+    </data>
+    <data name="Msg_ConfirmReset_Title" xml:space="preserve">
+      <value>确认重置</value>
+    </data>
+    <data name="Msg_DefaultNoticeTitle" xml:space="preserve">
+      <value>官方公告</value>
+    </data>
+    <data name="Msg_DeleteFailed" xml:space="preserve">
+      <value>删除失败: {0}</value>
+    </data>
+    <data name="Msg_Error" xml:space="preserve">
+      <value>错误</value>
+    </data>
+    <data name="Msg_Info" xml:space="preserve">
+      <value>提示</value>
+    </data>
+    <data name="Msg_KeepOneProfile" xml:space="preserve">
+      <value>至少需要保留一个配置组。</value>
+    </data>
+    <data name="Msg_LanguageRestart" xml:space="preserve">
+      <value>界面语言已更改。是否立即重启以完全应用？</value>
+    </data>
+    <data name="Msg_LanguageRestart_Title" xml:space="preserve">
+      <value>语言已更改</value>
+    </data>
+    <data name="Msg_MinOneScreen" xml:space="preserve">
+      <value>至少需要启用一个屏幕。</value>
+    </data>
+    <data name="Msg_MultiScreen_Title" xml:space="preserve">
+      <value>多屏控制</value>
+    </data>
+    <data name="Msg_NetworkError" xml:space="preserve">
+      <value>网络错误</value>
+    </data>
+    <data name="Msg_NoUpdateNotes" xml:space="preserve">
+      <value>无更新说明</value>
+    </data>
+    <data name="Msg_OpenLinkFailed" xml:space="preserve">
+      <value>无法打开链接: {0}</value>
+    </data>
+    <data name="Msg_RestartAdminFailed" xml:space="preserve">
+      <value>提权重启失败，请尝试手动右键以管理员身份运行。
+错误信息: {0}</value>
+    </data>
+    <data name="Msg_SelectVisualReset" xml:space="preserve">
+      <value>请至少选择一项要恢复的内容。</value>
+    </data>
+    <data name="Msg_SettingsApplied" xml:space="preserve">
+      <value>配置已成功应用！</value>
+    </data>
+    <data name="Msg_UpToDate" xml:space="preserve">
+      <value>当前已是最新版本，无需更新！</value>
+    </data>
+    <data name="Msg_UpdateAvailable" xml:space="preserve">
+      <value>发现新版本: V{0}
+
+更新内容:
+{1}
+
+是否立即前往下载？</value>
+    </data>
+    <data name="Msg_UpdateAvailable_Title" xml:space="preserve">
+      <value>发现新版本</value>
+    </data>
+    <data name="Msg_VisualResetDone" xml:space="preserve">
+      <value>所选视觉表现项已恢复为默认值并已保存。</value>
+    </data>
+    <data name="Msg_VisualReset_Title" xml:space="preserve">
+      <value>恢复默认设置</value>
+    </data>
+    <data name="MultiScreen_Detail" xml:space="preserve">
+      <value>{0}  ·  位置 ({1}, {2})  ·  {3}</value>
+    </data>
+    <data name="MultiScreen_Enable" xml:space="preserve">
+      <value>启用</value>
+    </data>
+    <data name="MultiScreen_Hint" xml:space="preserve">
+      <value>勾选要启用特效窗口的显示器。设置会按显示器名称和硬件 ID 记忆，显示屏变更后自动恢复。</value>
+    </data>
+    <data name="MultiScreen_Primary" xml:space="preserve">
+      <value> (主显示器)</value>
+    </data>
+    <data name="MultiScreen_Refresh" xml:space="preserve">
+      <value>刷新显示器</value>
+    </data>
+    <data name="MultiScreen_Scale" xml:space="preserve">
+      <value>缩放 {0}%</value>
+    </data>
+    <data name="MultiScreen_Title" xml:space="preserve">
+      <value>多屏显示管理</value>
+    </data>
+    <data name="Nav_About" xml:space="preserve">
+      <value>关于</value>
+    </data>
+    <data name="Nav_Basic" xml:space="preserve">
+      <value>基础设置</value>
+    </data>
+    <data name="Nav_Filter" xml:space="preserve">
+      <value>环境过滤</value>
+    </data>
+    <data name="Nav_Home" xml:space="preserve">
+      <value>首页</value>
+    </data>
+    <data name="Nav_MultiScreen" xml:space="preserve">
+      <value>多屏管理</value>
+    </data>
+    <data name="Nav_Settings" xml:space="preserve">
+      <value>设置</value>
+    </data>
+    <data name="Nav_Visual" xml:space="preserve">
+      <value>视觉表现</value>
+    </data>
+    <data name="Overlay_Cancel" xml:space="preserve">
+      <value>取消</value>
+    </data>
+    <data name="Overlay_ConfirmAdd" xml:space="preserve">
+      <value>确认添加</value>
+    </data>
+    <data name="Overlay_ConfirmRename" xml:space="preserve">
+      <value>确认修改</value>
+    </data>
+    <data name="Overlay_ConfirmReset" xml:space="preserve">
+      <value>确认重置</value>
+    </data>
+    <data name="Overlay_RenameProfile" xml:space="preserve">
+      <value>重命名配置组</value>
+    </data>
+    <data name="Overlay_RenamePrompt" xml:space="preserve">
+      <value>请输入新的配置组名称：</value>
+    </data>
+    <data name="Overlay_RunningProcess" xml:space="preserve">
+      <value>从运行中进程添加</value>
+    </data>
+    <data name="Overlay_VisualReset" xml:space="preserve">
+      <value>选择要恢复默认的视觉表现项</value>
+    </data>
+    <data name="Privacy_Agree" xml:space="preserve">
+      <value>同意并进入</value>
+    </data>
+    <data name="Privacy_Intro" xml:space="preserve">
+      <value>在使用本软件前，请详细阅读以下内容：</value>
+    </data>
+    <data name="Privacy_OpenSource_Body" xml:space="preserve">
+      <value>本软件完全开源且免费。严禁商业倒卖，若您是付费取得，请立即向平台举报并申请退款。</value>
+    </data>
+    <data name="Privacy_OpenSource_Title" xml:space="preserve">
+      <value>● 开源声明</value>
+    </data>
+    <data name="Privacy_Privacy_Body" xml:space="preserve">
+      <value>绝不收集您的按键内容、文件或任何私密信息。所有特效渲染均在本地完成。</value>
+    </data>
+    <data name="Privacy_Privacy_Title" xml:space="preserve">
+      <value>● 隐私保障</value>
+    </data>
+    <data name="Privacy_Refuse" xml:space="preserve">
+      <value>拒绝并退出</value>
+    </data>
+    <data name="Privacy_Security_Body" xml:space="preserve">
+      <value>请确保从官方渠道下载。第三方渠道提供的版本可能存在被篡改或报毒的风险。</value>
+    </data>
+    <data name="Privacy_Security_Title" xml:space="preserve">
+      <value>● 安全预警 (重要)</value>
+    </data>
+    <data name="Privacy_Tagline" xml:space="preserve">
+      <value>Sensei, welcome back to Schale.</value>
+    </data>
+    <data name="Privacy_Telemetry" xml:space="preserve">
+      <value>同意加入用户体验改进计划 (匿名统计)</value>
+    </data>
+    <data name="Privacy_Title" xml:space="preserve">
+      <value>欢迎使用 BASpark</value>
+    </data>
+    <data name="Privacy_VersionFailed" xml:space="preserve">
+      <value>版本信息读取失败</value>
+    </data>
+    <data name="Profile_Default" xml:space="preserve">
+      <value>默认配置</value>
+    </data>
+    <data name="Profile_New" xml:space="preserve">
+      <value>新配置组</value>
+    </data>
+    <data name="Profile_NewNumbered" xml:space="preserve">
+      <value>新配置组 {0}</value>
+    </data>
+    <data name="Settings_Apply" xml:space="preserve">
+      <value>应用更改</value>
+    </data>
+    <data name="Settings_ApplyHint" xml:space="preserve">
+      <value>*修改设置后，请点击右侧 [应用更改] 按钮生效。</value>
+    </data>
+    <data name="Settings_Title" xml:space="preserve">
+      <value>参数配置</value>
+    </data>
+    <data name="Status_Active" xml:space="preserve">
+      <value>工作中</value>
+    </data>
+    <data name="Status_AdminPending" xml:space="preserve">
+      <value>管理员模式将在保存并重启后生效</value>
+    </data>
+    <data name="Status_Filtered" xml:space="preserve">
+      <value>环境过滤中</value>
+    </data>
+    <data name="Status_Paused" xml:space="preserve">
+      <value>已暂停</value>
+    </data>
+    <data name="Tray_Exit" xml:space="preserve">
+      <value>彻底退出</value>
+    </data>
+    <data name="Tray_OpenPanel" xml:space="preserve">
+      <value>打开控制面板</value>
+    </data>
+    <data name="Tray_Restart" xml:space="preserve">
+      <value>重启应用</value>
+    </data>
+    <data name="Tray_RestartFailed" xml:space="preserve">
+      <value>重启失败: {0}</value>
+    </data>
+    <data name="Tray_Text" xml:space="preserve">
+      <value>BASpark - 点击特效</value>
+    </data>
+    <data name="Version_ReadFailed" xml:space="preserve">
+      <value>版本信息读取失败</value>
+    </data>
+    <data name="VisualReset_ClickSpeed" xml:space="preserve">
+      <value>点击动画速度</value>
+    </data>
+    <data name="VisualReset_ClickSpeed_Sub" xml:space="preserve">
+      <value>独立项默认 1.00 ×</value>
+    </data>
+    <data name="VisualReset_Color" xml:space="preserve">
+      <value>特效主题颜色</value>
+    </data>
+    <data name="VisualReset_Color_Sub" xml:space="preserve">
+      <value>默认 RGB(45,175,255)</value>
+    </data>
+    <data name="VisualReset_Opacity" xml:space="preserve">
+      <value>全局不透明度</value>
+    </data>
+    <data name="VisualReset_Opacity_Sub" xml:space="preserve">
+      <value>默认 100 %</value>
+    </data>
+    <data name="VisualReset_Scale" xml:space="preserve">
+      <value>缩放比例</value>
+    </data>
+    <data name="VisualReset_Scale_Sub" xml:space="preserve">
+      <value>默认 1.50 ×</value>
+    </data>
+    <data name="VisualReset_TrailRefresh" xml:space="preserve">
+      <value>拖尾刷新率</value>
+    </data>
+    <data name="VisualReset_TrailRefresh_Sub" xml:space="preserve">
+      <value>默认 40 Hz</value>
+    </data>
+    <data name="VisualReset_TrailSpeed" xml:space="preserve">
+      <value>拖尾动画速度</value>
+    </data>
+    <data name="VisualReset_TrailSpeed_Sub" xml:space="preserve">
+      <value>独立项默认 1.00 ×</value>
+    </data>
+    <data name="VisualReset_UnifiedSpeed" xml:space="preserve">
+      <value>统一动画速度</value>
+    </data>
+    <data name="VisualReset_UnifiedSpeed_Sub" xml:space="preserve">
+      <value>开启「同一速度」并默认 1.00 ×</value>
+    </data>
+    <data name="Visual_AnimSpeed" xml:space="preserve">
+      <value>动画播放速度</value>
+    </data>
+    <data name="Visual_ChangeColor" xml:space="preserve">
+      <value>更改颜色</value>
+    </data>
+    <data name="Visual_ClickAnimSpeed" xml:space="preserve">
+      <value>点击动画速度</value>
+    </data>
+    <data name="Visual_Color" xml:space="preserve">
+      <value>特效主题颜色</value>
+    </data>
+    <data name="Visual_InputHint" xml:space="preserve">
+      <value>提示：可点击数字输入精确值后可按回车应用</value>
+    </data>
+    <data name="Visual_LinkedSpeed" xml:space="preserve">
+      <value>拖尾与点击使用同一动画速度</value>
+    </data>
+    <data name="Visual_LinkedSpeedHint" xml:space="preserve">
+      <value>关闭此项后可单独加快或减慢拖尾衰减与移动粒子，而不影响点击波纹与爆发粒子，与下方「拖尾刷新率」不同。</value>
+    </data>
+    <data name="Visual_Opacity" xml:space="preserve">
+      <value>全局不透明度</value>
+    </data>
+    <data name="Visual_ResetDefaults" xml:space="preserve">
+      <value>恢复默认设置</value>
+    </data>
+    <data name="Visual_Scale" xml:space="preserve">
+      <value>缩放比例</value>
+    </data>
+    <data name="Visual_Title" xml:space="preserve">
+      <value>视觉表现</value>
+    </data>
+    <data name="Visual_TrailAnimSpeed" xml:space="preserve">
+      <value>拖尾动画速度</value>
+    </data>
+    <data name="Visual_TrailRefresh" xml:space="preserve">
+      <value>拖尾刷新率</value>
+    </data>
+    <data name="WebView2_InitFailed" xml:space="preserve">
+      <value>WebView2 初始化失败: {0}</value>
+    </data>
+    <data name="Welcome_ClicksLabel" xml:space="preserve">
+      <value>累计点击次数:</value>
+    </data>
+    <data name="Welcome_ClicksUnit" xml:space="preserve">
+      <value>{0} 次</value>
+    </data>
+    <data name="Welcome_NoticeLoading" xml:space="preserve">
+      <value>加载中...</value>
+    </data>
+    <data name="Welcome_StatsTitle" xml:space="preserve">
+      <value>实时统计</value>
+    </data>
+    <data name="Welcome_StatusLabel" xml:space="preserve">
+      <value>当前状态:</value>
+    </data>
+    <data name="Welcome_Subtitle" xml:space="preserve">
+      <value>Sensei, welcome back!</value>
+    </data>
+    <data name="Welcome_Title" xml:space="preserve">
+      <value>欢迎回来，老师！</value>
+    </data>
+  </root>

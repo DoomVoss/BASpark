@@ -2,39 +2,94 @@
 using System.Threading;
 using System.Windows;
 using Microsoft.Win32;
+using System.Windows.Interop;
+using System.Diagnostics;
+using System.Security.Principal;
+using System.Linq;
 
 namespace BASpark
 {
     public partial class App : System.Windows.Application
     {
-        public static MainWindow? Overlay { get; private set; }
+        public static OverlayManager? Overlay { get; private set; }
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private ControlPanelWindow? _controlPanel;
 
         private static Mutex? _mutex;
+        private int _isExiting = 0;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             const string appName = @"Global\BASpark_SingleInstance_Mutex";
             _mutex = new Mutex(true, appName, out bool createdNew);
-            bool launchedFromAutoStart = IsAutoStartLaunch(e.Args);
 
             if (!createdNew)
             {
-                System.Windows.MessageBox.Show("BASpark 已经在运行中，请检查系统托盘。", "提示",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                ConfigManager.Load();
+                if (!string.IsNullOrWhiteSpace(ConfigManager.UiLanguage))
+                {
+                    Localization.ApplyCulture(ConfigManager.UiLanguage);
+                }
+
+                System.Windows.MessageBox.Show(
+                    Localization.Get("App_AlreadyRunning"),
+                    Localization.Get("App_AlreadyRunning_Title"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
 
                 System.Windows.Application.Current.Shutdown();
                 return;
             }
 
+            ConfigManager.Load();
+
+            if (string.IsNullOrWhiteSpace(ConfigManager.UiLanguage))
+            {
+                if (!ConfigManager.AgreedToPrivacy)
+                {
+                    var languageWin = new LanguageSelectWindow();
+                    bool? langResult = languageWin.ShowDialog();
+                    if (langResult != true)
+                    {
+                        ExitApplication();
+                        return;
+                    }
+                }
+                else
+                {
+                    string detected = Localization.DetectCultureFromSystem();
+                    Localization.ApplyCulture(detected);
+                    ConfigManager.Save("UiLanguage", detected);
+                }
+            }
+            else
+            {
+                Localization.ApplyCulture(ConfigManager.UiLanguage);
+            }
+
+            if (ConfigManager.RunAsAdmin && !IsRunningAsAdmin())
+            {
+                try
+                {
+                    RestartWithAdminPrivileges(e.Args);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("自动请求管理员权限被拒绝或失败: " + ex.Message);
+                }
+            }
+
+            SystemEvents.SessionEnding += OnSessionEnding;
+
             base.OnStartup(e);
 
-            ConfigManager.Load();
+            bool launchedFromAutoStart = IsAutoStartLaunch(e.Args);
 
             if (!ConfigManager.AgreedToPrivacy)
             {
                 var privacyWin = new PrivacyWindow();
+                UiLocalizer.ApplyPrivacy(privacyWin);
                 bool? result = privacyWin.ShowDialog();
                 if (result == true)
                 {
@@ -51,25 +106,62 @@ namespace BASpark
 
             InitTrayIcon();
 
-            Overlay = new MainWindow();
-            Overlay.Show();
+            Overlay = new OverlayManager();
+            Overlay.Start();
 
-            // 仅手动启动/开机非静默启动时显示控制面板
             if (!(launchedFromAutoStart && ConfigManager.StartSilent))
             {
                 ShowControlPanel();
             }
         }
 
+        private bool IsRunningAsAdmin()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
+        private void RestartWithAdminPrivileges(string[] args)
+        {
+            string exePath = System.Environment.ProcessPath ?? 
+                             System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = exePath,
+                UseShellExecute = true,
+                Verb = "runas",
+                Arguments = string.Join(" ", args.Select(a => $"\"{a}\""))
+            };
+
+            try
+            {
+                Process.Start(startInfo);
+                if (_mutex != null)
+                {
+                    _mutex.ReleaseMutex();
+                    _mutex.Dispose();
+                    _mutex = null;
+                }
+                System.Windows.Application.Current.Shutdown();
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                throw new Exception("用户拒绝了管理员授权。");
+            }
+        }
+
         private static bool IsAutoStartLaunch(string[] args)
         {
-            foreach (string arg in args)
-            {
-                if (string.Equals(arg, "--autostart", StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
+            return args.Any(arg => string.Equals(arg, "--autostart", StringComparison.OrdinalIgnoreCase));
+        }
 
-            return false;
+        private void OnSessionEnding(object sender, SessionEndingEventArgs e)
+        {
+            ExitApplication();
         }
 
         private void InitTrayIcon()
@@ -90,14 +182,23 @@ namespace BASpark
             }
 
             _notifyIcon.Visible = true;
-            _notifyIcon.Text = "BASpark - 点击特效";
+            RefreshTrayLocalization();
             _notifyIcon.DoubleClick += (s, e) => ShowControlPanel();
 
             var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-            contextMenu.Items.Add("打开控制面板", null, (s, e) => ShowControlPanel());
+            contextMenu.Items.Add(Localization.Get("Tray_OpenPanel"), null, (s, e) => ShowControlPanel());
             contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            contextMenu.Items.Add("彻底退出", null, (s, e) => ExitApplication());
+            contextMenu.Items.Add(Localization.Get("Tray_Restart"), null, (s, e) => RestartApplication());
+            contextMenu.Items.Add(Localization.Get("Tray_Exit"), null, (s, e) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        private void RefreshTrayLocalization()
+        {
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Text = Localization.Get("Tray_Text");
+            }
         }
 
         public void ShowControlPanel()
@@ -120,6 +221,65 @@ namespace BASpark
             });
         }
 
+        public void RestartApplicationFromPanel()
+        {
+            RestartApplication();
+        }
+
+        private void RestartApplication()
+        {
+            try
+            {
+                string exePath = System.Environment.ProcessPath ?? 
+                                 System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+
+                ProcessStartInfo startInfo = new ProcessStartInfo(exePath) { UseShellExecute = true };
+                if (ConfigManager.RunAsAdmin)
+                {
+                    startInfo.Verb = "runas";
+                }
+
+                System.Diagnostics.Process.Start(startInfo);
+                ExitApplication();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    Localization.Format("Tray_RestartFailed", ex.Message));
+            }
+        }
+
+        private void ExitApplication()
+        {
+            if (Interlocked.Exchange(ref _isExiting, 1) == 1) return;
+
+            SystemEvents.SessionEnding -= OnSessionEnding;
+
+            ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
+
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+                _notifyIcon.ContextMenuStrip?.Dispose();
+                _notifyIcon.Dispose();
+                _notifyIcon = null;
+            }
+
+            this.Dispatcher.Invoke(() =>
+            {
+                try { _controlPanel?.Close(); } catch { }
+                try { Overlay?.Dispose(); } catch { }
+            });
+
+            if (_mutex != null)
+            {
+                try { _mutex.ReleaseMutex(); } catch { }
+                _mutex.Dispose();
+                _mutex = null;
+            }
+            System.Windows.Application.Current.Shutdown();
+        }
+
         public static void SetAutoStart(bool enable)
         {
             try
@@ -139,22 +299,6 @@ namespace BASpark
             {
                 System.Windows.MessageBox.Show("自启设置失败: " + ex.Message);
             }
-        }
-
-        private void ExitApplication()
-        {
-            ConfigManager.Save("TotalClicks", ConfigManager.TotalClicks);
-
-            _notifyIcon?.Dispose();
-            Overlay?.Close();
-
-            if (_mutex != null)
-            {
-                _mutex.ReleaseMutex();
-                _mutex.Dispose();
-            }
-
-            System.Windows.Application.Current.Shutdown();
         }
     }
 }

@@ -1,0 +1,65 @@
+name: 🔵 Question (English)
+description: Ask a question about BASpark's usage, features, or technical implementation
+title: "[Question]: "
+labels: ["question"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome! Feel free to ask any questions about BASpark. Whether you're confused about how to use a feature or curious about the underlying technical mechanics, you're in the right place.
+
+  - type: dropdown
+    id: question-category
+    attributes:
+      label: "Category"
+      description: "What area does your question mainly relate to?"
+      options:
+        - "General Usage (How to configure / enable features)"
+        - "Installation & Uninstallation (Errors / paths / startup)"
+        - "Technical Implementation (C# / WPF / particle logic)"
+        - "Licensing & Collaboration (Open-source license / secondary development)"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question-content
+    attributes:
+      label: "What would you like to know?"
+      description: "Please describe your question or inquiry in detail."
+      placeholder: "e.g., I want to understand how to customize the particle fade-out speed, or what the purpose of XXX is..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: possible-bug
+    attributes:
+      label: "Could this be a bug?"
+      description: "If you notice abnormal software behavior, we highly recommend using the 'Bug Report' template instead."
+      options:
+        - "No, this is purely a general question"
+        - "Not sure, I might need the author to clarify"
+        - "Yes, but I'm not ready to file a full bug report yet"
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment-info
+    attributes:
+      label: "Environment Context (Optional)"
+      description: "Providing your OS version or software version helps us give you a more accurate answer."
+      placeholder: |
+        Version: v1.0.0
+        OS: Windows 11
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: "Additional Context"
+      description: "Paste any relevant screenshots, logs, or code snippets here."
+    validations:
+      required: false

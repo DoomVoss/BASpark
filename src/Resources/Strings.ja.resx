@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <root>
+    <resheader name="resmimetype">
+      <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+      <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+      <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+      <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="About_Bilibili" xml:space="preserve">
+      <value>📺 Bilibili</value>
+    </data>
+    <data name="About_CheckUpdate" xml:space="preserve">
+      <value>更新を確認</value>
+    </data>
+    <data name="About_CheckingUpdate" xml:space="preserve">
+      <value>確認中...</value>
+    </data>
+    <data name="About_Description" xml:space="preserve">
+      <value>『ブルーアーカイブ』風 UI のマウスクリックエフェクト</value>
+    </data>
+    <data name="About_DevOptions" xml:space="preserve">
+      <value>開発者向け</value>
+    </data>
+    <data name="About_Discord" xml:space="preserve">
+      <value>💬 Discord に参加</value>
+    </data>
+    <data name="About_Github" xml:space="preserve">
+      <value>🌐 GitHub リポジトリ</value>
+    </data>
+    <data name="About_OfficialSite" xml:space="preserve">
+      <value>🌐 公式サイト</value>
+    </data>
+    <data name="About_QQ" xml:space="preserve">
+      <value>💬 QQ グループ</value>
+    </data>
+    <data name="About_ResetAll" xml:space="preserve">
+      <value>すべての設定をリセットして終了</value>
+    </data>
+    <data name="About_SecurityWarning" xml:space="preserve">
+      <value>必ず公式チャネルからダウンロードしてください。非公式版は危険な場合があります。</value>
+    </data>
+    <data name="About_Sponsor" xml:space="preserve">
+      <value>☕ 作者を支援</value>
+    </data>
+    <data name="About_Support" xml:space="preserve">
+      <value>BASpark を気に入っていただけたら、開発の継続にご協力ください ☕</value>
+    </data>
+    <data name="About_Title" xml:space="preserve">
+      <value>情報</value>
+    </data>
+    <data name="App_AlreadyRunning" xml:space="preserve">
+      <value>BASpark は既に実行中です。システムトレイを確認してください。</value>
+    </data>
+    <data name="App_AlreadyRunning_Title" xml:space="preserve">
+      <value>お知らせ</value>
+    </data>
+    <data name="App_Title_ControlPanel" xml:space="preserve">
+      <value>BASpark - コントロールパネル</value>
+    </data>
+    <data name="Basic_AutoStart" xml:space="preserve">
+      <value>Windows 起動時に実行</value>
+    </data>
+    <data name="Basic_BothClick" xml:space="preserve">
+      <value>左右</value>
+    </data>
+    <data name="Basic_ClickType" xml:space="preserve">
+      <value>トリガーボタン</value>
+    </data>
+    <data name="Basic_Language" xml:space="preserve">
+      <value>表示言語</value>
+    </data>
+    <data name="Basic_LeftClick" xml:space="preserve">
+      <value>左のみ</value>
+    </data>
+    <data name="Basic_MasterSwitch" xml:space="preserve">
+      <value>クリックエフェクトを有効にする</value>
+    </data>
+    <data name="Basic_MiddleClick" xml:space="preserve">
+      <value>中クリックでトリガー</value>
+    </data>
+    <data name="Basic_RightClick" xml:space="preserve">
+      <value>右のみ</value>
+    </data>
+    <data name="Basic_RunAsAdmin" xml:space="preserve">
+      <value>管理者として実行</value>
+    </data>
+    <data name="Basic_RunAsAdminHint" xml:space="preserve">
+      <value>* タスクマネージャーなどの高権限ウィンドウでエフェクトを表示する場合に必要です。</value>
+    </data>
+    <data name="Basic_ScreenshotHint" xml:space="preserve">
+      <value>*（実験的）スクリーンショットや QQ の既定ショートカット検出時にオーバーレイを一時非表示にします。</value>
+    </data>
+    <data name="Basic_ScreenshotMode" xml:space="preserve">
+      <value>スクリーンショット互換</value>
+    </data>
+    <data name="Basic_StartSilent" xml:space="preserve">
+      <value>サイレント起動（トレイのみ）</value>
+    </data>
+    <data name="Basic_Telemetry" xml:space="preserve">
+      <value>匿名の利用データの送信を許可</value>
+    </data>
+    <data name="Basic_Title" xml:space="preserve">
+      <value>基本設定</value>
+    </data>
+    <data name="Basic_Touchscreen" xml:space="preserve">
+      <value>タッチスクリーンモード</value>
+    </data>
+    <data name="Basic_TouchscreenHint" xml:space="preserve">
+      <value>* カーソル非表示時もエフェクトが動作します。タッチスクリーンや特定の全画面アプリ向けです。</value>
+    </data>
+    <data name="Basic_TrailSwitch" xml:space="preserve">
+      <value>マウスの常時トレイルを有効にする</value>
+    </data>
+    <data name="Basic_ScrollbarVisibility" xml:space="preserve">
+      <value>スクロールバーの表示</value>
+    </data>
+    <data name="Basic_ScrollbarAlways" xml:space="preserve">
+      <value>常に表示</value>
+    </data>
+    <data name="Basic_ScrollbarOnScroll" xml:space="preserve">
+      <value>スクロール時のみ</value>
+    </data>
+    <data name="Basic_ScrollbarHint" xml:space="preserve">
+      <value>* 細いスクロールバーを使用します。スクロール時のみ表示にすると、ウィンドウサイズ変更やタブ切替時の表示/非表示のちらつきを抑えられます。</value>
+    </data>
+    <data name="Dialog_ExeFilter" xml:space="preserve">
+      <value>実行ファイル (*.exe)|*.exe</value>
+    </data>
+    <data name="Dialog_SelectProcess" xml:space="preserve">
+      <value>プロセスを選択</value>
+    </data>
+    <data name="Filter_Add" xml:space="preserve">
+      <value>追加</value>
+    </data>
+    <data name="Filter_AddProcess" xml:space="preserve">
+      <value>プロセスを追加</value>
+    </data>
+    <data name="Filter_Browse" xml:space="preserve">
+      <value>参照...</value>
+    </data>
+    <data name="Filter_Delete" xml:space="preserve">
+      <value>削除</value>
+    </data>
+    <data name="Filter_Desktop" xml:space="preserve">
+      <value>デスクトップでエフェクトを表示</value>
+    </data>
+    <data name="Filter_Enable" xml:space="preserve">
+      <value>スマート環境検出を有効にする</value>
+    </data>
+    <data name="Filter_Fullscreen" xml:space="preserve">
+      <value>全画面アプリが前面のとき自動一時停止</value>
+    </data>
+    <data name="Filter_Mode" xml:space="preserve">
+      <value>フィルターモード</value>
+    </data>
+    <data name="Filter_Mode_Blacklist" xml:space="preserve">
+      <value>❌ ブラックリスト</value>
+    </data>
+    <data name="Filter_Mode_Disabled" xml:space="preserve">
+      <value>🚫 オフ</value>
+    </data>
+    <data name="Filter_Mode_Whitelist" xml:space="preserve">
+      <value>✅ ホワイトリスト</value>
+    </data>
+    <data name="Filter_New" xml:space="preserve">
+      <value>新規</value>
+    </data>
+    <data name="Filter_ProcessList" xml:space="preserve">
+      <value>設定済みプロセス</value>
+    </data>
+    <data name="Filter_Profiles" xml:space="preserve">
+      <value>プロファイル管理</value>
+    </data>
+    <data name="Filter_Remove" xml:space="preserve">
+      <value>削除</value>
+    </data>
+    <data name="Filter_Rename" xml:space="preserve">
+      <value>名前変更</value>
+    </data>
+    <data name="Filter_SelectRunning" xml:space="preserve">
+      <value>実行中から選択</value>
+    </data>
+    <data name="Filter_Title" xml:space="preserve">
+      <value>環境フィルター</value>
+    </data>
+    <data name="LangSelect_Chinese" xml:space="preserve">
+      <value>简体中文</value>
+    </data>
+    <data name="LangSelect_Continue" xml:space="preserve">
+      <value>続行</value>
+    </data>
+    <data name="LangSelect_English" xml:space="preserve">
+      <value>English</value>
+    </data>
+    <data name="LangSelect_Japanese" xml:space="preserve">
+      <value>日本語</value>
+    </data>
+    <data name="LangSelect_Subtitle" xml:space="preserve">
+      <value>表示言語を選択してください。後から設定で変更できます。</value>
+    </data>
+    <data name="LangSelect_Title" xml:space="preserve">
+      <value>言語を選択</value>
+    </data>
+    <data name="Link_Discord_Url" xml:space="preserve">
+      <value>https://discord.gg/sgZMdqhfZu</value>
+    </data>
+    <data name="Msg_AdminRestart" xml:space="preserve">
+      <value>管理者として再起動して設定を適用しますか？</value>
+    </data>
+    <data name="Msg_AdminRestart_Title" xml:space="preserve">
+      <value>権限が必要です</value>
+    </data>
+    <data name="Msg_CheckUpdateFailed" xml:space="preserve">
+      <value>更新の確認に失敗しました:
+{0}</value>
+    </data>
+    <data name="Msg_CheckUpdate_Title" xml:space="preserve">
+      <value>更新の確認</value>
+    </data>
+    <data name="Msg_ConfirmDeleteProfile" xml:space="preserve">
+      <value>「{0}」を削除しますか？</value>
+    </data>
+    <data name="Msg_ConfirmDelete_Title" xml:space="preserve">
+      <value>削除の確認</value>
+    </data>
+    <data name="Msg_ConfirmReset" xml:space="preserve">
+      <value>すべての設定をリセットしますか？アプリは終了します。</value>
+    </data>
+    <data name="Msg_ConfirmReset_Title" xml:space="preserve">
+      <value>リセットの確認</value>
+    </data>
+    <data name="Msg_DefaultNoticeTitle" xml:space="preserve">
+      <value>お知らせ</value>
+    </data>
+    <data name="Msg_DeleteFailed" xml:space="preserve">
+      <value>削除に失敗しました: {0}</value>
+    </data>
+    <data name="Msg_Error" xml:space="preserve">
+      <value>エラー</value>
+    </data>
+    <data name="Msg_Info" xml:space="preserve">
+      <value>お知らせ</value>
+    </data>
+    <data name="Msg_KeepOneProfile" xml:space="preserve">
+      <value>プロファイルは少なくとも 1 つ必要です。</value>
+    </data>
+    <data name="Msg_LanguageRestart" xml:space="preserve">
+      <value>言語を変更しました。すべての UI を反映するには再起動が必要です。今すぐ再起動しますか？</value>
+    </data>
+    <data name="Msg_LanguageRestart_Title" xml:space="preserve">
+      <value>言語を変更しました</value>
+    </data>
+    <data name="Msg_MinOneScreen" xml:space="preserve">
+      <value>少なくとも 1 つのディスプレイを有効にしてください。</value>
+    </data>
+    <data name="Msg_MultiScreen_Title" xml:space="preserve">
+      <value>マルチディスプレイ</value>
+    </data>
+    <data name="Msg_NetworkError" xml:space="preserve">
+      <value>ネットワークエラー</value>
+    </data>
+    <data name="Msg_NoUpdateNotes" xml:space="preserve">
+      <value>リリースノートなし</value>
+    </data>
+    <data name="Msg_OpenLinkFailed" xml:space="preserve">
+      <value>リンクを開けませんでした: {0}</value>
+    </data>
+    <data name="Msg_RestartAdminFailed" xml:space="preserve">
+      <value>昇格再起動に失敗しました。右クリックで管理者として実行してください。
+{0}</value>
+    </data>
+    <data name="Msg_SelectVisualReset" xml:space="preserve">
+      <value>復元する項目を 1 つ以上選択してください。</value>
+    </data>
+    <data name="Msg_SettingsApplied" xml:space="preserve">
+      <value>設定を適用しました！</value>
+    </data>
+    <data name="Msg_UpToDate" xml:space="preserve">
+      <value>最新バージョンです。</value>
+    </data>
+    <data name="Msg_UpdateAvailable" xml:space="preserve">
+      <value>新しいバージョン V{0}
+
+変更内容:
+{1}
+
+今すぐダウンロードしますか？</value>
+    </data>
+    <data name="Msg_UpdateAvailable_Title" xml:space="preserve">
+      <value>更新があります</value>
+    </data>
+    <data name="Msg_VisualResetDone" xml:space="preserve">
+      <value>選択したビジュアル設定を既定値に戻して保存しました。</value>
+    </data>
+    <data name="Msg_VisualReset_Title" xml:space="preserve">
+      <value>既定値に戻す</value>
+    </data>
+    <data name="MultiScreen_Detail" xml:space="preserve">
+      <value>{0}  ·  位置 ({1}, {2})  ·  {3}</value>
+    </data>
+    <data name="MultiScreen_Enable" xml:space="preserve">
+      <value>有効</value>
+    </data>
+    <data name="MultiScreen_Hint" xml:space="preserve">
+      <value>エフェクトを表示するディスプレイを選択します。名前とハードウェア ID で記憶します。</value>
+    </data>
+    <data name="MultiScreen_Primary" xml:space="preserve">
+      <value> (プライマリ)</value>
+    </data>
+    <data name="MultiScreen_Refresh" xml:space="preserve">
+      <value>ディスプレイを更新</value>
+    </data>
+    <data name="MultiScreen_Scale" xml:space="preserve">
+      <value>拡大 {0}%</value>
+    </data>
+    <data name="MultiScreen_Title" xml:space="preserve">
+      <value>マルチディスプレイ</value>
+    </data>
+    <data name="Nav_About" xml:space="preserve">
+      <value>情報</value>
+    </data>
+    <data name="Nav_Basic" xml:space="preserve">
+      <value>基本設定</value>
+    </data>
+    <data name="Nav_Filter" xml:space="preserve">
+      <value>環境フィルター</value>
+    </data>
+    <data name="Nav_Home" xml:space="preserve">
+      <value>ホーム</value>
+    </data>
+    <data name="Nav_MultiScreen" xml:space="preserve">
+      <value>マルチディスプレイ</value>
+    </data>
+    <data name="Nav_Settings" xml:space="preserve">
+      <value>設定</value>
+    </data>
+    <data name="Nav_Visual" xml:space="preserve">
+      <value>ビジュアル</value>
+    </data>
+    <data name="Overlay_Cancel" xml:space="preserve">
+      <value>キャンセル</value>
+    </data>
+    <data name="Overlay_ConfirmAdd" xml:space="preserve">
+      <value>追加を確定</value>
+    </data>
+    <data name="Overlay_ConfirmRename" xml:space="preserve">
+      <value>確定</value>
+    </data>
+    <data name="Overlay_ConfirmReset" xml:space="preserve">
+      <value>復元</value>
+    </data>
+    <data name="Overlay_RenameProfile" xml:space="preserve">
+      <value>プロファイルの名前変更</value>
+    </data>
+    <data name="Overlay_RenamePrompt" xml:space="preserve">
+      <value>新しいプロファイル名を入力:</value>
+    </data>
+    <data name="Overlay_RunningProcess" xml:space="preserve">
+      <value>実行中のプロセスから追加</value>
+    </data>
+    <data name="Overlay_VisualReset" xml:space="preserve">
+      <value>既定に戻すビジュアル項目を選択</value>
+    </data>
+    <data name="Privacy_Agree" xml:space="preserve">
+      <value>同意して続行</value>
+    </data>
+    <data name="Privacy_Intro" xml:space="preserve">
+      <value>ご利用前に以下の内容をお読みください：</value>
+    </data>
+    <data name="Privacy_OpenSource_Body" xml:space="preserve">
+      <value>本ソフトは無料のオープンソースです。転売は禁止です。有料で入手した場合はプラットフォームに通報し返金を請求してください。</value>
+    </data>
+    <data name="Privacy_OpenSource_Title" xml:space="preserve">
+      <value>● オープンソース</value>
+    </data>
+    <data name="Privacy_Privacy_Body" xml:space="preserve">
+      <value>キー入力・ファイル・個人情報は収集しません。エフェクトはすべてローカルで描画されます。</value>
+    </data>
+    <data name="Privacy_Privacy_Title" xml:space="preserve">
+      <value>● プライバシー</value>
+    </data>
+    <data name="Privacy_Refuse" xml:space="preserve">
+      <value>拒否して終了</value>
+    </data>
+    <data name="Privacy_Security_Body" xml:space="preserve">
+      <value>必ず公式チャネルからダウンロードしてください。第三者配布版は改ざんやマルウェアの可能性があります。</value>
+    </data>
+    <data name="Privacy_Security_Title" xml:space="preserve">
+      <value>● セキュリティ警告（重要）</value>
+    </data>
+    <data name="Privacy_Tagline" xml:space="preserve">
+      <value>Sensei, welcome back to Schale.</value>
+    </data>
+    <data name="Privacy_Telemetry" xml:space="preserve">
+      <value>匿名の利用統計で改善に協力する</value>
+    </data>
+    <data name="Privacy_Title" xml:space="preserve">
+      <value>BASpark へようこそ</value>
+    </data>
+    <data name="Privacy_VersionFailed" xml:space="preserve">
+      <value>バージョン情報の取得に失敗</value>
+    </data>
+    <data name="Profile_Default" xml:space="preserve">
+      <value>既定</value>
+    </data>
+    <data name="Profile_New" xml:space="preserve">
+      <value>新規プロファイル</value>
+    </data>
+    <data name="Profile_NewNumbered" xml:space="preserve">
+      <value>新規プロファイル {0}</value>
+    </data>
+    <data name="Settings_Apply" xml:space="preserve">
+      <value>変更を適用</value>
+    </data>
+    <data name="Settings_ApplyHint" xml:space="preserve">
+      <value>*変更後は右の [変更を適用] をクリックしてください。</value>
+    </data>
+    <data name="Settings_Title" xml:space="preserve">
+      <value>設定</value>
+    </data>
+    <data name="Status_Active" xml:space="preserve">
+      <value>動作中</value>
+    </data>
+    <data name="Status_AdminPending" xml:space="preserve">
+      <value>管理者モードは保存後の再起動で有効になります</value>
+    </data>
+    <data name="Status_Filtered" xml:space="preserve">
+      <value>環境フィルター中</value>
+    </data>
+    <data name="Status_Paused" xml:space="preserve">
+      <value>一時停止</value>
+    </data>
+    <data name="Tray_Exit" xml:space="preserve">
+      <value>完全に終了</value>
+    </data>
+    <data name="Tray_OpenPanel" xml:space="preserve">
+      <value>コントロールパネルを開く</value>
+    </data>
+    <data name="Tray_Restart" xml:space="preserve">
+      <value>アプリを再起動</value>
+    </data>
+    <data name="Tray_RestartFailed" xml:space="preserve">
+      <value>再起動に失敗しました: {0}</value>
+    </data>
+    <data name="Tray_Text" xml:space="preserve">
+      <value>BASpark - クリックエフェクト</value>
+    </data>
+    <data name="Version_ReadFailed" xml:space="preserve">
+      <value>バージョン情報の取得に失敗</value>
+    </data>
+    <data name="VisualReset_ClickSpeed" xml:space="preserve">
+      <value>クリックのアニメ速度</value>
+    </data>
+    <data name="VisualReset_ClickSpeed_Sub" xml:space="preserve">
+      <value>既定 1.00 ×</value>
+    </data>
+    <data name="VisualReset_Color" xml:space="preserve">
+      <value>エフェクト色</value>
+    </data>
+    <data name="VisualReset_Color_Sub" xml:space="preserve">
+      <value>既定 RGB(45,175,255)</value>
+    </data>
+    <data name="VisualReset_Opacity" xml:space="preserve">
+      <value>全体の不透明度</value>
+    </data>
+    <data name="VisualReset_Opacity_Sub" xml:space="preserve">
+      <value>既定 100 %</value>
+    </data>
+    <data name="VisualReset_Scale" xml:space="preserve">
+      <value>拡大率</value>
+    </data>
+    <data name="VisualReset_Scale_Sub" xml:space="preserve">
+      <value>既定 1.50 ×</value>
+    </data>
+    <data name="VisualReset_TrailRefresh" xml:space="preserve">
+      <value>トレイル更新率</value>
+    </data>
+    <data name="VisualReset_TrailRefresh_Sub" xml:space="preserve">
+      <value>既定 40 Hz</value>
+    </data>
+    <data name="VisualReset_TrailSpeed" xml:space="preserve">
+      <value>トレイルのアニメ速度</value>
+    </data>
+    <data name="VisualReset_TrailSpeed_Sub" xml:space="preserve">
+      <value>既定 1.00 ×</value>
+    </data>
+    <data name="VisualReset_UnifiedSpeed" xml:space="preserve">
+      <value>統一アニメ速度</value>
+    </data>
+    <data name="VisualReset_UnifiedSpeed_Sub" xml:space="preserve">
+      <value>同一速度、既定 1.00 ×</value>
+    </data>
+    <data name="Visual_AnimSpeed" xml:space="preserve">
+      <value>アニメーション速度</value>
+    </data>
+    <data name="Visual_ChangeColor" xml:space="preserve">
+      <value>色を変更</value>
+    </data>
+    <data name="Visual_ClickAnimSpeed" xml:space="preserve">
+      <value>クリックのアニメ速度</value>
+    </data>
+    <data name="Visual_Color" xml:space="preserve">
+      <value>エフェクト色</value>
+    </data>
+    <data name="Visual_InputHint" xml:space="preserve">
+      <value>ヒント: 数値をクリックして編集し Enter で適用</value>
+    </data>
+    <data name="Visual_LinkedSpeed" xml:space="preserve">
+      <value>トレイルとクリックで同じアニメ速度を使用</value>
+    </data>
+    <data name="Visual_LinkedSpeedHint" xml:space="preserve">
+      <value>オフにするとトレイルとクリックの速度を個別に設定できます（下の更新率とは別）。</value>
+    </data>
+    <data name="Visual_Opacity" xml:space="preserve">
+      <value>全体の不透明度</value>
+    </data>
+    <data name="Visual_ResetDefaults" xml:space="preserve">
+      <value>既定値に戻す</value>
+    </data>
+    <data name="Visual_Scale" xml:space="preserve">
+      <value>拡大率</value>
+    </data>
+    <data name="Visual_Title" xml:space="preserve">
+      <value>ビジュアル</value>
+    </data>
+    <data name="Visual_TrailAnimSpeed" xml:space="preserve">
+      <value>トレイルのアニメ速度</value>
+    </data>
+    <data name="Visual_TrailRefresh" xml:space="preserve">
+      <value>トレイル更新率</value>
+    </data>
+    <data name="WebView2_InitFailed" xml:space="preserve">
+      <value>WebView2 の初期化に失敗しました: {0}</value>
+    </data>
+    <data name="Welcome_ClicksLabel" xml:space="preserve">
+      <value>累計クリック数:</value>
+    </data>
+    <data name="Welcome_ClicksUnit" xml:space="preserve">
+      <value>{0} 回</value>
+    </data>
+    <data name="Welcome_NoticeLoading" xml:space="preserve">
+      <value>読み込み中...</value>
+    </data>
+    <data name="Welcome_StatsTitle" xml:space="preserve">
+      <value>リアルタイム統計</value>
+    </data>
+    <data name="Welcome_StatusLabel" xml:space="preserve">
+      <value>状態:</value>
+    </data>
+    <data name="Welcome_Subtitle" xml:space="preserve">
+      <value>Sensei, welcome back!</value>
+    </data>
+    <data name="Welcome_Title" xml:space="preserve">
+      <value>おかえりなさい、先生！</value>
+    </data>
+  </root>

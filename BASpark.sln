@@ -6,6 +6,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BASpark", "src\BASpark.csproj", "{F43895B0-1503-A7FF-2A92-DDB1081972A3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BASpark.Tests", "tests\BASpark.Tests\BASpark.Tests.csproj", "{2B0161F9-72DB-431B-8E9A-5D192D62995B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,12 +20,17 @@ Global
 		{F43895B0-1503-A7FF-2A92-DDB1081972A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F43895B0-1503-A7FF-2A92-DDB1081972A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F43895B0-1503-A7FF-2A92-DDB1081972A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B0161F9-72DB-431B-8E9A-5D192D62995B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B0161F9-72DB-431B-8E9A-5D192D62995B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B0161F9-72DB-431B-8E9A-5D192D62995B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B0161F9-72DB-431B-8E9A-5D192D62995B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F43895B0-1503-A7FF-2A92-DDB1081972A3} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{2B0161F9-72DB-431B-8E9A-5D192D62995B} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B27D4FF-6E40-4998-BBE8-EE8897314A93}

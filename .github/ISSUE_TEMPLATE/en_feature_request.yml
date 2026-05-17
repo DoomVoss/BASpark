@@ -1,0 +1,70 @@
+name: 🟢 Feature Request (English)
+description: Propose a new feature or improvement idea for BASpark
+title: "[Feature]: "
+labels: ["feature"]
+assignees: []
+
+body:
+  - type: checkboxes
+    id: check-list
+    attributes:
+      label: "Pre-flight Checklist"
+      description: "Please check the following items before submitting your proposal"
+      options:
+        - label: "I have confirmed that this is a feature request specifically for BASpark."
+        - label: "I have searched existing issues to ensure this request is not a duplicate."
+        - label: "I have provided as much detail as possible to explain how this feature would benefit users."
+
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an improvement! A well-described feature request helps us evaluate the development roadmap much faster.
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: "Category"
+      description: "Which area does this feature mainly apply to?"
+      options:
+        - "Particle Effects (More styles / colors)"
+        - "UX & Interactivity (Click feedback / shortcuts)"
+        - "Control Panel (UI improvements / settings)"
+        - "Performance Optimization (Memory / CPU usage)"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: "What feature would you like to see added?"
+      description: "Please describe the feature in detail. What problem does it solve, or what experience does it improve?"
+      placeholder: "e.g., I would like to add a 'firework' style particle effect triggered upon a double-click..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: "Use Case (Optional)"
+      description: "Under what circumstances or scenarios would you use this feature?"
+      placeholder: "e.g., When gaming or coding, I hope the particles can change brightness dynamically based on my clicking speed..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: visual-reference
+    attributes:
+      label: "Visual Reference (Optional)"
+      description: "If you have mockups, concept art, or screenshots, please paste them here."
+      placeholder: "Drag and drop your images here"
+    validations:
+      required: false
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: "Proposed Solution / Implementation Ideas (Optional)"
+      description: "If you have any technical thoughts or UI layout concepts on how to implement this, please let us know."
+    validations:
+      required: false
