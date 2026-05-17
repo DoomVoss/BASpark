@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -80,6 +81,8 @@ namespace BASpark
         private bool _isCheckingUpdate = false;
         private bool _suspendLinkedAnimationUiHandlers;
         private string _languageAtLoad = Localization.CultureZhCn;
+        private string _customHtmlPathAtLoad = "";
+        private string _customHtmlPathPending = "";
 
         public ObservableCollection<FilterProfile> Profiles { get; set; } = new ObservableCollection<FilterProfile>();
         public ObservableCollection<string> CurrentProfileProcesses { get; set; } = new ObservableCollection<string>();
@@ -105,6 +108,7 @@ namespace BASpark
             LoadSettings();
             ApplyScrollbarSettings();
             UiLocalizer.ApplyControlPanel(this);
+            UpdateCustomHtmlPathDisplay();
             LoadScreenOptions();
             CheckAdminStatus();
             LoadRemoteNotice();
@@ -522,6 +526,70 @@ namespace BASpark
             {
                 RadioScrollbarOnScroll.IsChecked = true;
             }
+
+            _customHtmlPathPending = ConfigManager.CustomHtmlPath ?? "";
+            _customHtmlPathAtLoad = _customHtmlPathPending;
+            UpdateCustomHtmlPathDisplay();
+            ApplyCustomHtmlUiState();
+        }
+
+        private void UpdateCustomHtmlPathDisplay()
+        {
+            TxtCustomHtmlPath.Text = string.IsNullOrWhiteSpace(_customHtmlPathPending)
+                ? Localization.Get("CustomHtml_Builtin")
+                : _customHtmlPathPending;
+        }
+
+        private void ApplyCustomHtmlUiState()
+        {
+            bool usingCustom = !string.IsNullOrWhiteSpace(_customHtmlPathPending) &&
+                File.Exists(_customHtmlPathPending);
+            PanelVisualBuiltIn.IsEnabled = !usingCustom;
+            BtnVisualReset.IsEnabled = !usingCustom;
+        }
+
+        private void BrowseCustomHtml_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = Localization.Get("CustomHtml_FileFilter"),
+                Title = Localization.Get("CustomHtml_SelectTitle")
+            };
+
+            string? webDir = ConfigManager.GetWebSamplesDirectory();
+            if (!string.IsNullOrEmpty(webDir))
+            {
+                dialog.InitialDirectory = webDir;
+                dialog.FileName = ConfigManager.CustomHtmlTemplateFileName;
+            }
+
+            if (dialog.ShowDialog() == true)
+            {
+                if (string.Equals(
+                        Path.GetFileName(dialog.FileName),
+                        "index.html",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    System.Windows.MessageBox.Show(
+                        this,
+                        Localization.Get("CustomHtml_BuiltinIndexWarning"),
+                        Localization.Get("CustomHtml_SelectTitle"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    return;
+                }
+
+                _customHtmlPathPending = dialog.FileName;
+                UpdateCustomHtmlPathDisplay();
+                ApplyCustomHtmlUiState();
+            }
+        }
+
+        private void ClearCustomHtml_Click(object sender, RoutedEventArgs e)
+        {
+            _customHtmlPathPending = "";
+            UpdateCustomHtmlPathDisplay();
+            ApplyCustomHtmlUiState();
         }
 
         private void ApplyScrollbarSettings()
@@ -1167,6 +1235,12 @@ namespace BASpark
             ConfigManager.Save("AutoStart", autoStartEnabled);
             ConfigManager.Save("EnableTelemetry", CheckTelemetry.IsChecked ?? false);
             ConfigManager.Save("ParticleColor", ConfigManager.ParticleColor);
+            bool customHtmlPathChanged = !string.Equals(
+                _customHtmlPathAtLoad,
+                _customHtmlPathPending,
+                StringComparison.OrdinalIgnoreCase);
+            ConfigManager.CustomHtmlPath = _customHtmlPathPending;
+            ConfigManager.Save("CustomHtmlPath", _customHtmlPathPending);
             ConfigManager.Save("EffectScale", effectScale);
             ConfigManager.Save("EffectOpacity", effectOpacity);
             ConfigManager.Save("UseLinkedAnimationSpeed", useLinkedAnimationSpeed);
@@ -1218,6 +1292,13 @@ namespace BASpark
             App.SetAutoStart(ConfigManager.AutoStart);
             ApplyAutoStartSettings();
 
+            if (customHtmlPathChanged)
+            {
+                App.Overlay?.ReloadAllEffectContent();
+                _customHtmlPathAtLoad = _customHtmlPathPending;
+            }
+
+            ApplyCustomHtmlUiState();
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
             GetUiAnimationSpeeds(out double overlayTrail, out double overlayClick);
             App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, overlayTrail, overlayClick);
@@ -1250,6 +1331,7 @@ namespace BASpark
             if (languageChanged)
             {
                 UiLocalizer.ApplyControlPanel(this);
+                UpdateCustomHtmlPathDisplay();
                 LoadScreenOptions();
                 ConfigManager.Save("LastNoticeContent", string.Empty);
                 LoadRemoteNotice();

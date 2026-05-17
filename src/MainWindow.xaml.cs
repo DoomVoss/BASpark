@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -193,11 +194,21 @@ namespace BASpark
 
         public void UpdateColor(string color)
         {
+            if (ConfigManager.IsUsingCustomHtml)
+            {
+                return;
+            }
+
             ExecuteScript($"if(window.updateColor) window.updateColor('{color}');");
         }
 
         public void UpdateEffectSettings(double scale, double opacity, double trailSpeed, double clickSpeed)
         {
+            if (ConfigManager.IsUsingCustomHtml)
+            {
+                return;
+            }
+
             string scaleStr = scale.ToString("F2", CultureInfo.InvariantCulture);
             string opacityStr = opacity.ToString("F2", CultureInfo.InvariantCulture);
             string trailStr = trailSpeed.ToString("F2", CultureInfo.InvariantCulture);
@@ -287,25 +298,9 @@ namespace BASpark
                 _processFailedHandler = OnWebViewProcessFailed;
                 coreWebView.ProcessFailed += _processFailedHandler;
 
-                var streamInfo = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Web/index.html"));
-                if (streamInfo != null)
-                {
-                    using var reader = new System.IO.StreamReader(streamInfo.Stream);
-                    string htmlContent = reader.ReadToEnd();
-                    coreWebView.NavigateToString(htmlContent);
-                    _navigationCompletedHandler = (s, e) =>
-                    {
-                        if (_isClosing) return;
-
-                        _lastReportedInputMode = null;
-                        _lastReportedAlwaysTrail = null;
-                        UpdateColor(ConfigManager.ParticleColor);
-                        ConfigManager.GetAnimationSpeedsForOverlay(out double trailSp, out double clickSp);
-                        UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, trailSp, clickSp);
-                        SyncInputContext(InputModeMouse);
-                    };
-                    coreWebView.NavigationCompleted += _navigationCompletedHandler;
-                }
+                _navigationCompletedHandler = OnEffectNavigationCompleted;
+                coreWebView.NavigationCompleted += _navigationCompletedHandler;
+                LoadEffectContent(coreWebView);
             }
             catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
             {
@@ -314,6 +309,68 @@ namespace BASpark
             {
                 System.Windows.MessageBox.Show(Localization.Format("WebView2_InitFailed", ex.Message));
             }
+        }
+
+        public void ReloadEffectContent()
+        {
+            if (!TryGetCoreWebView2(out CoreWebView2? coreWebView))
+            {
+                return;
+            }
+
+            LoadEffectContent(coreWebView);
+        }
+
+        private void LoadEffectContent(CoreWebView2 coreWebView)
+        {
+            if (ConfigManager.TryResolveCustomHtmlUri(out string navigateUri, out string folderPath))
+            {
+                try
+                {
+                    coreWebView.SetVirtualHostNameToFolderMapping(
+                        ConfigManager.CustomHtmlVirtualHost,
+                        folderPath,
+                        CoreWebView2HostResourceAccessKind.Allow);
+                    coreWebView.Navigate(navigateUri);
+                    return;
+                }
+                catch
+                {
+                }
+            }
+
+            NavigateBuiltinHtml(coreWebView);
+        }
+
+        private static void NavigateBuiltinHtml(CoreWebView2 coreWebView)
+        {
+            var streamInfo = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Web/index.html"));
+            if (streamInfo == null)
+            {
+                return;
+            }
+
+            using var reader = new StreamReader(streamInfo.Stream);
+            coreWebView.NavigateToString(reader.ReadToEnd());
+        }
+
+        private void OnEffectNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            if (_isClosing || !e.IsSuccess)
+            {
+                return;
+            }
+
+            _lastReportedInputMode = null;
+            _lastReportedAlwaysTrail = null;
+            if (!ConfigManager.IsUsingCustomHtml)
+            {
+                UpdateColor(ConfigManager.ParticleColor);
+                ConfigManager.GetAnimationSpeedsForOverlay(out double trailSp, out double clickSp);
+                UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, trailSp, clickSp);
+            }
+
+            SyncInputContext(InputModeMouse);
         }
 
         private void OnWebViewProcessFailed(object? sender, CoreWebView2ProcessFailedEventArgs e)

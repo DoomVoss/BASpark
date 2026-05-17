@@ -91,6 +91,10 @@ namespace BASpark
             w.TxtTrailRefresh.Text = Localization.Get("Visual_TrailRefresh");
             w.TxtEffectColor.Text = Localization.Get("Visual_Color");
             w.BtnPickColor.Content = Localization.Get("Visual_ChangeColor");
+            w.TxtCustomHtmlTitle.Text = Localization.Get("CustomHtml_Title");
+            w.BtnBrowseCustomHtml.Content = Localization.Get("CustomHtml_Browse");
+            w.BtnClearCustomHtml.Content = Localization.Get("CustomHtml_ClearBuiltin");
+            w.TxtCustomHtmlHint.Text = Localization.Get("CustomHtml_Hint");
 
             w.TxtFilterTitle.Text = Localization.Get("Filter_Title");
             w.CheckEnvironmentFilter.Content = Localization.Get("Filter_Enable");

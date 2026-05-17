@@ -35,5 +35,11 @@
     <Resource Include="Web\index.html" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Web\custom-effect-template.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 
 </Project>
