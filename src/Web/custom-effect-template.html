@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!--
+  BASpark 自定义特效模板（示例起点，非内置默认）
+  内置默认特效为 index.html（打包在程序内，勿直接选用）。
+  用法：复制本文件后改名，在控制面板「视觉表现」中选择该 HTML 并保存。
+
+  必须保留：
+  - 全屏透明、pointer-events: none（叠加层不拦截点击）
+  - window.externalBoom / externalMove / externalUp / setInputContext
+
+  可选：同目录引用 style.css、图片等（与 HTML 同文件夹即可）
+  无需实现：updateColor、updateEffectSettings（自定义模式下软件不会注入）
+-->
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; overflow: hidden; pointer-events: none; }
+        html, body { width: 100%; height: 100%; background: transparent !important; }
+        canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <canvas id="fx"></canvas>
+    <script>
+        /* ========== 画布 ========== */
+        const canvas = document.getElementById("fx");
+        const ctx = canvas.getContext("2d");
+        const dots = [];
+        let pointerDown = false;
+        let alwaysTrail = false;
+
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = Math.max(1, Math.floor(window.innerWidth * dpr));
+            canvas.height = Math.max(1, Math.floor(window.innerHeight * dpr));
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        /* ========== 特效逻辑（在此修改） ========== */
+        function onPointerDown(x, y) {
+            pointerDown = true;
+            dots.push({ x, y, life: 30, max: 30, r: 8, color: "69,180,255" });
+        }
+
+        function onPointerMove(x, y) {
+            if (!pointerDown && !alwaysTrail) return;
+            dots.push({ x, y, life: 16, max: 16, r: 4, color: "120,220,255" });
+            if (dots.length > 80) dots.shift();
+        }
+
+        function onPointerUp() {
+            pointerDown = false;
+        }
+
+        function step() {
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            for (let i = dots.length - 1; i >= 0; i--) {
+                const d = dots[i];
+                d.life--;
+                const a = d.life / d.max;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r * a, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${d.color},${a * 0.85})`;
+                ctx.fill();
+                if (d.life <= 0) dots.splice(i, 1);
+            }
+            requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+
+        /* ========== 本地调试（浏览器 直接打开 时可用） ========== */
+        window.addEventListener("mousedown", (e) => onPointerDown(e.clientX, e.clientY));
+        window.addEventListener("mousemove", (e) => onPointerMove(e.clientX, e.clientY));
+        window.addEventListener("mouseup", () => onPointerUp());
+
+        /* ========== BASpark 桥接（请勿删除，坐标为 0~1 百分比） ========== */
+        let lastBoomX = -1, lastBoomY = -1, lastBoomTime = 0;
+        let lastMoveX = -1, lastMoveY = -1;
+
+        window.setInputContext = (mode, alwaysTrailEnabled) => {
+            alwaysTrail = mode === "mouse" && Boolean(alwaysTrailEnabled);
+        };
+        window.setInputContext("mouse", false);
+
+        window.externalBoom = (px, py) => {
+            const now = Date.now();
+            if (px === lastBoomX && py === lastBoomY && now - lastBoomTime < 25) return;
+            lastBoomX = px;
+            lastBoomY = py;
+            lastBoomTime = now;
+            onPointerDown(px * window.innerWidth, py * window.innerHeight);
+        };
+
+        window.externalMove = (px, py) => {
+            if (px === lastMoveX && py === lastMoveY) return;
+            lastMoveX = px;
+            lastMoveY = py;
+            onPointerMove(px * window.innerWidth, py * window.innerHeight);
+        };
+
+        window.externalUp = () => onPointerUp();
+    </script>
+</body>
+</html>
