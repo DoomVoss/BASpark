@@ -382,10 +382,12 @@ namespace BASpark
                 Version? version = Assembly.GetExecutingAssembly().GetName().Version;
                 if (version != null)
                 {
+                    string versionNum = $"V{version.Major}.{version.Minor}.{version.Build}";
                     string versionText = $"BASpark V{version.Major}.{version.Minor}.{version.Build}";
+
                     if (VersionText != null)
                     {
-                        VersionText.Text = versionText;
+                        VersionText.Text = versionNum;
                     }
 
                     if (TxtSidebarVersion != null)
