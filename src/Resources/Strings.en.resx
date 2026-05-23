@@ -535,6 +535,30 @@ Download now?</value>
     <data name="Visual_TrailRefresh" xml:space="preserve">
       <value>Trail refresh rate</value>
     </data>
+    <data name="CustomHtml_Title" xml:space="preserve">
+      <value>Custom HTML effect</value>
+    </data>
+    <data name="CustomHtml_Browse" xml:space="preserve">
+      <value>Select HTML file</value>
+    </data>
+    <data name="CustomHtml_ClearBuiltin" xml:space="preserve">
+      <value>Use built-in effect</value>
+    </data>
+    <data name="CustomHtml_Hint" xml:space="preserve">
+      <value>Built-in visual controls below are disabled while a custom HTML file is in use.</value>
+    </data>
+    <data name="CustomHtml_Builtin" xml:space="preserve">
+      <value>(Built-in effect)</value>
+    </data>
+    <data name="CustomHtml_FileFilter" xml:space="preserve">
+      <value>HTML files (*.html;*.htm)|*.html;*.htm</value>
+    </data>
+    <data name="CustomHtml_SelectTitle" xml:space="preserve">
+      <value>Select effect HTML file</value>
+    </data>
+    <data name="CustomHtml_BuiltinIndexWarning" xml:space="preserve">
+      <value>index.html is the built-in default effect and cannot be used as a custom file. Copy custom-effect-template.html and edit it, or choose your own HTML.</value>
+    </data>
     <data name="WebView2_InitFailed" xml:space="preserve">
       <value>WebView2 initialization failed: {0}</value>
     </data>

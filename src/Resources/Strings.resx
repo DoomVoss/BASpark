@@ -535,6 +535,30 @@
     <data name="Visual_TrailRefresh" xml:space="preserve">
       <value>拖尾刷新率</value>
     </data>
+    <data name="CustomHtml_Title" xml:space="preserve">
+      <value>自定义 HTML 特效</value>
+    </data>
+    <data name="CustomHtml_Browse" xml:space="preserve">
+      <value>选择 HTML 文件</value>
+    </data>
+    <data name="CustomHtml_ClearBuiltin" xml:space="preserve">
+      <value>恢复内置特效</value>
+    </data>
+    <data name="CustomHtml_Hint" xml:space="preserve">
+      <value>使用自定义 HTML 时，下方内置视觉调节将不可用。</value>
+    </data>
+    <data name="CustomHtml_Builtin" xml:space="preserve">
+      <value>（使用内置特效）</value>
+    </data>
+    <data name="CustomHtml_FileFilter" xml:space="preserve">
+      <value>HTML 文件 (*.html;*.htm)|*.html;*.htm</value>
+    </data>
+    <data name="CustomHtml_SelectTitle" xml:space="preserve">
+      <value>选择特效 HTML 文件</value>
+    </data>
+    <data name="CustomHtml_BuiltinIndexWarning" xml:space="preserve">
+      <value>index.html 为软件内置默认特效，不能作为自定义文件选用。请复制 custom-effect-template.html 后修改，或选择您自己的 HTML。</value>
+    </data>
     <data name="WebView2_InitFailed" xml:space="preserve">
       <value>WebView2 初始化失败: {0}</value>
     </data>

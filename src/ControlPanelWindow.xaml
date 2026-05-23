@@ -376,7 +376,20 @@
                                 </Button>
                             </DockPanel>
                             <TextBlock x:Name="TxtVisualInputHint" Text="提示：可点击数字输入精确值后可按回车应用" FontSize="11" Foreground="#999" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="0,0,0,8"/>
-                            
+
+                            <TextBlock x:Name="TxtCustomHtmlTitle" Text="自定义 HTML 特效" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                            <TextBox x:Name="TxtCustomHtmlPath" IsReadOnly="True" Height="28" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="11" Background="#F8FAFF" BorderBrush="#D6DEE8"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button x:Name="BtnBrowseCustomHtml" Content="选择 HTML 文件" Click="BrowseCustomHtml_Click" Height="28" Padding="10,0" Margin="0,0,8,0" Background="#F8FAFF" BorderBrush="#45AFFF" Foreground="#45AFFF" Cursor="Hand" FontSize="12">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                </Button>
+                                <Button x:Name="BtnClearCustomHtml" Content="恢复内置特效" Click="ClearCustomHtml_Click" Height="28" Padding="10,0" Background="White" BorderBrush="#D6DEE8" Cursor="Hand" FontSize="12">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                </Button>
+                            </StackPanel>
+                            <TextBlock x:Name="TxtCustomHtmlHint" Text="使用自定义 HTML 时，下方内置视觉调节将不可用。" FontSize="11" Foreground="#9BA3AF" Margin="0,0,0,12" TextWrapping="Wrap"/>
+
+                            <StackPanel x:Name="PanelVisualBuiltIn">
                             <StackPanel Margin="0,0,0,15">
                                 <DockPanel LastChildFill="False">
                                     <TextBlock x:Name="TxtVisualScale" Text="缩放比例" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
@@ -492,6 +505,7 @@
                                 <Button x:Name="BtnPickColor" Content="更改颜色" Click="PickColor_Click" Width="90" Height="28" Background="#F8FAFF" BorderBrush="#45AFFF" Foreground="#45AFFF" Cursor="Hand" FontSize="12">
                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
                                 </Button>
+                            </StackPanel>
                             </StackPanel>
                         </StackPanel>
                     </Border>

@@ -1,7 +1,9 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace BASpark
 {
@@ -51,8 +53,11 @@ namespace BASpark
     public static class ConfigManager
     {
         private const string RegPath = @"Software\BASpark";
+        public const string CustomHtmlVirtualHost = "baspark.custom";
+        public const string CustomHtmlTemplateFileName = "custom-effect-template.html";
 
         public static string ParticleColor { get; set; } = "45,175,255";
+        public static string CustomHtmlPath { get; set; } = "";
         public static bool IsEffectEnabled { get; set; } = true;
         public static bool AutoStart { get; set; } = false;
         public static bool AgreedToPrivacy { get; set; } = false;
@@ -122,6 +127,7 @@ namespace BASpark
                         ScreenSelections = key.GetValue("ScreenSelections", "")?.ToString() ?? "";
                         UiLanguage = key.GetValue("UiLanguage", "")?.ToString() ?? "";
                         ScrollbarVisibility = ParseScrollbarVisibility(key.GetValue("ScrollbarVisibility", "OnScroll")?.ToString());
+                        CustomHtmlPath = key.GetValue("CustomHtmlPath", "")?.ToString() ?? "";
                         if (!string.IsNullOrWhiteSpace(UiLanguage))
                         {
                             Localization.ApplyCulture(UiLanguage);
@@ -197,6 +203,80 @@ namespace BASpark
                 trailSpeed = TrailAnimationSpeed;
                 clickSpeed = ClickAnimationSpeed;
             }
+        }
+
+        public static bool IsUsingCustomHtml => TryResolveCustomHtmlUri(out _, out _);
+
+        public static bool TryResolveCustomHtmlUri(out string navigateUri, out string folderPath)
+        {
+            navigateUri = string.Empty;
+            folderPath = string.Empty;
+            if (string.IsNullOrWhiteSpace(CustomHtmlPath))
+            {
+                return false;
+            }
+
+            string fullPath;
+            try
+            {
+                fullPath = Path.GetFullPath(CustomHtmlPath.Trim());
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
+            string ext = Path.GetExtension(fullPath);
+            if (!ext.Equals(".html", StringComparison.OrdinalIgnoreCase) &&
+                !ext.Equals(".htm", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            folderPath = Path.GetDirectoryName(fullPath) ?? string.Empty;
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                return false;
+            }
+
+            string fileName = Path.GetFileName(fullPath);
+            navigateUri = $"https://{CustomHtmlVirtualHost}/{Uri.EscapeDataString(fileName)}";
+            return true;
+        }
+
+        public static string? GetWebSamplesDirectory()
+        {
+            static bool IsWebSamplesDir(string path) =>
+                Directory.Exists(path) &&
+                File.Exists(Path.Combine(path, CustomHtmlTemplateFileName));
+
+            string besideExe = Path.Combine(AppContext.BaseDirectory, "Web");
+            if (IsWebSamplesDir(besideExe))
+            {
+                return besideExe;
+            }
+
+            string? dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            for (int i = 0; i < 8 && !string.IsNullOrEmpty(dir); i++)
+            {
+                foreach (string relative in new[] { "Web", Path.Combine("src", "Web") })
+                {
+                    string candidate = Path.Combine(dir, relative);
+                    if (IsWebSamplesDir(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                dir = Path.GetDirectoryName(dir);
+            }
+
+            return null;
         }
 
         public static List<FilterProfile> GetProfiles() => _profiles;
