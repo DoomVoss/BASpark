@@ -6,6 +6,10 @@ export default defineConfig({
   base: '/',
   cleanUrls: true,
 
+  head: [
+    ['link', { rel: 'icon', href: '/logo.png' }]
+  ],
+
   themeConfig: {
     logo: '/logo.png',
     nav: [
