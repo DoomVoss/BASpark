@@ -23,7 +23,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build Single EXE
+      - name: Build Packaged Files
         shell: pwsh
         run: |
           $RAW_VER = "${{ github.ref_name }}".TrimStart("v")
@@ -32,8 +32,7 @@ jobs:
             -c Release `
             -r win-x64 `
             --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:PublishSingleFile=false `
             -p:Version=$RAW_VER `
             -o src/publish_full
 
