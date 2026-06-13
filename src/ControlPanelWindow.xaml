@@ -1,9 +1,9 @@
 <Window x:Class="BASpark.ControlPanelWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BASpark - 控制面板" Height="580" Width="680"
+        Title="BASpark - 控制面板" Height="710" Width="680"
         WindowStartupLocation="CenterScreen" Background="#F5F7FA" Icon="app.ico">
-    
+
     <Window.Resources>
         <Style x:Key="NavBtn" TargetType="RadioButton">
             <Setter Property="Height" Value="40"/>
@@ -30,13 +30,38 @@
             </Setter>
         </Style>
 
+        <Style x:Key="SubNavBtn" TargetType="RadioButton" BasedOn="{StaticResource NavBtn}">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="10,2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Name="b" CornerRadius="5" Background="Transparent" Padding="8,0">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#45AFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#E0F2FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ToggleSwitch" TargetType="CheckBox">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
-                        <BulletDecorator Background="Transparent" Cursor="Hand">
+                        <BulletDecorator x:Name="RootBullet" Background="Transparent" Cursor="Hand">
                             <BulletDecorator.Bullet>
                                 <Grid Width="40" Height="20">
                                     <Border x:Name="Background" Background="#DDD" CornerRadius="10" />
@@ -67,6 +92,70 @@
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Background" Property="Background" Value="#E0E0E0"/>
+                                <Setter TargetName="Dot" Property="Background" Value="#F5F5F5"/>
+                                <Setter TargetName="RootBullet" Property="Cursor" Value="No"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ThinScrollBar" TargetType="{x:Type ScrollBar}">
+            <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="false"/>
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="MinWidth" Value="6"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{x:Null}" Width="0" Height="0" IsEnabled="False"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{x:Null}" Width="0" Height="0" IsEnabled="False"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border Background="#B8C4CE" CornerRadius="3" Margin="1,2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SegmentBtn" TargetType="RadioButton">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Name="bg" CornerRadius="6" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="#45AFFF"/>
+                                <Setter TargetName="bg" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.1"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -80,100 +169,723 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
-            <StackPanel Margin="0,30,0,0">
-                <TextBlock Text="✨ BASpark" FontSize="20" FontWeight="Bold" Foreground="#45AFFF" HorizontalAlignment="Center" Margin="0,0,0,30"/>
-                <RadioButton Name="TabWelcome" Content="首页" Style="{StaticResource NavBtn}" IsChecked="True" Click="Tab_Click"/>
-                <RadioButton Name="TabSettings" Content="设置" Style="{StaticResource NavBtn}" Click="Tab_Click"/>
-                <RadioButton Name="TabAbout" Content="关于" Style="{StaticResource NavBtn}" Click="Tab_Click"/>
-            </StackPanel>
+        <Border x:Name="SidebarBorder" Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid x:Name="SidebarBackgroundHost" Background="White"/>
+                <Border Background="#FFFFFF" Opacity="0.82"/>
+                <Grid Margin="0,30,0,12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="✨ BASpark" FontSize="20" FontWeight="Bold" Foreground="#45AFFF" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                        <RadioButton Name="TabWelcome" Content="首页" Style="{StaticResource NavBtn}" IsChecked="True" Click="Tab_Click" GroupName="MainGroup"/>
+                        <RadioButton Name="TabSettings" Content="设置" Style="{StaticResource NavBtn}" Click="Tab_Click" GroupName="MainGroup"/>
+
+                        <StackPanel Margin="15,0,10,0">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=TabSettings}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <RadioButton Name="SubTabBasic" Style="{StaticResource SubNavBtn}" GroupName="SettingsTree" IsChecked="True">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="├─" VerticalAlignment="Center" FontFamily="Consolas, Courier New"/>
+                                    <TextBlock x:Name="SubTabBasicLabel" Grid.Column="1" Text="基础设置" VerticalAlignment="Center" TextAlignment="Left"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Name="SubTabVisual" Style="{StaticResource SubNavBtn}" GroupName="SettingsTree">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="├─" VerticalAlignment="Center" FontFamily="Consolas, Courier New"/>
+                                    <TextBlock x:Name="SubTabVisualLabel" Grid.Column="1" Text="视觉表现" VerticalAlignment="Center" TextAlignment="Left"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Name="SubTabFilter" Style="{StaticResource SubNavBtn}" GroupName="SettingsTree">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="├─" VerticalAlignment="Center" FontFamily="Consolas, Courier New"/>
+                                    <TextBlock x:Name="SubTabFilterLabel" Grid.Column="1" Text="环境过滤" VerticalAlignment="Center" TextAlignment="Left"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Name="SubTabMultiScreen" Style="{StaticResource SubNavBtn}" GroupName="SettingsTree">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="├─" VerticalAlignment="Center" FontFamily="Consolas, Courier New"/>
+                                    <TextBlock x:Name="SubTabMultiScreenLabel" Grid.Column="1" Text="多屏管理" VerticalAlignment="Center" TextAlignment="Left"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Name="SubTabMore" Style="{StaticResource SubNavBtn}" GroupName="SettingsTree">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="└─" VerticalAlignment="Center" FontFamily="Consolas, Courier New"/>
+                                    <TextBlock x:Name="SubTabMoreLabel" Grid.Column="1" Text="更多设置" VerticalAlignment="Center" TextAlignment="Left"/>
+                                </Grid>
+                            </RadioButton>
+                        </StackPanel>
+
+                        <RadioButton Name="TabLog" Content="日志" Style="{StaticResource NavBtn}" Click="Tab_Click" GroupName="MainGroup"/>
+                        <RadioButton Name="TabAbout" Content="关于" Style="{StaticResource NavBtn}" Click="Tab_Click" GroupName="MainGroup"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Margin="12,8,12,0">
+                        <TextBlock x:Name="TxtSidebarVersion" Text="BASpark V1.6.0" FontSize="10" Foreground="#B0B8C3" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                        <TextBlock x:Name="TxtSidebarCopyright" Text="Copyright © 2026 DoomVoss" FontSize="10" Foreground="#A0A8B3" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Margin="30">
-            
-            <StackPanel Name="PageWelcome">
-                <Border x:Name="NoticeBar" Visibility="Collapsed" Background="#E3F2FD" CornerRadius="10" Padding="15" Margin="0,0,0,20" BorderBrush="#90CAF9" BorderThickness="1">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="📢" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Top"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock x:Name="NoticeTitle" Text="加载中..." FontWeight="Bold" Foreground="#1976D2" FontSize="14"/>
-                            <TextBlock x:Name="NoticeContent" Text="..." Margin="0,5,0,0" TextWrapping="Wrap" Foreground="#424242" FontSize="13" LineHeight="18"/>
-                        </StackPanel>
-                        <TextBlock x:Name="NoticeDate" Grid.Column="2" Text="" Foreground="#90CAF9" FontSize="10" VerticalAlignment="Top"/>
-                    </Grid>
-                </Border>
+        <Grid Grid.Column="1">
+            <ScrollViewer x:Name="MainContentScrollViewer"
+                          VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
+                          ScrollChanged="MainContentScrollViewer_ScrollChanged"
+                          PreviewMouseWheel="MainContentScrollViewer_PreviewMouseWheel">
+                <ScrollViewer.Resources>
+                    <Style TargetType="ScrollBar" BasedOn="{StaticResource ThinScrollBar}"/>
+                </ScrollViewer.Resources>
+                <Grid Margin="30">
 
-                <TextBlock Text="欢迎回来，老师！" FontSize="28" FontWeight="Bold" Foreground="#333" Margin="0,0,0,5"/>
-                <TextBlock Text="Sensei, welcome back!" FontSize="12" Foreground="#999" Margin="0,0,0,25"/>
-
-                <Border Background="#EBF5FF" CornerRadius="12" Padding="20" HorizontalAlignment="Left" MinWidth="300">
-                    <StackPanel>
-                        <TextBlock Text="实时统计" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,15"/>
-                        
-                        <Grid Margin="0,0,0,10">
-                            <TextBlock Text="当前状态:" Foreground="#666"/>
-                            <TextBlock x:Name="StatusText" Text="工作中" HorizontalAlignment="Right" FontWeight="Bold" Foreground="Green"/>
-                        </Grid>
-                        
+                    <StackPanel Name="PageWelcome">
+                    <Border x:Name="NoticeBar" Visibility="Collapsed" Background="#E3F2FD" CornerRadius="10" Padding="15" Margin="0,0,0,20" BorderBrush="#90CAF9" BorderThickness="1">
                         <Grid>
-                            <TextBlock Text="累计点击次数:" Foreground="#666"/>
-                            <TextBlock x:Name="ClickCountText" Text="0 次" HorizontalAlignment="Right" FontSize="18" FontWeight="Bold" Foreground="#333"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="📢" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Top"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="NoticeTitle" Text="加载中..." FontWeight="Bold" Foreground="#1976D2" FontSize="14"/>
+                                <TextBlock x:Name="NoticeContent" Text="..." Margin="0,5,0,0" TextWrapping="Wrap" Foreground="#424242" FontSize="13" LineHeight="18"/>
+                            </StackPanel>
+                            <TextBlock x:Name="NoticeDate" Grid.Column="2" Text="" Foreground="#90CAF9" FontSize="10" VerticalAlignment="Top"/>
                         </Grid>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+                    </Border>
 
-            <StackPanel Name="PageSettings" Visibility="Collapsed">
-                <TextBlock Text="参数配置" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
-                
-                <CheckBox Name="CheckMasterSwitch" Content="启用鼠标全局特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
-                <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标全局拖尾特效" Style="{StaticResource ToggleSwitch}" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
-                
-                <TextBlock Text="特效主题颜色" Foreground="#666" Margin="0,0,0,5"/>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                    <Border Name="ColorPreview" Width="35" Height="35" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1" Margin="0,0,10,0"/>
-                    <Button Content="打开调色板..." Click="PickColor_Click" Width="100" Height="35" Background="White" BorderBrush="#CCC" Cursor="Hand"/>
+                    <TextBlock x:Name="TxtWelcomeTitle" Text="欢迎回来，老师！" FontSize="28" FontWeight="Bold" Foreground="#333" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="TxtWelcomeSubtitle" Text="Sensei, welcome back!" FontSize="12" Foreground="#999" Margin="0,0,0,25"/>
+
+                    <Border Background="#EBF5FF" CornerRadius="12" Padding="20" HorizontalAlignment="Left" MinWidth="300">
+                        <StackPanel>
+                            <TextBlock x:Name="TxtStatsTitle" Text="实时统计" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,15"/>
+                            <Grid Margin="0,0,0,10">
+                                <TextBlock x:Name="TxtStatusLabel" Text="当前状态:" Foreground="#666"/>
+                                <TextBlock x:Name="StatusText" Text="工作中" HorizontalAlignment="Right" FontWeight="Bold" Foreground="Green"/>
+                            </Grid>
+                            <Grid>
+                                <TextBlock x:Name="TxtClicksLabel" Text="累计点击次数:" Foreground="#666"/>
+                                <TextBlock x:Name="ClickCountText" Text="0 次" HorizontalAlignment="Right" FontSize="18" FontWeight="Bold" Foreground="#333"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
-                <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
-                <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" Foreground="#666" Margin="0,0,0,30"/>
-                
-                <Button Content="保存设置" Click="SaveSettings_Click" Width="120" Height="35" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"/>
-            </StackPanel>
-
-            <StackPanel Name="PageAbout" Visibility="Collapsed">
-                <TextBlock Text="关于" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
-                
-                <TextBlock FontSize="18" FontWeight="Bold">
-                    <Run Text="BASpark 正式版 "/>
-                    <Run x:Name="VersionText" Text="v1.0.0" Foreground="#45AFFF"/>
-                </TextBlock>
-
-                <TextBlock Text="深度复刻《蔚蓝档案》UI 风格动效的鼠标特效工具" Foreground="#666" Margin="0,10,0,10" TextWrapping="Wrap"/>
-
-                <Border Background="#FFF0F0" CornerRadius="6" Padding="12" Margin="0,0,0,20" BorderBrush="#FFCCCC" BorderThickness="1">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚠️" Margin="0,0,8,0" VerticalAlignment="Top"/>
-                        <TextBlock Text="安全提示：请务必确保从 GitHub 官方仓库下载。第三方分发渠道的版本可能存在报毒风险或恶意篡改。" 
-                                   Foreground="#CC0000" FontSize="12" TextWrapping="Wrap" MaxWidth="380"/>
+                <StackPanel Name="PageAbout" Visibility="Collapsed">
+                    <TextBlock x:Name="TxtAboutTitle" Text="关于" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+                    
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,14">
+                        <TextBlock FontSize="28" FontWeight="Bold" VerticalAlignment="Center">
+                            <Run Text="BASpark "/>
+                            <Run x:Name="VersionText" Text="v1.1.0" Foreground="#45AFFF" FontSize="24"/>
+                        </TextBlock>
+                        <Button x:Name="BtnCheckUpdate" Content="检查更新" Click="CheckUpdate_Click" Margin="18,0,0,0" Padding="12,3" Height="30" FontSize="12" Background="#E3F2FD" Foreground="#45AFFF" BorderBrush="#45AFFF" BorderThickness="1" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                        </Button>
                     </StackPanel>
+
+                    <TextBlock x:Name="TxtAboutDescription" Text="深度复刻《蔚蓝档案》UI 风格动效的鼠标特效工具" Foreground="#666" Margin="0,0,0,10" TextWrapping="Wrap"/>
+
+                    <Border Background="#FFF0F0" CornerRadius="6" Padding="12" Margin="0,0,0,20" BorderBrush="#FFCCCC" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚠️" Margin="0,0,8,0" VerticalAlignment="Top"/>
+                            <TextBlock x:Name="TxtSecurityWarning" Text="安全提示：请务必确保从官方渠道下载。第三方分发渠道的版本可能存在报毒风险或恶意篡改。" Foreground="#CC0000" FontSize="12" TextWrapping="Wrap" MaxWidth="380"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="TxtAboutSupport" Text="如果你喜欢本应用，欢迎支持开发者持续维护 ☕" Foreground="#45AFFF" Margin="0,0,0,25"/>
+                    
+                    <Button x:Name="BtnOfficialSite" Click="OpenLink_Click" Width="220" Height="38" Background="#45AFFF" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
+                    <Button x:Name="BtnGithub" Tag="https://github.com/DoomVoss/BASpark" Click="OpenLink_Click" Width="220" Height="38" Background="#333" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
+                    <Button x:Name="BtnBilibili" Tag="https://space.bilibili.com/3493116084488813" Click="OpenLink_Click" Width="220" Height="38" Background="#FB7299" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
+                    <Button x:Name="BtnQQ" Tag="https://qm.qq.com/q/lgvVto3yPm" Click="OpenLink_Click" Width="220" Height="38" Background="#12B7F5" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
+                    <Button x:Name="BtnDiscord" Click="OpenLink_Click" Width="220" Height="38" Background="#5865F2" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
+                    <Button x:Name="BtnSponsor" Tag="https://afdian.com/a/doomvoss" Click="OpenLink_Click" Width="220" Height="38" Background="#FF8140" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,30"/>
+
+                    <TextBlock x:Name="TxtDevOptions" Text="开发者选项" FontSize="14" FontWeight="Bold" Foreground="#999" Margin="0,15,0,10"/>
+                    <Button x:Name="BtnResetAll" Content="重置所有设置并退出" Click="ResetConfig_Click" Background="#FFE0E0" Foreground="#CC0000" BorderThickness="0" HorizontalAlignment="Left" Padding="15,8" Cursor="Hand"/>
+                </StackPanel>
+
+                <StackPanel Name="PageLog" Visibility="Collapsed">
+                    <TextBlock x:Name="TxtLogTitle" Text="运行日志" FontSize="24" FontWeight="Bold" Foreground="#333" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="TxtLogHint" Text="实时显示软件运行状态与错误信息。" FontSize="12" Foreground="#888" Margin="0,0,0,16" TextWrapping="Wrap"/>
+                    <DockPanel Margin="0,0,0,10" LastChildFill="False">
+                        <Button x:Name="BtnClearLog" Content="清空日志" Click="ClearLog_Click" DockPanel.Dock="Right" Padding="12,4" Height="30" Background="White" BorderBrush="#D6DEE8" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </DockPanel>
+                    <Border Background="White" CornerRadius="12" BorderBrush="#EAECEF" BorderThickness="1" Padding="8">
+                        <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto" MaxHeight="520">
+                            <ScrollViewer.Resources>
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource ThinScrollBar}"/>
+                            </ScrollViewer.Resources>
+                            <TextBox x:Name="TxtAppLog" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas, Courier New" FontSize="12" Foreground="#333" VerticalScrollBarVisibility="Disabled"/>
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
+
+                </Grid>
+            </ScrollViewer>
+
+            <Grid x:Name="PageSettings" Visibility="Collapsed" Margin="30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="#F5F7FA" Padding="0,0,0,16">
+                    <Border BorderBrush="#E3E8EF" BorderThickness="0,0,0,1" Padding="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtSettingsTitle" Text="参数配置" FontSize="24" FontWeight="Bold" Foreground="#333"/>
+                                <TextBlock x:Name="TxtSettingsHint" Text="*修改设置后，请点击右侧 [应用更改] 按钮生效。" FontSize="11" Foreground="#FF6B6B" FontWeight="SemiBold" Margin="0,4,0,0" Opacity="0.9"/>
+                            </StackPanel>
+                            <Button x:Name="BtnApplySettings" Grid.Column="1" Content="应用更改" Click="SaveSettings_Click" Width="120" Height="36" Background="#45AFFF" Foreground="White" BorderThickness="0" Cursor="Hand" FontWeight="Bold" FontSize="14">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="18"/>
+                                    </Style>
+                                </Button.Resources>
+                                <Button.Effect>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.15"/>
+                                </Button.Effect>
+                            </Button>
+                        </Grid>
+                    </Border>
                 </Border>
 
-                <TextBlock Text="如果你喜欢本应用，欢迎支持开发者持续维护 ☕" Foreground="#45AFFF" Margin="0,0,0,25"/>
-                
-                <Button Content="🌐 访问 GitHub 官方仓库" Tag="https://github.com/DoomVoss/BASpark" Click="OpenLink_Click" Width="220" Height="38" Background="#333" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
-                <Button Content="💬 加入 QQ 交流群" Tag="https://qm.qq.com/q/lgvVto3yPm" Click="OpenLink_Click" Width="220" Height="38" Background="#12B7F5" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,10"/>
-                <Button Content="☕ 赞助支持作者" Tag="https://qq.catbotstudio.top/jrys/spor.png" Click="OpenLink_Click" Width="220" Height="38" Background="#FF8140" Foreground="White" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Margin="0,0,0,30"/>
+                <ScrollViewer x:Name="SettingsContentScrollViewer" Grid.Row="1"
+                              VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
+                              ScrollChanged="SettingsContentScrollViewer_ScrollChanged"
+                              PreviewMouseWheel="SettingsContentScrollViewer_PreviewMouseWheel">
+                    <ScrollViewer.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource ThinScrollBar}"/>
+                    </ScrollViewer.Resources>
+                    <StackPanel>
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=SubTabBasic}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
 
-                <TextBlock Text="开发者选项" FontSize="14" FontWeight="Bold" Foreground="#999" Margin="0,15,0,10"/>
-                <Button Content="重置所有设置并退出" Click="ResetConfig_Click" Background="#FFE0E0" Foreground="#CC0000" BorderThickness="0" HorizontalAlignment="Left" Padding="15,8" Cursor="Hand"/>
-            </StackPanel>
-            
+                            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock x:Name="TxtBasicTitle" Text="基础设置" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,12"/>
+                                    <StackPanel Margin="0,0,0,12">
+                                        <TextBlock x:Name="TxtBasicLanguage" Text="界面语言" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                                        <ComboBox x:Name="ComboLanguage" Width="220" HorizontalAlignment="Left" Height="28" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,0,12">
+                                        <TextBlock x:Name="TxtBasicNetworkRegion" Text="网络源" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                                        <Border Background="#F0F2F5" CornerRadius="8" Padding="2" HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="RadioNetworkRegionAuto" Content="跟随语言" GroupName="NetworkRegion" IsChecked="True" Width="96" Style="{StaticResource SegmentBtn}"/>
+                                                <RadioButton x:Name="RadioNetworkRegionChina" Content="中国大陆" GroupName="NetworkRegion" Width="96" Style="{StaticResource SegmentBtn}"/>
+                                                <RadioButton x:Name="RadioNetworkRegionGlobal" Content="全球" GroupName="NetworkRegion" Width="72" Style="{StaticResource SegmentBtn}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock x:Name="TxtNetworkRegionHint" Text="* 用于获取公告与检查更新；默认跟随界面语言自动选择。" FontSize="11" Foreground="#9BA3AF" Margin="0,8,0,0" TextWrapping="Wrap" Opacity="0.8"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,0,12">
+                                        <TextBlock x:Name="TxtScrollbarVisibility" Text="滚动条显示" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                                        <Border Background="#F0F2F5" CornerRadius="8" Padding="2" HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="RadioScrollbarAlways" Content="常驻显示" GroupName="ScrollbarVisibility" Width="88" Style="{StaticResource SegmentBtn}"/>
+                                                <RadioButton x:Name="RadioScrollbarOnScroll" Content="仅滚动时显示" GroupName="ScrollbarVisibility" IsChecked="True" Width="120" Style="{StaticResource SegmentBtn}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock x:Name="TxtScrollbarHint" Text="* 控制面板滚动条较细；仅滚动时显示可减少调整窗口大小时滚动条反复出现/消失的视觉割裂。" FontSize="11" Foreground="#9BA3AF" Margin="0,8,0,0" TextWrapping="Wrap" Opacity="0.8"/>
+                                    </StackPanel>
+                                    <CheckBox Name="CheckMasterSwitch" Content="启用鼠标点击特效" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                    <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标常驻拖尾" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                    <StackPanel Margin="0,0,0,15">
+                                        <TextBlock x:Name="TxtClickType" Text="触发按键类型" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                                        <Border Background="#F0F2F5" CornerRadius="8" Padding="2" HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton Name="RadioLeftClick" Content="仅左键" GroupName="ClickType" IsChecked="True" Style="{StaticResource SegmentBtn}"/>
+                                                <RadioButton Name="RadioRightClick" Content="仅右键" GroupName="ClickType" Style="{StaticResource SegmentBtn}"/>
+                                                <RadioButton Name="RadioBothClick" Content="左右键" GroupName="ClickType" Style="{StaticResource SegmentBtn}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <CheckBox Name="CheckMiddleClickTrigger" Content="鼠标中键按下时触发特效" Style="{StaticResource ToggleSwitch}" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox Name="CheckScreenshotCompatibilityMode" Content="截图兼容模式" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="TxtScreenshotHint" Text="* (实验性功能) 开启后截图画面将不包含特效：检测到系统截图界面或 QQ 默认截图快捷键时会短暂隐藏叠加层以便框选窗口。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,12" TextWrapping="Wrap" Opacity="0.8"/>
+                                    <CheckBox Name="CheckAutoStart" Content="开机自动启动" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckAutoStart_Changed" Unchecked="CheckAutoStart_Changed"/>
+                                    <CheckBox Name="CheckStartSilent" Content="静默启动 (最小化到托盘)" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8"/>
+                                    <CheckBox Name="CheckRunAsAdmin" Content="以管理员权限运行程序" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,8" Checked="CheckRunAsAdmin_Changed" Unchecked="CheckRunAsAdmin_Changed"/>
+                                    <TextBlock x:Name="TxtRunAsAdminHint" Text="* 若需在任务管理器等部分高权限窗口显示特效，请勾选此项。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,10" TextWrapping="Wrap" Opacity="0.8"/>
+                                    <CheckBox Name="CheckTouchscreenMode" Content="触摸屏模式" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="TxtTouchscreenHint" Text="* 开启后，即便系统隐藏了鼠标指针特效依然生效，仅适用于触摸屏或特定的全屏应用环境。" FontSize="11" Foreground="#9BA3AF" Margin="34,0,0,12" TextWrapping="Wrap" Opacity="0.8"/>
+                                    <CheckBox Name="CheckTelemetry" Content="允许发送匿名运行数据以改进软件" Style="{StaticResource ToggleSwitch}" FontSize="12"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+<StackPanel>
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsChecked, ElementName=SubTabVisual}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+
+                                            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                                                <StackPanel>
+                                                    <DockPanel LastChildFill="False" Margin="0,0,0,8">
+                                                        <TextBlock x:Name="TxtVisualTitle" Text="视觉表现" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                                        <Button x:Name="BtnVisualReset" Content="恢复默认设置" Click="OpenVisualResetOverlay_Click" DockPanel.Dock="Right" Padding="10,4" Height="28" FontSize="12" Background="White" BorderBrush="#D6DEE8" Cursor="Hand" VerticalAlignment="Center">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                        </Button>
+                                                    </DockPanel>
+                                                    <TextBlock x:Name="TxtVisualInputHint" Text="提示：可点击数字输入精确值后可按回车应用" FontSize="11" Foreground="#999" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="0,0,0,8"/>
+
+                                                    <StackPanel Margin="0,0,0,15">
+                                                        <DockPanel LastChildFill="False">
+                                                            <TextBlock x:Name="TxtVisualScale" Text="缩放比例" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                                <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                                         TextAlignment="Right" VerticalAlignment="Center" 
+                                                                         BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                                         Text="{Binding ElementName=SliderScale, Path=Value, StringFormat={}{0:F2}, UpdateSourceTrigger=LostFocus}"
+                                                                         PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                                         InputMethod.IsInputMethodEnabled="False"/>
+                                                                <TextBlock Text=" X" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                        <Slider Name="SliderScale" Minimum="0.5" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" 
+                                                                ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Margin="0,0,0,15">
+                                                        <DockPanel LastChildFill="False">
+                                                            <TextBlock x:Name="TxtVisualOpacity" Text="全局不透明度" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                                <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                                        TextAlignment="Right" VerticalAlignment="Center" 
+                                                                        BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                                        Text="{Binding ElementName=SliderOpacity, Path=Value, StringFormat={}{0:F0}, UpdateSourceTrigger=LostFocus}"
+                                                                        PreviewTextInput="NumberValidationTextBox" 
+                                                                        KeyDown="TextBox_KeyDown"
+                                                                        InputMethod.IsInputMethodEnabled="False"/>
+                                                                <TextBlock Text=" %" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                        <Slider Name="SliderOpacity" Minimum="10" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" 
+                                                                ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+
+                                                    <CheckBox Name="CheckLinkedAnimationSpeed" Content="拖尾与点击使用同一动画速度" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,4"
+                                                              Checked="LinkedAnimationSpeed_Changed" Unchecked="LinkedAnimationSpeed_Changed"/>
+                                                    <TextBlock x:Name="TxtLinkedSpeedHint" Text="关闭此项后可单独加快或减慢拖尾衰减与移动粒子，而不影响点击波纹与爆发粒子，与下方「拖尾刷新率」不同。" FontSize="11" Foreground="#999" Margin="0,0,0,10" TextWrapping="Wrap"/>
+
+                                                    <StackPanel Name="PanelUnifiedAnimationSpeed" Margin="0,0,0,15">
+                                                        <DockPanel LastChildFill="False">
+                                                            <TextBlock x:Name="TxtAnimSpeed" Text="动画播放速度" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                                <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                                         TextAlignment="Right" VerticalAlignment="Center"
+                                                                         BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                                         Text="{Binding ElementName=SliderSpeed, Path=Value, StringFormat={}{0:F2}, UpdateSourceTrigger=LostFocus}"
+                                                                         PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                                         InputMethod.IsInputMethodEnabled="False"/>
+                                                                <TextBlock Text=" X" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                        <Slider Name="SliderSpeed" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                                                ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Name="PanelSplitAnimationSpeed" Margin="0,0,0,15" Visibility="Collapsed">
+                                                        <StackPanel Margin="0,0,0,12">
+                                                            <DockPanel LastChildFill="False">
+                                                                <TextBlock x:Name="TxtTrailAnimSpeed" Text="拖尾动画速度" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                                    <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                                             TextAlignment="Right" VerticalAlignment="Center"
+                                                                             BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                                             Text="{Binding ElementName=SliderTrailAnimSpeed, Path=Value, StringFormat={}{0:F2}, UpdateSourceTrigger=LostFocus}"
+                                                                             PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                                             InputMethod.IsInputMethodEnabled="False"/>
+                                                                    <TextBlock Text=" X" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                                </StackPanel>
+                                                            </DockPanel>
+                                                            <Slider Name="SliderTrailAnimSpeed" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                                                    ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                                                        </StackPanel>
+                                                        <StackPanel>
+                                                            <DockPanel LastChildFill="False">
+                                                                <TextBlock x:Name="TxtClickAnimSpeed" Text="点击动画速度" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                                    <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                                             TextAlignment="Right" VerticalAlignment="Center"
+                                                                             BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                                             Text="{Binding ElementName=SliderClickAnimSpeed, Path=Value, StringFormat={}{0:F2}, UpdateSourceTrigger=LostFocus}"
+                                                                             PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                                             InputMethod.IsInputMethodEnabled="False"/>
+                                                                    <TextBlock Text=" X" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                                </StackPanel>
+                                                            </DockPanel>
+                                                            <Slider Name="SliderClickAnimSpeed" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                                                    ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <StackPanel Margin="0,0,0,15">
+                                                        <DockPanel LastChildFill="False">
+                                                            <TextBlock x:Name="TxtTrailRefresh" Text="拖尾刷新率" Foreground="#555" FontSize="13" VerticalAlignment="Center"/>
+                                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                                <TextBox Width="40" Height="20" FontSize="12" Foreground="#45AFFF" FontWeight="Bold"
+                                                                         TextAlignment="Right" VerticalAlignment="Center" 
+                                                                         BorderThickness="0,0,0,1" BorderBrush="#DDD" Background="Transparent"
+                                                                         Text="{Binding ElementName=SliderTrailRefresh, Path=Value, StringFormat={}{0:F0}, UpdateSourceTrigger=LostFocus}"
+                                                                         PreviewTextInput="NumberValidationTextBox" KeyDown="TextBox_KeyDown"
+                                                                         InputMethod.IsInputMethodEnabled="False"/>
+                                                                <TextBlock Text=" Hz" Foreground="#999" FontSize="12" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                        <Slider Name="SliderTrailRefresh" Minimum="10" Maximum="240" TickFrequency="10" IsSnapToTickEnabled="True" 
+                                                                ValueChanged="EffectSlider_ValueChanged" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+
+                                                    <Separator Background="#F0F2F5" Margin="0,2,0,12"/>
+                                                    <TextBlock x:Name="TxtEffectColor" Text="特效主题颜色" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Name="ColorPreview" Width="40" Height="28" CornerRadius="6" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,10,0"/>
+                                                        <Button x:Name="BtnPickColor" Content="更改颜色" Click="PickColor_Click" Width="90" Height="28" Background="#F8FAFF" BorderBrush="#45AFFF" Foreground="#45AFFF" Cursor="Hand" FontSize="12">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                                            <StackPanel>
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsChecked, ElementName=SubTabFilter}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+
+                                            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                                                <StackPanel>
+                                                    <TextBlock x:Name="TxtFilterTitle" Text="环境过滤" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,12"/>
+
+                                                    <CheckBox Name="CheckEnvironmentFilter" Content="启用智能环境探测" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10" Checked="EnvironmentFilterSetting_Changed" Unchecked="EnvironmentFilterSetting_Changed"/>
+                                                    <CheckBox Name="CheckHideInFullscreen" Content="全屏应用前台运行时自动暂停" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,10"/>
+                                                    <CheckBox Name="CheckShowEffectOnDesktop" Content="在桌面上显示特效" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,15"/>
+
+                                                    <Separator Background="#F0F2F5" Margin="0,5,0,15"/>
+
+                                                    <TextBlock x:Name="TxtFilterProfiles" Text="配置组管理" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                                                    <DockPanel Margin="0,0,0,12">
+                                                        <Button x:Name="BtnDeleteProfile" Content="删除" Click="DeleteProfile_Click" DockPanel.Dock="Right" Margin="5,0,0,0" Padding="8,0" Height="28" Background="#FFF0F0" Foreground="#CC0000" BorderBrush="#FFCCCC">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                        </Button>
+                                                        <Button x:Name="BtnRenameProfile" Content="重命名" Click="RenameProfile_Click" DockPanel.Dock="Right" Margin="5,0,0,0" Padding="8,0" Height="28" Background="#F8FAFF" BorderBrush="#D6DEE8">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                        </Button>
+                                                        <Button x:Name="BtnAddProfile" Content="新建" Click="AddProfile_Click" DockPanel.Dock="Right" Margin="5,0,0,0" Padding="8,0" Height="28" Background="#F8FAFF" BorderBrush="#D6DEE8">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                        </Button>
+                                                        <ComboBox Name="ComboProfiles" SelectionChanged="ComboProfiles_SelectionChanged" Height="28" VerticalContentAlignment="Center">
+                                                            <ComboBox.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding Name}"/>
+                                                                </DataTemplate>
+                                                            </ComboBox.ItemTemplate>
+                                                        </ComboBox>
+                                                    </DockPanel>
+
+                                                    <TextBlock x:Name="TxtFilterMode" Text="过滤模式" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                                                    <ComboBox Name="ComboProcessFilterMode" Width="180" Margin="0,0,0,12" SelectionChanged="ProcessFilterMode_Changed" Height="28" VerticalContentAlignment="Center" HorizontalAlignment="Left">
+                                                        <ComboBoxItem Content="🚫 关闭过滤" Tag="Disabled"/>
+                                                        <ComboBoxItem Content="❌ 黑名单模式" Tag="Blacklist"/>
+                                                        <ComboBoxItem Content="✅ 白名单模式" Tag="Whitelist"/>
+                                                    </ComboBox>
+
+                                                    <TextBlock x:Name="TxtProcessList" Text="已配置进程列表" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                                                    <ListBox Name="ListConfiguredProcesses" Height="120" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1" Margin="0,0,0,10">
+                                                        <ListBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <DockPanel LastChildFill="True" Margin="2">
+                                                                    <Button Content="移除" Click="RemoveProcess_Click" DockPanel.Dock="Right" Padding="5,0" Height="22" FontSize="11" Background="#FFF0F0" Foreground="#CC0000" BorderBrush="#FFCCCC">
+                                                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
+                                                                    </Button>
+                                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="5,0"/>
+                                                                </DockPanel>
+                                                            </DataTemplate>
+                                                        </ListBox.ItemTemplate>
+                                                    </ListBox>
+
+                                                    <TextBlock x:Name="TxtAddProcess" Text="添加进程" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBox x:Name="ManualProcessInput" Height="30" VerticalContentAlignment="Center" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="5,0">
+                                                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                                                        </TextBox>
+                                                        <Button x:Name="BtnAddProcess" Grid.Column="1" Content="添加" Margin="5,0,0,0" Padding="12,0" Height="30" Click="AddManualProcess_Click" Background="#45AFFF" Foreground="White">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                        </Button>
+                                                        <Button x:Name="BtnBrowseProcess" Grid.Column="2" Content="浏览..." Margin="5,0,0,0" Padding="12,0" Height="30" Click="BrowseProcess_Click" Background="White">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                        </Button>
+                                                        <Button x:Name="BtnSelectRunningProcess" Grid.Column="3" Content="从运行中选择" Margin="5,0,0,0" Padding="12,0" Height="30" Click="SelectRunningProcess_Click" Background="White">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                        </Button>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <StackPanel>
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsChecked, ElementName=SubTabMultiScreen}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+
+                                            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                                                <StackPanel>
+                                                    <DockPanel Margin="0,0,0,8">
+                                                        <TextBlock x:Name="TxtMultiScreenTitle" Text="多屏显示管理" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" VerticalAlignment="Center"/>
+                                                        <Button x:Name="BtnRefreshScreens" DockPanel.Dock="Right" Content="刷新显示器" Click="RefreshScreenOptions_Click" Padding="10,4" Height="28" Width="200" Background="#F8FAFF" BorderBrush="#D6DEE8" Cursor="Hand">
+                                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                        </Button>
+                                                    </DockPanel>
+                                                    <TextBlock x:Name="TxtMultiScreenHint" Text="勾选要启用特效窗口的显示器。设置会按显示器名称和硬件 ID 记忆，显示屏变更后自动恢复。" FontSize="12" Foreground="#666" Margin="0,0,0,12" TextWrapping="Wrap"/>
+
+                                                    <ListBox Name="ListScreenOptions" Background="Transparent" BorderThickness="0" MinHeight="180">
+                                                        <ListBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border CornerRadius="10" BorderBrush="#DCE5F2" BorderThickness="1" Background="#FAFCFF" Padding="12" Margin="0,0,0,10">
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <StackPanel>
+                                                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="#263238"/>
+                                                                            <TextBlock Text="{Binding ResolutionText}" FontSize="12" Foreground="#455A64" Margin="0,4,0,0"/>
+                                                                            <TextBlock Text="{Binding DetailText}" FontSize="11" Foreground="#78909C" Margin="0,4,0,0"/>
+                                                                        </StackPanel>
+                                                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="{Binding EnableLabel}" VerticalAlignment="Center" Style="{StaticResource ToggleSwitch}" Margin="16,0,0,0"/>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ListBox.ItemTemplate>
+                                                    </ListBox>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=SubTabMore}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#EAECEF" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock x:Name="TxtMoreTitle" Text="更多设置" FontSize="14" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,12"/>
+                                    <TextBlock x:Name="TxtSidebarBackground" Text="主菜单背景图片" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="TxtSidebarBackgroundPath" Height="30" VerticalContentAlignment="Center" IsReadOnly="True" Background="#F8FAFF" BorderBrush="#E0E8F0" Padding="8,0"/>
+                                        <Button x:Name="BtnBrowseSidebarBackground" Grid.Column="1" Content="浏览..." Margin="8,0,0,0" Padding="12,0" Height="30" Click="BrowseSidebarBackground_Click" Background="White" BorderBrush="#D6DEE8" Cursor="Hand">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                        </Button>
+                                        <Button x:Name="BtnClearSidebarBackground" Grid.Column="2" Content="清除" Margin="8,0,0,0" Padding="12,0" Height="30" Click="ClearSidebarBackground_Click" Background="#FFF5F5" BorderBrush="#FFCCCC" Foreground="#CC0000" Cursor="Hand">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                        </Button>
+                                    </Grid>
+                                    <TextBlock x:Name="TxtSidebarBackgroundHint" Text="* 支持 PNG/JPG/BMP/WebP" FontSize="11" Foreground="#9BA3AF" TextWrapping="Wrap" Opacity="0.8"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- 运行中进程选择弹窗 (Overlay) -->
+        <Grid Name="RunningProcessOverlay" Grid.ColumnSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="12" Width="400" Height="500" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock x:Name="TxtOverlayRunning" Text="从运行中进程添加" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+                    
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <TextBox x:Name="SearchRunningProcess" Height="30" VerticalContentAlignment="Center" TextChanged="SearchRunningProcess_TextChanged" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="26,0,5,0">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                        </TextBox>
+                        <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" Foreground="#AAA" IsHitTestVisible="False"/>
+                    </Grid>
+
+                    <ListBox Name="ListRunningProcesses" Grid.Row="2" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}" Margin="2,4" VerticalContentAlignment="Center">
+                                    <StackPanel Orientation="Vertical" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13" Foreground="#333"/>
+                                        <TextBlock Text="{Binding ProcessName}" FontSize="10" Foreground="#999"/>
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button x:Name="BtnOverlayCancel" Content="取消" Click="CloseRunningProcessOverlay_Click" Width="80" Height="32" Background="White" BorderBrush="#DDD" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button x:Name="BtnOverlayConfirmAdd" Content="确认添加" Click="ConfirmAddRunningProcesses_Click" Width="100" Height="32" Background="#45AFFF" Foreground="White" BorderThickness="0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 视觉表现恢复默认 (Overlay) -->
+        <Grid Name="VisualResetOverlay" Grid.ColumnSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="12" Width="400" Height="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock x:Name="TxtOverlayVisualReset" Text="选择要恢复默认的视觉表现项" FontSize="18" FontWeight="Bold" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <TextBox x:Name="SearchVisualReset" Height="30" VerticalContentAlignment="Center" TextChanged="SearchVisualReset_TextChanged" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="26,0,5,0">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                        </TextBox>
+                        <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" Foreground="#AAA" IsHitTestVisible="False"/>
+                    </Grid>
+
+                    <ListBox Name="ListVisualResetItems" Grid.Row="2" Background="#FDFDFF" BorderBrush="#E0E8F0" BorderThickness="1">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}" Margin="2,4" VerticalContentAlignment="Center">
+                                    <StackPanel Orientation="Vertical" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" Foreground="#333"/>
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#999"/>
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button x:Name="BtnOverlayVisualCancel" Content="取消" Click="CloseVisualResetOverlay_Click" Width="80" Height="32" Background="White" BorderBrush="#DDD" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button x:Name="BtnOverlayVisualConfirm" Content="确认重置" Click="ConfirmVisualReset_Click" Width="100" Height="32" Background="#45AFFF" Foreground="White" BorderThickness="0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Name="RenameProfileOverlay" Grid.ColumnSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="12" Width="350" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20">
+                <StackPanel>
+                    <TextBlock x:Name="TxtOverlayRename" Text="重命名配置组" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+                    <TextBlock x:Name="TxtOverlayRenamePrompt" Text="请输入新的配置组名称：" FontSize="13" Foreground="#666" Margin="0,0,0,10"/>
+                    <TextBox x:Name="NewProfileNameInput" Height="32" VerticalContentAlignment="Center" Background="#F8FAFF" BorderBrush="#D6DEE8" Padding="8,0">
+                        <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></TextBox.Resources>
+                    </TextBox>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button x:Name="BtnOverlayRenameCancel" Content="取消" Click="CloseRenameOverlay_Click" Width="80" Height="32" Background="White" BorderBrush="#DDD" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button x:Name="BtnOverlayRenameConfirm" Content="确认修改" Click="ConfirmRenameProfile_Click" Width="100" Height="32" Background="#45AFFF" Foreground="White" BorderThickness="0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>

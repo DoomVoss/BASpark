@@ -23,7 +23,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build Single EXE
+      - name: Build Packaged Files
         shell: pwsh
         run: |
           $RAW_VER = "${{ github.ref_name }}".TrimStart("v")
@@ -32,8 +32,7 @@ jobs:
             -c Release `
             -r win-x64 `
             --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:PublishSingleFile=false `
             -p:Version=$RAW_VER `
             -o src/publish_full
 
@@ -49,14 +48,15 @@ jobs:
           name: "BASpark Release ${{ github.ref_name }}"
           generate_release_notes: true
           body: |
-            ## 💫 BASpark 正式版 ${{ github.ref_name }}
+            ## BASpark Release ${{ github.ref_name }}
             
             ---
             
-            - **运行环境**：Windows 10/11 (x64) | .NET 8.0 Runtime
-            - **开源协议**：MIT License (完全免费，禁止商用)
-            - **问题反馈**：请提交 [Issues] 或联系作者。
-
+            - **Environment / 运行环境**：Windows 10/11 (x64) | .NET 8.0 Runtime
+            - **License / 开源协议**：MIT License
+            - **Feedback / 问题反馈**：[Issue](https://github.com/DoomVoss/BASpark/issues/new/choose)
+            
+            This release includes the following changes:
             本次更新包含以下改动：
           draft: false
           prerelease: false

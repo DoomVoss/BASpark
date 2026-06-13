@@ -8,24 +8,33 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseVisualBasic>true</UseVisualBasic>
     <ApplicationIcon>app.ico</ApplicationIcon>
 
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <FileVersion>1.0.0</FileVersion>
+    <Version>1.6.0</Version>
+    <AssemblyVersion>1.6.0</AssemblyVersion>
+    <FileVersion>1.6.0</FileVersion>
+    
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <WebView2LoaderPreference>Static</WebView2LoaderPreference>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2365.46" />
     <PackageReference Include="MouseKeyHook" Version="5.7.1" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="app.ico" />
     <Resource Include="Web\index.html" />
   </ItemGroup>
+
 
 </Project>

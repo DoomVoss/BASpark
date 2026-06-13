@@ -32,42 +32,42 @@
                     <TextBlock Text="Version" FontSize="11" Foreground="#CCFFFFFF" VerticalAlignment="Bottom"/>
                     <TextBlock x:Name="VersionText" Text="1.0.0-release" FontSize="12" FontWeight="Bold" Foreground="White" Margin="5,0,0,0"/>
                 </StackPanel>
-                <TextBlock Text="Sensei, welcome back to Schale." FontSize="11" Foreground="#AAFFFFFF" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                <TextBlock x:Name="TxtTagline" Text="Sensei, welcome back to Schale." FontSize="11" Foreground="#AAFFFFFF" HorizontalAlignment="Center" Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
 
         <ScrollViewer Grid.Row="1" Margin="40,25" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Text="在使用本软件前，请详细阅读以下内容：" FontSize="14" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
+                <TextBlock x:Name="TxtIntro" Text="在使用本软件前，请详细阅读以下内容：" FontSize="14" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
 
                 <StackPanel Margin="0,0,0,15">
-                    <TextBlock Text="● 开源声明" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,4"/>
-                    <TextBlock Text="本软件完全开源且免费。严禁商业倒卖，若您是付费取得，请立即向平台举报并申请退款。" TextWrapping="Wrap" Foreground="#718096" FontSize="13" LineHeight="20"/>
+                    <TextBlock x:Name="TxtOpenSourceTitle" Text="● 开源声明" FontWeight="Bold" Foreground="#45AFFF" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="TxtOpenSourceBody" Text="本软件完全开源且免费。严禁商业倒卖，若您是付费取得，请立即向平台举报并申请退款。" TextWrapping="Wrap" Foreground="#718096" FontSize="13" LineHeight="20"/>
                 </StackPanel>
 
                 <Border Background="#FFF5F5" Padding="12" CornerRadius="6" Margin="0,5,0,15" BorderBrush="#FFCCCC" BorderThickness="1">
                     <StackPanel>
-                        <TextBlock Text="● 安全预警 (重要)" FontWeight="Bold" Foreground="#E53E3E" Margin="0,0,0,4"/>
-                        <TextBlock Text="请确保从 GitHub 官方仓库下载。第三方渠道提供的版本可能存在被篡改或报毒的风险。" TextWrapping="Wrap" Foreground="#C53030" FontSize="13" LineHeight="20"/>
+                        <TextBlock x:Name="TxtSecurityTitle" Text="● 安全预警 (重要)" FontWeight="Bold" Foreground="#E53E3E" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="TxtSecurityBody" Text="请确保从官方渠道下载。第三方渠道提供的版本可能存在被篡改或报毒的风险。" TextWrapping="Wrap" Foreground="#C53030" FontSize="13" LineHeight="20"/>
                     </StackPanel>
                 </Border>
 
                 <StackPanel Margin="0,0,0,15">
-                    <TextBlock Text="● 隐私保障" FontWeight="Bold" Foreground="#4A5568" Margin="0,0,0,4"/>
-                    <TextBlock Text="绝不收集您的按键内容、文件或任何私密信息。所有特效渲染均在本地完成。" TextWrapping="Wrap" Foreground="#718096" FontSize="13" LineHeight="20"/>
+                    <TextBlock x:Name="TxtPrivacyTitle" Text="● 隐私保障" FontWeight="Bold" Foreground="#4A5568" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="TxtPrivacyBody" Text="绝不收集您的按键内容、文件或任何私密信息。所有特效渲染均在本地完成。" TextWrapping="Wrap" Foreground="#718096" FontSize="13" LineHeight="20"/>
                 </StackPanel>
 
                 <CheckBox Name="CheckTelemetry" IsChecked="True" Margin="0,15,0,0" Cursor="Hand" VerticalContentAlignment="Center">
-                    <TextBlock Text="同意加入用户体验改进计划 (匿名统计)" Foreground="#A0AEC0" FontSize="12"/>
+                    <TextBlock x:Name="TxtTelemetry" Text="同意加入用户体验改进计划 (匿名统计)" Foreground="#A0AEC0" FontSize="12"/>
                 </CheckBox>
             </StackPanel>
         </ScrollViewer>
 
         <Border Grid.Row="2" BorderBrush="#EDF2F7" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Button Content="拒绝并退出" Click="BtnRefuse_Click" Width="140" Height="45" 
+                <Button x:Name="BtnRefuse" Content="拒绝并退出" Click="BtnRefuse_Click" Width="140" Height="45" 
                         Background="#F7FAFC" Foreground="#A0AEC0" Style="{StaticResource RoundedBtn}" Cursor="Hand" Margin="0,0,20,0"/>
-                <Button Content="同意并进入" Click="BtnAgree_Click" Width="140" Height="45" 
+                <Button x:Name="BtnAgree" Content="同意并进入" Click="BtnAgree_Click" Width="140" Height="45" 
                         Background="#45AFFF" Foreground="White" Style="{StaticResource RoundedBtn}" Cursor="Hand" FontWeight="Bold"/>
             </StackPanel>
         </Border>

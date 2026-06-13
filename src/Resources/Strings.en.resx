@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <root>
+    <resheader name="resmimetype">
+      <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+      <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+      <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+      <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="About_Bilibili" xml:space="preserve">
+      <value>📺 Bilibili</value>
+    </data>
+    <data name="About_CheckUpdate" xml:space="preserve">
+      <value>Check for updates</value>
+    </data>
+    <data name="About_CheckingUpdate" xml:space="preserve">
+      <value>Checking...</value>
+    </data>
+    <data name="About_Description" xml:space="preserve">
+      <value>Blue Archive–style mouse click effects for Windows</value>
+    </data>
+    <data name="About_DevOptions" xml:space="preserve">
+      <value>Developer options</value>
+    </data>
+    <data name="About_Discord" xml:space="preserve">
+      <value>💬 Join Discord</value>
+    </data>
+    <data name="About_Github" xml:space="preserve">
+      <value>🌐 GitHub repository</value>
+    </data>
+    <data name="About_OfficialSite" xml:space="preserve">
+      <value>🌐 Official website</value>
+    </data>
+    <data name="About_QQ" xml:space="preserve">
+      <value>💬 QQ group</value>
+    </data>
+    <data name="About_ResetAll" xml:space="preserve">
+      <value>Reset all settings and exit</value>
+    </data>
+    <data name="About_SecurityWarning" xml:space="preserve">
+      <value>Download only from official sources. Unofficial builds may be unsafe or tampered with.</value>
+    </data>
+    <data name="About_Sponsor" xml:space="preserve">
+      <value>☕ Sponsor the author</value>
+    </data>
+    <data name="About_Support" xml:space="preserve">
+      <value>If you enjoy BASpark, consider supporting development ☕</value>
+    </data>
+    <data name="About_Title" xml:space="preserve">
+      <value>About</value>
+    </data>
+    <data name="App_AlreadyRunning" xml:space="preserve">
+      <value>BASpark is already running. Check the system tray.</value>
+    </data>
+    <data name="App_AlreadyRunning_Title" xml:space="preserve">
+      <value>Notice</value>
+    </data>
+    <data name="App_Title_ControlPanel" xml:space="preserve">
+      <value>BASpark - Control Panel</value>
+    </data>
+    <data name="Basic_AutoStart" xml:space="preserve">
+      <value>Start with Windows</value>
+    </data>
+    <data name="Basic_BothClick" xml:space="preserve">
+      <value>Both</value>
+    </data>
+    <data name="Basic_ClickType" xml:space="preserve">
+      <value>Trigger buttons</value>
+    </data>
+    <data name="Basic_Language" xml:space="preserve">
+      <value>Display language</value>
+    </data>
+    <data name="Basic_NetworkRegion" xml:space="preserve">
+      <value>Network source</value>
+    </data>
+    <data name="Basic_NetworkRegionAuto" xml:space="preserve">
+      <value>Follow language</value>
+    </data>
+    <data name="Basic_NetworkRegionChina" xml:space="preserve">
+      <value>Mainland China</value>
+    </data>
+    <data name="Basic_NetworkRegionGlobal" xml:space="preserve">
+      <value>Global</value>
+    </data>
+    <data name="Basic_NetworkRegionHint" xml:space="preserve">
+      <value>* Used for notices and update checks. By default, follows UI language (.cn / .top).</value>
+    </data>
+    <data name="Basic_LeftClick" xml:space="preserve">
+      <value>Left only</value>
+    </data>
+    <data name="Basic_MasterSwitch" xml:space="preserve">
+      <value>Enable click effects</value>
+    </data>
+    <data name="Basic_MiddleClick" xml:space="preserve">
+      <value>Trigger on middle click</value>
+    </data>
+    <data name="Basic_RightClick" xml:space="preserve">
+      <value>Right only</value>
+    </data>
+    <data name="Basic_RunAsAdmin" xml:space="preserve">
+      <value>Run as administrator</value>
+    </data>
+    <data name="Basic_RunAsAdminHint" xml:space="preserve">
+      <value>* Required for effects over elevated windows such as Task Manager.</value>
+    </data>
+    <data name="Basic_ScreenshotHint" xml:space="preserve">
+      <value>* (Experimental) Hides overlay briefly during screenshots or QQ screenshot hotkeys.</value>
+    </data>
+    <data name="Basic_ScreenshotMode" xml:space="preserve">
+      <value>Screenshot compatibility</value>
+    </data>
+    <data name="Basic_StartSilent" xml:space="preserve">
+      <value>Start silently (tray only)</value>
+    </data>
+    <data name="Basic_Telemetry" xml:space="preserve">
+      <value>Send anonymous usage data to improve the app</value>
+    </data>
+    <data name="Basic_Title" xml:space="preserve">
+      <value>Basic Settings</value>
+    </data>
+    <data name="Basic_Touchscreen" xml:space="preserve">
+      <value>Touchscreen mode</value>
+    </data>
+    <data name="Basic_TouchscreenHint" xml:space="preserve">
+      <value>* Effects work when the cursor is hidden; for touchscreens or certain fullscreen apps.</value>
+    </data>
+    <data name="Basic_TrailSwitch" xml:space="preserve">
+      <value>Enable mouse trail</value>
+    </data>
+    <data name="Basic_ScrollbarVisibility" xml:space="preserve">
+      <value>Scrollbar visibility</value>
+    </data>
+    <data name="Basic_ScrollbarAlways" xml:space="preserve">
+      <value>Always visible</value>
+    </data>
+    <data name="Basic_ScrollbarOnScroll" xml:space="preserve">
+      <value>While scrolling only</value>
+    </data>
+    <data name="Basic_ScrollbarHint" xml:space="preserve">
+      <value>* Uses a thinner scrollbar. Showing it only while scrolling reduces flicker when resizing the panel or switching tabs.</value>
+    </data>
+    <data name="Dialog_ExeFilter" xml:space="preserve">
+      <value>Executables (*.exe)|*.exe</value>
+    </data>
+    <data name="Dialog_ImageFilter" xml:space="preserve">
+      <value>Image files (*.png;*.jpg;*.jpeg;*.bmp;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.webp</value>
+    </data>
+    <data name="Dialog_SelectProcess" xml:space="preserve">
+      <value>Select process</value>
+    </data>
+    <data name="Filter_Add" xml:space="preserve">
+      <value>Add</value>
+    </data>
+    <data name="Filter_AddProcess" xml:space="preserve">
+      <value>Add process</value>
+    </data>
+    <data name="Filter_Browse" xml:space="preserve">
+      <value>Browse...</value>
+    </data>
+    <data name="Filter_Delete" xml:space="preserve">
+      <value>Delete</value>
+    </data>
+    <data name="Filter_Desktop" xml:space="preserve">
+      <value>Show effects on desktop</value>
+    </data>
+    <data name="Filter_Enable" xml:space="preserve">
+      <value>Enable smart environment detection</value>
+    </data>
+    <data name="Filter_Fullscreen" xml:space="preserve">
+      <value>Pause when a fullscreen app is in foreground</value>
+    </data>
+    <data name="Filter_Mode" xml:space="preserve">
+      <value>Filter mode</value>
+    </data>
+    <data name="Filter_Mode_Blacklist" xml:space="preserve">
+      <value>❌ Blacklist</value>
+    </data>
+    <data name="Filter_Mode_Disabled" xml:space="preserve">
+      <value>🚫 Off</value>
+    </data>
+    <data name="Filter_Mode_Whitelist" xml:space="preserve">
+      <value>✅ Whitelist</value>
+    </data>
+    <data name="Filter_New" xml:space="preserve">
+      <value>New</value>
+    </data>
+    <data name="Filter_ProcessList" xml:space="preserve">
+      <value>Configured processes</value>
+    </data>
+    <data name="Filter_Profiles" xml:space="preserve">
+      <value>Profile management</value>
+    </data>
+    <data name="Filter_Remove" xml:space="preserve">
+      <value>Remove</value>
+    </data>
+    <data name="Filter_Rename" xml:space="preserve">
+      <value>Rename</value>
+    </data>
+    <data name="Filter_SelectRunning" xml:space="preserve">
+      <value>From running</value>
+    </data>
+    <data name="Filter_Title" xml:space="preserve">
+      <value>Environment Filter</value>
+    </data>
+    <data name="LangSelect_Chinese" xml:space="preserve">
+      <value>简体中文</value>
+    </data>
+    <data name="LangSelect_Continue" xml:space="preserve">
+      <value>Continue</value>
+    </data>
+    <data name="LangSelect_English" xml:space="preserve">
+      <value>English</value>
+    </data>
+    <data name="LangSelect_Japanese" xml:space="preserve">
+      <value>日本語</value>
+    </data>
+    <data name="LangSelect_Subtitle" xml:space="preserve">
+      <value>Select the display language. You can change it later in Settings.</value>
+    </data>
+    <data name="LangSelect_Title" xml:space="preserve">
+      <value>Choose Language</value>
+    </data>
+    <data name="Link_Discord_Url" xml:space="preserve">
+      <value>https://discord.gg/sgZMdqhfZu</value>
+    </data>
+    <data name="Msg_AdminRestart" xml:space="preserve">
+      <value>Restart as administrator to apply this setting?</value>
+    </data>
+    <data name="Msg_AdminRestart_Title" xml:space="preserve">
+      <value>Elevation required</value>
+    </data>
+    <data name="Msg_CheckUpdateFailed" xml:space="preserve">
+      <value>Update check failed:
+{0}</value>
+    </data>
+    <data name="Msg_CheckUpdate_Title" xml:space="preserve">
+      <value>Check for updates</value>
+    </data>
+    <data name="Msg_ConfirmDeleteProfile" xml:space="preserve">
+      <value>Delete '{0}'?</value>
+    </data>
+    <data name="Msg_ConfirmDelete_Title" xml:space="preserve">
+      <value>Confirm delete</value>
+    </data>
+    <data name="Msg_ConfirmReset" xml:space="preserve">
+      <value>Reset all settings? The app will close.</value>
+    </data>
+    <data name="Msg_ConfirmReset_Title" xml:space="preserve">
+      <value>Confirm reset</value>
+    </data>
+    <data name="Msg_DefaultNoticeTitle" xml:space="preserve">
+      <value>Announcement</value>
+    </data>
+    <data name="Msg_DeleteFailed" xml:space="preserve">
+      <value>Delete failed: {0}</value>
+    </data>
+    <data name="Msg_Error" xml:space="preserve">
+      <value>Error</value>
+    </data>
+    <data name="Msg_Info" xml:space="preserve">
+      <value>Notice</value>
+    </data>
+    <data name="Msg_KeepOneProfile" xml:space="preserve">
+      <value>At least one profile is required.</value>
+    </data>
+    <data name="Msg_LanguageRestart" xml:space="preserve">
+      <value>Language changed. Restart now to apply all UI text?</value>
+    </data>
+    <data name="Msg_LanguageRestart_Title" xml:space="preserve">
+      <value>Language changed</value>
+    </data>
+    <data name="Msg_MinOneScreen" xml:space="preserve">
+      <value>At least one display must be enabled.</value>
+    </data>
+    <data name="Msg_MultiScreen_Title" xml:space="preserve">
+      <value>Multi-display</value>
+    </data>
+    <data name="Msg_NetworkError" xml:space="preserve">
+      <value>Network error</value>
+    </data>
+    <data name="Msg_SwitchNetworkSource_Title" xml:space="preserve">
+      <value>Network connection failed</value>
+    </data>
+    <data name="Msg_SwitchNetworkSourcePromptAuto" xml:space="preserve">
+      <value>Failed to fetch notice or updates. The current network source may be unavailable. Switch to "{0}" and retry?</value>
+    </data>
+    <data name="Msg_SwitchNetworkSourcePromptManual" xml:space="preserve">
+      <value>Request failed: {0}
+
+Current source: {1}
+Switch to "{2}" and retry?</value>
+    </data>
+    <data name="Msg_InvalidSidebarBackground" xml:space="preserve">
+      <value>Invalid background image path. Please choose a PNG/JPG/BMP/WebP file.</value>
+    </data>
+    <data name="Msg_NoUpdateNotes" xml:space="preserve">
+      <value>No release notes</value>
+    </data>
+    <data name="Msg_OpenLinkFailed" xml:space="preserve">
+      <value>Could not open link: {0}</value>
+    </data>
+    <data name="Msg_RestartAdminFailed" xml:space="preserve">
+      <value>Failed to restart elevated. Right-click the app and run as administrator.
+{0}</value>
+    </data>
+    <data name="Msg_SelectVisualReset" xml:space="preserve">
+      <value>Select at least one item to restore.</value>
+    </data>
+    <data name="Msg_SettingsApplied" xml:space="preserve">
+      <value>Settings applied successfully!</value>
+    </data>
+    <data name="Msg_UpToDate" xml:space="preserve">
+      <value>You are on the latest version.</value>
+    </data>
+    <data name="Msg_UpdateAvailable" xml:space="preserve">
+      <value>New version V{0}
+
+Changes:
+{1}
+
+Download now?</value>
+    </data>
+    <data name="Msg_UpdateAvailable_Title" xml:space="preserve">
+      <value>Update available</value>
+    </data>
+    <data name="Msg_VisualResetDone" xml:space="preserve">
+      <value>Selected visual settings were restored and saved.</value>
+    </data>
+    <data name="Msg_VisualReset_Title" xml:space="preserve">
+      <value>Restore defaults</value>
+    </data>
+    <data name="MultiScreen_Detail" xml:space="preserve">
+      <value>{0}  ·  Position ({1}, {2})  ·  {3}</value>
+    </data>
+    <data name="MultiScreen_Enable" xml:space="preserve">
+      <value>Enable</value>
+    </data>
+    <data name="MultiScreen_Hint" xml:space="preserve">
+      <value>Select displays for effect windows. Settings are remembered by display name and hardware ID.</value>
+    </data>
+    <data name="MultiScreen_Primary" xml:space="preserve">
+      <value> (Primary)</value>
+    </data>
+    <data name="MultiScreen_Refresh" xml:space="preserve">
+      <value>Refresh displays</value>
+    </data>
+    <data name="MultiScreen_Scale" xml:space="preserve">
+      <value>Scale {0}%</value>
+    </data>
+    <data name="MultiScreen_Title" xml:space="preserve">
+      <value>Multi-display</value>
+    </data>
+    <data name="More_Title" xml:space="preserve">
+      <value>More settings</value>
+    </data>
+    <data name="More_SidebarBackground" xml:space="preserve">
+      <value>Sidebar background image</value>
+    </data>
+    <data name="More_SidebarBackgroundBrowse" xml:space="preserve">
+      <value>Select background image</value>
+    </data>
+    <data name="More_SidebarBackgroundHint" xml:space="preserve">
+      <value>* Supports PNG/JPG/BMP/WebP</value>
+    </data>
+    <data name="More_Browse" xml:space="preserve">
+      <value>Browse...</value>
+    </data>
+    <data name="More_Clear" xml:space="preserve">
+      <value>Clear</value>
+    </data>
+    <data name="Log_Title" xml:space="preserve">
+      <value>Runtime log</value>
+    </data>
+    <data name="Log_Hint" xml:space="preserve">
+      <value>Live app status and error messages.</value>
+    </data>
+    <data name="Log_Clear" xml:space="preserve">
+      <value>Clear log</value>
+    </data>
+    <data name="Sidebar_Copyright" xml:space="preserve">
+      <value>Copyright © 2026 DoomVoss</value>
+    </data>
+    <data name="Nav_About" xml:space="preserve">
+      <value>About</value>
+    </data>
+    <data name="Nav_Basic" xml:space="preserve">
+      <value>Basic</value>
+    </data>
+    <data name="Nav_Filter" xml:space="preserve">
+      <value>Environment</value>
+    </data>
+    <data name="Nav_Home" xml:space="preserve">
+      <value>Home</value>
+    </data>
+    <data name="Nav_MultiScreen" xml:space="preserve">
+      <value>Displays</value>
+    </data>
+    <data name="Nav_More" xml:space="preserve">
+      <value>More</value>
+    </data>
+    <data name="Nav_Log" xml:space="preserve">
+      <value>Log</value>
+    </data>
+    <data name="Nav_Settings" xml:space="preserve">
+      <value>Settings</value>
+    </data>
+    <data name="Nav_Visual" xml:space="preserve">
+      <value>Visual</value>
+    </data>
+    <data name="Overlay_Cancel" xml:space="preserve">
+      <value>Cancel</value>
+    </data>
+    <data name="Overlay_ConfirmAdd" xml:space="preserve">
+      <value>Add selected</value>
+    </data>
+    <data name="Overlay_ConfirmRename" xml:space="preserve">
+      <value>Confirm</value>
+    </data>
+    <data name="Overlay_ConfirmReset" xml:space="preserve">
+      <value>Restore</value>
+    </data>
+    <data name="Overlay_RenameProfile" xml:space="preserve">
+      <value>Rename profile</value>
+    </data>
+    <data name="Overlay_RenamePrompt" xml:space="preserve">
+      <value>Enter a new profile name:</value>
+    </data>
+    <data name="Overlay_RunningProcess" xml:space="preserve">
+      <value>Add from running processes</value>
+    </data>
+    <data name="Overlay_VisualReset" xml:space="preserve">
+      <value>Restore visual defaults</value>
+    </data>
+    <data name="Privacy_Agree" xml:space="preserve">
+      <value>Agree and Continue</value>
+    </data>
+    <data name="Privacy_Intro" xml:space="preserve">
+      <value>Please read the following before using this software:</value>
+    </data>
+    <data name="Privacy_OpenSource_Body" xml:space="preserve">
+      <value>This software is free and open source. Reselling is prohibited. If you paid for it, report the seller and request a refund.</value>
+    </data>
+    <data name="Privacy_OpenSource_Title" xml:space="preserve">
+      <value>● Open Source</value>
+    </data>
+    <data name="Privacy_Privacy_Body" xml:space="preserve">
+      <value>We never collect keystrokes, files, or private data. All effects render locally.</value>
+    </data>
+    <data name="Privacy_Privacy_Title" xml:space="preserve">
+      <value>● Privacy</value>
+    </data>
+    <data name="Privacy_Refuse" xml:space="preserve">
+      <value>Decline and Exit</value>
+    </data>
+    <data name="Privacy_Security_Body" xml:space="preserve">
+      <value>Download only from official channels. Third-party builds may be tampered with or flagged as malware.</value>
+    </data>
+    <data name="Privacy_Security_Title" xml:space="preserve">
+      <value>● Security Warning (Important)</value>
+    </data>
+    <data name="Privacy_Tagline" xml:space="preserve">
+      <value>Sensei, welcome back to Schale.</value>
+    </data>
+    <data name="Privacy_Telemetry" xml:space="preserve">
+      <value>Join the anonymous telemetry program to help improve the app</value>
+    </data>
+    <data name="Privacy_Title" xml:space="preserve">
+      <value>Welcome to BASpark</value>
+    </data>
+    <data name="Privacy_VersionFailed" xml:space="preserve">
+      <value>Failed to read version info</value>
+    </data>
+    <data name="Profile_Default" xml:space="preserve">
+      <value>Default</value>
+    </data>
+    <data name="Profile_New" xml:space="preserve">
+      <value>New profile</value>
+    </data>
+    <data name="Profile_NewNumbered" xml:space="preserve">
+      <value>New profile {0}</value>
+    </data>
+    <data name="Settings_Apply" xml:space="preserve">
+      <value>Apply Changes</value>
+    </data>
+    <data name="Settings_ApplyHint" xml:space="preserve">
+      <value>*Click [Apply Changes] on the right after editing.</value>
+    </data>
+    <data name="Settings_Title" xml:space="preserve">
+      <value>Settings</value>
+    </data>
+    <data name="Status_Active" xml:space="preserve">
+      <value>Active</value>
+    </data>
+    <data name="Status_AdminPending" xml:space="preserve">
+      <value>Admin mode applies after save and restart</value>
+    </data>
+    <data name="Status_Filtered" xml:space="preserve">
+      <value>Auto Hidden</value>
+    </data>
+    <data name="Status_Paused" xml:space="preserve">
+      <value>Paused</value>
+    </data>
+    <data name="Tray_Exit" xml:space="preserve">
+      <value>Exit Completely</value>
+    </data>
+    <data name="Tray_OpenPanel" xml:space="preserve">
+      <value>Open Control Panel</value>
+    </data>
+    <data name="Tray_Restart" xml:space="preserve">
+      <value>Restart App</value>
+    </data>
+    <data name="Tray_RestartFailed" xml:space="preserve">
+      <value>Restart failed: {0}</value>
+    </data>
+    <data name="Tray_Text" xml:space="preserve">
+      <value>BASpark - Click Effects</value>
+    </data>
+    <data name="Version_ReadFailed" xml:space="preserve">
+      <value>Failed to read version</value>
+    </data>
+    <data name="VisualReset_ClickSpeed" xml:space="preserve">
+      <value>Click animation speed</value>
+    </data>
+    <data name="VisualReset_ClickSpeed_Sub" xml:space="preserve">
+      <value>Default 1.00 ×</value>
+    </data>
+    <data name="VisualReset_Color" xml:space="preserve">
+      <value>Effect color</value>
+    </data>
+    <data name="VisualReset_Color_Sub" xml:space="preserve">
+      <value>Default RGB(45,175,255)</value>
+    </data>
+    <data name="VisualReset_Opacity" xml:space="preserve">
+      <value>Global opacity</value>
+    </data>
+    <data name="VisualReset_Opacity_Sub" xml:space="preserve">
+      <value>Default 100 %</value>
+    </data>
+    <data name="VisualReset_Scale" xml:space="preserve">
+      <value>Scale</value>
+    </data>
+    <data name="VisualReset_Scale_Sub" xml:space="preserve">
+      <value>Default 1.50 ×</value>
+    </data>
+    <data name="VisualReset_TrailRefresh" xml:space="preserve">
+      <value>Trail refresh rate</value>
+    </data>
+    <data name="VisualReset_TrailRefresh_Sub" xml:space="preserve">
+      <value>Default 40 Hz</value>
+    </data>
+    <data name="VisualReset_TrailSpeed" xml:space="preserve">
+      <value>Trail animation speed</value>
+    </data>
+    <data name="VisualReset_TrailSpeed_Sub" xml:space="preserve">
+      <value>Default 1.00 ×</value>
+    </data>
+    <data name="VisualReset_UnifiedSpeed" xml:space="preserve">
+      <value>Unified animation speed</value>
+    </data>
+    <data name="VisualReset_UnifiedSpeed_Sub" xml:space="preserve">
+      <value>Linked speed, default 1.00 ×</value>
+    </data>
+    <data name="Visual_AnimSpeed" xml:space="preserve">
+      <value>Animation speed</value>
+    </data>
+    <data name="Visual_ChangeColor" xml:space="preserve">
+      <value>Change color</value>
+    </data>
+    <data name="Visual_ClickAnimSpeed" xml:space="preserve">
+      <value>Click animation speed</value>
+    </data>
+    <data name="Visual_Color" xml:space="preserve">
+      <value>Effect color</value>
+    </data>
+    <data name="Visual_InputHint" xml:space="preserve">
+      <value>Tip: click a number, edit, then press Enter</value>
+    </data>
+    <data name="Visual_LinkedSpeed" xml:space="preserve">
+      <value>Use same animation speed for trail and click</value>
+    </data>
+    <data name="Visual_LinkedSpeedHint" xml:space="preserve">
+      <value>When off, trail and click speeds are independent of trail refresh rate below.</value>
+    </data>
+    <data name="Visual_Opacity" xml:space="preserve">
+      <value>Global opacity</value>
+    </data>
+    <data name="Visual_ResetDefaults" xml:space="preserve">
+      <value>Restore defaults</value>
+    </data>
+    <data name="Visual_Scale" xml:space="preserve">
+      <value>Scale</value>
+    </data>
+    <data name="Visual_Title" xml:space="preserve">
+      <value>Visual</value>
+    </data>
+    <data name="Visual_TrailAnimSpeed" xml:space="preserve">
+      <value>Trail animation speed</value>
+    </data>
+    <data name="Visual_TrailRefresh" xml:space="preserve">
+      <value>Trail refresh rate</value>
+    </data>
+    <data name="WebView2_InitFailed" xml:space="preserve">
+      <value>WebView2 initialization failed: {0}</value>
+    </data>
+    <data name="Welcome_ClicksLabel" xml:space="preserve">
+      <value>Total clicks:</value>
+    </data>
+    <data name="Welcome_ClicksUnit" xml:space="preserve">
+      <value>{0}</value>
+    </data>
+    <data name="Welcome_NoticeLoading" xml:space="preserve">
+      <value>Loading...</value>
+    </data>
+    <data name="Welcome_StatsTitle" xml:space="preserve">
+      <value>Live Stats</value>
+    </data>
+    <data name="Welcome_StatusLabel" xml:space="preserve">
+      <value>Status:</value>
+    </data>
+    <data name="Welcome_Subtitle" xml:space="preserve">
+      <value>Sensei, welcome back!</value>
+    </data>
+    <data name="Welcome_Title" xml:space="preserve">
+      <value>Welcome back, Sensei!</value>
+    </data>
+  </root>

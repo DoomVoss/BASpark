@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "1.0.0-dev"
+  #define AppVersion "0.0.1-dev"
 #endif
 
 [Setup]
@@ -19,15 +19,18 @@ SolidCompression=yes
 WizardStyle=modern
 OutputDir=dist
 OutputBaseFilename=BASpark_Installer_{#AppVersion}_x64
+ShowLanguageDialog=yes
 
 [Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
+Name: "japanese"; MessagesFile: "Japanese.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "src\publish_full\BASpark.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "src\publish_full\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 

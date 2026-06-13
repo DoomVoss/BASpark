@@ -25,7 +25,7 @@ namespace BASpark
             }
             catch
             {
-                VersionText.Text = "版本信息读取失败";
+                VersionText.Text = Localization.Get("Privacy_VersionFailed");
             }
         }
 
