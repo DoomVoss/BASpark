@@ -109,7 +109,7 @@
       <value>* 若需在任务管理器等部分高权限窗口显示特效，请勾选此项。</value>
     </data>
     <data name="Basic_ScreenshotHint" xml:space="preserve">
-      <value>* (实验性功能) 开启后截图画面将不包含特效：检测到系统截图界面或 QQ 默认截图快捷键时会短暂隐藏叠加层以便框选窗口。</value>
+      <value>* (实验性功能) 开启后截图画面将不包含特效：检测到系统截图界面、QQ 默认截图快捷键 (Ctrl+Alt+A) 或微信截图快捷键 (Alt+A) 时会短暂隐藏叠加层以便框选窗口。</value>
     </data>
     <data name="Basic_ScreenshotMode" xml:space="preserve">
       <value>截图兼容模式</value>
