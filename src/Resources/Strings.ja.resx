@@ -109,7 +109,7 @@
       <value>* タスクマネージャーなどの高権限ウィンドウでエフェクトを表示する場合に必要です。</value>
     </data>
     <data name="Basic_ScreenshotHint" xml:space="preserve">
-      <value>*（実験的）スクリーンショットや QQ の既定ショートカット検出時にオーバーレイを一時非表示にします。</value>
+      <value>*（実験的）スクリーンショット、QQ の既定ショートカット (Ctrl+Alt+A)、または WeChat の既定ショートカット (Alt+A) 検出時にオーバーレイを一時非表示にします。</value>
     </data>
     <data name="Basic_ScreenshotMode" xml:space="preserve">
       <value>スクリーンショット互換</value>

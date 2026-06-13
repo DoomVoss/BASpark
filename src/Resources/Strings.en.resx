@@ -109,7 +109,7 @@
       <value>* Required for effects over elevated windows such as Task Manager.</value>
     </data>
     <data name="Basic_ScreenshotHint" xml:space="preserve">
-      <value>* (Experimental) Hides overlay briefly during screenshots or QQ screenshot hotkeys.</value>
+      <value>* (Experimental) Hides overlay briefly during screenshots, QQ screenshot hotkeys (Ctrl+Alt+A), or WeChat screenshot hotkeys (Alt+A).</value>
     </data>
     <data name="Basic_ScreenshotMode" xml:space="preserve">
       <value>Screenshot compatibility</value>
