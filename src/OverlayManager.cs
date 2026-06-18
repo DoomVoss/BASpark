@@ -354,6 +354,12 @@ namespace BASpark
                 return;
             }
 
+            if (e.KeyCode == Keys.A && e.Alt && !e.Control)
+            {
+                BeginScreenshotCaptureSession();
+                return;
+            }
+
             if (e.KeyCode == Keys.Escape && _screenshotCaptureSessionActive)
             {
                 ScheduleEndScreenshotCaptureSessionDebounced();
