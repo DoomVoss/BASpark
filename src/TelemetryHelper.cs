@@ -68,7 +68,7 @@ namespace BASpark
                 string clientId = EnsureClientId();
                 var payload = BuildPayload(clientId, trigger);
                 string json = JsonSerializer.Serialize(payload);
-                
+
                 if (Encoding.UTF8.GetByteCount(json) > MaxPayloadBytes)
                 {
                     AppLogger.Warn("Telemetry payload exceeded size limit; skipped.");
@@ -134,7 +134,7 @@ namespace BASpark
                 {
                     var dm = new DEVMODE();
                     dm.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
-                    
+
                     if (EnumDisplaySettings(screen.DeviceName, ENUM_CURRENT_SETTINGS, ref dm) && dm.dmDisplayFrequency > 1)
                     {
                         screensInfo.Add($"{dm.dmPelsWidth}x{dm.dmPelsHeight}@{dm.dmDisplayFrequency}Hz");
@@ -185,7 +185,7 @@ namespace BASpark
                     return desc.Replace(".NET Core", "Core").Replace(".NET", "").Trim();
                 }
             }
-            catch { }
+            catch { /* ignore: fallback to Environment.Version below */ }
 
             try
             {
@@ -198,6 +198,7 @@ namespace BASpark
             }
             catch
             {
+                /* ignore: cannot determine .NET version */
                 return "Unknown";
             }
         }
@@ -216,7 +217,7 @@ namespace BASpark
                     }
                 }
             }
-            catch { }
+            catch { /* ignore: WMI unavailable, fallback to 60Hz */ }
             return 60;
         }
 
@@ -233,7 +234,7 @@ namespace BASpark
                 using var searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT Name FROM Win32_Processor");
                 foreach (var obj in searcher.Get()) return obj["Name"]?.ToString() ?? "Unknown CPU";
             }
-            catch { }
+            catch { /* ignore: WMI unavailable, fallback to 'Unknown CPU' */ }
             return "Unknown CPU";
         }
 
@@ -263,7 +264,7 @@ namespace BASpark
                 }
                 return SanitizeGpuName(gpuList[0]);
             }
-            catch { }
+            catch { /* ignore: WMI unavailable, fallback to 'Unknown GPU' */ }
             return "Unknown GPU";
         }
 
@@ -290,7 +291,7 @@ namespace BASpark
                     }
                 }
             }
-            catch { }
+            catch { /* ignore: WMI unavailable, fallback to 'Unknown RAM' */ }
             return "Unknown RAM";
         }
 

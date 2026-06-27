@@ -511,7 +511,7 @@ namespace BASpark
                     }
                 }
             }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            catch (Exception ex) { AppLogger.Warn($"Failed to enumerate running processes: {ex.Message}"); }
         }
 
         private void SearchRunningProcess_TextChanged(object sender, TextChangedEventArgs e)
@@ -561,7 +561,7 @@ namespace BASpark
             CheckEnvironmentFilter.IsChecked = ConfigManager.EnableEnvironmentFilter;
             CheckHideInFullscreen.IsChecked = ConfigManager.HideInFullscreen;
             CheckShowEffectOnDesktop.IsChecked = ConfigManager.ShowEffectOnDesktop;
-            CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin; 
+            CheckRunAsAdmin.IsChecked = ConfigManager.RunAsAdmin;
             CheckTouchscreenMode.IsChecked = ConfigManager.IsTouchscreenMode;
             CheckMiddleClickTrigger.IsChecked = ConfigManager.EnableMiddleClickTrigger;
             CheckScreenshotCompatibilityMode.IsChecked = ConfigManager.ScreenshotCompatibilityMode;
@@ -816,7 +816,7 @@ namespace BASpark
             CheckShowEffectOnDesktop.IsEnabled = environmentFilterEnabled;
             ComboProfiles.IsEnabled = environmentFilterEnabled;
             ComboProcessFilterMode.IsEnabled = environmentFilterEnabled;
-            
+
             if (ListConfiguredProcesses != null)
             {
                 ListConfiguredProcesses.IsEnabled = processFilterEnabled;
@@ -966,7 +966,7 @@ namespace BASpark
                 dialog.Color = System.Drawing.Color.FromArgb(
                     byte.Parse(parts[0]), byte.Parse(parts[1]), byte.Parse(parts[2]));
             }
-            catch { }
+            catch { /* ignore: fallback to default color */ }
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -1115,7 +1115,7 @@ namespace BASpark
         private void ConfirmRenameProfile_Click(object sender, RoutedEventArgs e)
         {
             string newName = NewProfileNameInput.Text.Trim();
-            
+
             if (!string.IsNullOrWhiteSpace(newName) && ComboProfiles.SelectedItem is FilterProfile active)
             {
                 active.Name = newName;
@@ -1389,7 +1389,7 @@ namespace BASpark
 
             bool telemetryEnabled = CheckTelemetry.IsChecked ?? false;
             bool telemetryWasEnabled = ConfigManager.EnableTelemetry;
-            
+
             // 保存配置组
             string activeId = (ComboProfiles.SelectedItem as FilterProfile)?.Id ?? "";
             ConfigManager.SaveProfiles(Profiles.ToList(), activeId);
@@ -1498,7 +1498,7 @@ namespace BASpark
                     Localization.Get("Msg_AdminRestart_Title"),
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
-                
+
                 if (res == MessageBoxResult.Yes)
                 {
                     RestartAsAdmin();
@@ -1582,7 +1582,7 @@ namespace BASpark
         {
             bool autoStart = CheckAutoStart.IsChecked == true;
             bool runAsAdmin = CheckRunAsAdmin.IsChecked == true;
-            
+
             string? exePath = AutoStartManager.ResolveExecutablePath(
                 Environment.ProcessPath,
                 Process.GetCurrentProcess().MainModule?.FileName,
@@ -1593,7 +1593,7 @@ namespace BASpark
 
             string regKeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
             AutoStartPlan plan = AutoStartManager.CreatePlan(autoStart, runAsAdmin);
-            
+
             try
             {
                 using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(regKeyPath, true))
@@ -1620,8 +1620,8 @@ namespace BASpark
         {
             try
             {
-                string arguments = create 
-                    ? $"/create /tn \"{taskName}\" /tr \"\\\"{exePath}\\\" --autostart\" /sc onlogon /rl highest /f" 
+                string arguments = create
+                    ? $"/create /tn \"{taskName}\" /tr \"\\\"{exePath}\\\" --autostart\" /sc onlogon /rl highest /f"
                     : $"/delete /tn \"{taskName}\" /f";
 
                 ProcessStartInfo startInfo = new ProcessStartInfo
@@ -1633,7 +1633,7 @@ namespace BASpark
                     WindowStyle = ProcessWindowStyle.Hidden,
                     Verb = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator) ? "" : "runas"
                 };
-                
+
                 using (Process? process = Process.Start(startInfo))
                 {
                     process?.WaitForExit();
@@ -1663,7 +1663,7 @@ namespace BASpark
                     Verb = "runas",
                     Arguments = ConfigManager.StartSilent ? "/silent" : ""
                 };
-                
+
                 Process.Start(startInfo);
                 System.Windows.Application.Current.Shutdown();
             }

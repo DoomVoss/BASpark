@@ -325,7 +325,7 @@ namespace BASpark
                 if (_isClosing) return;
                 if (_coreWebView != null && _processFailedHandler != null)
                 {
-                    try { _coreWebView.ProcessFailed -= _processFailedHandler; } catch { }
+                    try { _coreWebView.ProcessFailed -= _processFailedHandler; } catch { /* ignore: event unsubscribe is best-effort */ }
                 }
                 _processFailedHandler = null;
                 _coreWebView = null;
@@ -351,7 +351,7 @@ namespace BASpark
             {
                 return string.Empty;
             }
-            
+
             _lastReportedInputMode = inputMode;
             _lastReportedAlwaysTrail = alwaysTrailEnabled;
             string alwaysTrailLiteral = alwaysTrailEnabled ? "true" : "false";
