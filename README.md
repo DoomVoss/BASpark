@@ -68,7 +68,7 @@ Open the project folder using Visual Studio Code (Ensure the C# Dev Kit extensio
 code .
 ```
 
-* **Live Frontend Engineering:** Because the central animation loops and visual textures are structurally compiled inside HTML5/Canvas components, you can dynamically view and troubleshoot elements in src/web/ in real time via VS Code without rebuilding the whole C# runtime wrapper structure.
+* **Live Frontend Engineering:** Because the central animation loops and visual textures are structurally compiled inside HTML5/Canvas components, you can dynamically view and troubleshoot elements in src/Web/ in real time via VS Code without rebuilding the whole C# runtime wrapper structure.
 * When submitting an issue solution or optimization, open a formal Pull Request (https://github.com/DoomVoss/BASpark/pulls). Ensure your implementation aligns with the project’s established formatting styles and code quality rules.
 
 ---

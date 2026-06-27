@@ -80,7 +80,7 @@ cd BASpark
 code .
 ```
 
-* 由于动效逻辑由 HTML5/Canvas 实现，你可以直接在 VS Code 中实时预览和调试 src/web/ 下的代码，而无需频繁编译整个项目。
+* 由于动效逻辑由 HTML5/Canvas 实现，你可以直接在 VS Code 中实时预览和调试 src/Web/ 下的代码，而无需频繁编译整个项目。
 * 提交 [Pull Request](https://github.com/DoomVoss/BASpark/pulls)，并确保代码风格与现有一致
 
 ---
