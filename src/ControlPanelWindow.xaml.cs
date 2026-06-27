@@ -1595,21 +1595,29 @@ namespace BASpark
             
             try
             {
-                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(regKeyPath, true);
-                if (plan.RegistryRunEnabled)
+                // 注册表 Run 条目（普通自启）与计划任务（管理员自启）是两条独立路径，
+                // 注册表打开失败不应阻止计划任务的创建/清理
+                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(regKeyPath, true))
                 {
-                    key?.SetValue(AutoStartManager.RunValueName, AutoStartManager.BuildRunCommand(exePath));
-                }
-                else
-                {
-                    key?.DeleteValue(AutoStartManager.RunValueName, false);
+                    if (key == null)
+                    {
+                        AppLogger.Warn($"Failed to open registry key for auto-start: {regKeyPath}");
+                    }
+                    else if (plan.RegistryRunEnabled)
+                    {
+                        key.SetValue(AutoStartManager.RunValueName, AutoStartManager.BuildRunCommand(exePath));
+                    }
+                    else
+                    {
+                        key.DeleteValue(AutoStartManager.RunValueName, false);
+                    }
                 }
 
                 ManageTaskScheduler(AutoStartManager.TaskName, exePath, plan.ScheduledTaskEnabled);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("应用高权限自启失败: " + ex.Message);
+                AppLogger.Warn($"Failed to apply auto-start settings: {ex.Message}");
             }
         }
 
