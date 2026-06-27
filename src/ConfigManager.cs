@@ -94,6 +94,12 @@ namespace BASpark
         public static string TelemetryClientId { get; set; } = "";
         public static string LastTelemetrySentUtc { get; set; } = "";
 
+        /// 点击特效是否处于激活状态（点击特效开关）
+        public static bool IsClickEffectActive => IsEffectEnabled;
+
+        /// 拖尾效果是否处于激活状态（点击特效或常驻拖尾任意一个开启）
+        public static bool IsTrailEffectActive => IsEffectEnabled || EnableAlwaysTrailEffect;
+
         private static List<FilterProfile> _profiles = new List<FilterProfile>();
 
         public static void Load()
