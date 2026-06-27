@@ -1474,7 +1474,6 @@ namespace BASpark
                 IsEnabled = item.IsEnabled
             }));
 
-            App.SetAutoStart(ConfigManager.AutoStart);
             ApplyAutoStartSettings();
 
             App.Overlay?.UpdateColor(ConfigManager.ParticleColor);
@@ -1596,19 +1595,17 @@ namespace BASpark
             
             try
             {
-                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(regKeyPath, true))
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(regKeyPath, true);
+                if (plan.RegistryRunEnabled)
                 {
-                    if (plan.RegistryRunEnabled)
-                    {
-                        key?.SetValue(AutoStartManager.RunValueName, AutoStartManager.BuildRunCommand(exePath));
-                    }
-                    else
-                    {
-                        key?.DeleteValue(AutoStartManager.RunValueName, false);
-                    }
-
-                    ManageTaskScheduler(AutoStartManager.TaskName, exePath, plan.ScheduledTaskEnabled);
+                    key?.SetValue(AutoStartManager.RunValueName, AutoStartManager.BuildRunCommand(exePath));
                 }
+                else
+                {
+                    key?.DeleteValue(AutoStartManager.RunValueName, false);
+                }
+
+                ManageTaskScheduler(AutoStartManager.TaskName, exePath, plan.ScheduledTaskEnabled);
             }
             catch (Exception ex)
             {

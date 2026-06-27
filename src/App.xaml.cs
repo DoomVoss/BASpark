@@ -282,25 +282,5 @@ namespace BASpark
             System.Windows.Application.Current.Shutdown();
         }
 
-        public static void SetAutoStart(bool enable)
-        {
-            try
-            {
-                string path = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-                using RegistryKey key = Registry.CurrentUser.OpenSubKey(path, true)!;
-                string exePath = System.Environment.ProcessPath ?? System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-
-                if (enable)
-                    key.SetValue("BASpark", $"\"{exePath}\" --autostart");
-                else
-                    key.DeleteValue("BASpark", false);
-
-                ConfigManager.Save("AutoStart", enable);
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show("自启设置失败: " + ex.Message);
-            }
-        }
     }
 }
