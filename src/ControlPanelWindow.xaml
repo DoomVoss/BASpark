@@ -437,9 +437,9 @@
                                         </Border>
                                         <TextBlock x:Name="TxtScrollbarHint" Text="* 控制面板滚动条较细；仅滚动时显示可减少调整窗口大小时滚动条反复出现/消失的视觉割裂。" FontSize="11" Foreground="#9BA3AF" Margin="0,8,0,0" TextWrapping="Wrap" Opacity="0.8"/>
                                     </StackPanel>
-                                    <CheckBox Name="CheckMasterSwitch" Content="启用鼠标点击特效" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
                                     <CheckBox Name="CheckAlwaysTrailEffectSwitch" Content="启用鼠标常驻拖尾" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                                    <StackPanel Margin="0,0,0,15">
+                                    <CheckBox Name="CheckMasterSwitch" Content="启用鼠标点击特效" Style="{StaticResource ToggleSwitch}" FontWeight="SemiBold" Margin="0,0,0,12" Checked="CheckMasterSwitch_Changed" Unchecked="CheckMasterSwitch_Changed"/>
+                                    <StackPanel x:Name="PanelClickEffectOptions" Margin="0,0,0,15">
                                         <TextBlock x:Name="TxtClickType" Text="触发按键类型" Foreground="#666" Margin="0,0,0,8" FontSize="12"/>
                                         <Border Background="#F0F2F5" CornerRadius="8" Padding="2" HorizontalAlignment="Left">
                                             <StackPanel Orientation="Horizontal">
