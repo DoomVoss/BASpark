@@ -1,7 +1,6 @@
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace BASpark
 {
@@ -95,6 +94,12 @@ namespace BASpark
         public static string LastTelemetrySentUtc { get; set; } = "";
 
         private static List<FilterProfile> _profiles = new List<FilterProfile>();
+
+        // 缓存属性元数据，避免 Save() 每次都反射查找
+        private static readonly ConcurrentDictionary<string, PropertyInfo?> _propertyCache = new();
+
+        // 保护并发 Save / _profiles 访问
+        private static readonly object _syncLock = new();
 
         public static void Load()
         {
@@ -236,20 +241,29 @@ namespace BASpark
             }
         }
 
-        public static List<FilterProfile> GetProfiles() => _profiles;
+        public static List<FilterProfile> GetProfiles()
+        {
+            lock (_syncLock) { return [.. _profiles]; }
+        }
 
         public static FilterProfile? GetActiveProfile()
         {
-            return _profiles.FirstOrDefault(p => p.Id == ActiveProfileId) ?? _profiles.FirstOrDefault();
+            lock (_syncLock)
+            {
+                return _profiles.FirstOrDefault(p => p.Id == ActiveProfileId) ?? _profiles.FirstOrDefault();
+            }
         }
 
         public static void SaveProfiles(List<FilterProfile> profiles, string activeId)
         {
-            _profiles = profiles;
-            ActiveProfileId = activeId;
-            string json = System.Text.Json.JsonSerializer.Serialize(_profiles);
-            Save("FilterProfiles", json);
-            Save("ActiveProfileId", activeId);
+            lock (_syncLock)
+            {
+                _profiles = profiles;
+                ActiveProfileId = activeId;
+                string json = System.Text.Json.JsonSerializer.Serialize(_profiles);
+                Save("FilterProfiles", json);
+                Save("ActiveProfileId", activeId);
+            }
         }
 
         /// 将选中的视觉表现项恢复默认值并写入注册表
@@ -303,8 +317,9 @@ namespace BASpark
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegPath))
+                lock (_syncLock)
                 {
+                    using RegistryKey key = Registry.CurrentUser.CreateSubKey(RegPath);
                     if (value is Enum enumValue)
                     {
                         key.SetValue(name, enumValue.ToString());
@@ -314,7 +329,7 @@ namespace BASpark
                         key.SetValue(name, value);
                     }
 
-                    var prop = typeof(ConfigManager).GetProperty(name);
+                    var prop = _propertyCache.GetOrAdd(name, n => typeof(ConfigManager).GetProperty(n));
                     if (prop != null)
                     {
                         object propertyValue = value;
@@ -487,48 +502,51 @@ namespace BASpark
         {
             try
             {
-                Registry.CurrentUser.DeleteSubKeyTree(RegPath, false);
-
-                string oldJson = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
-                if (System.IO.File.Exists(oldJson))
+                lock (_syncLock)
                 {
-                    System.IO.File.Delete(oldJson);
-                }
+                    Registry.CurrentUser.DeleteSubKeyTree(RegPath, false);
 
-                ParticleColor = "45,175,255";
-                IsEffectEnabled = true;
-                AutoStart = false;
-                AgreedToPrivacy = false;
-                EnableTelemetry = false;
-                TotalClicks = 0;
-                LastNoticeContent = "";
-                EnableAlwaysTrailEffect = false;
-                StartSilent = false;
-                RunAsAdmin = false;
-                EffectScale = 1.5;
-                EffectOpacity = 1.0;
-                EffectSpeed = 1.0;
-                UseLinkedAnimationSpeed = true;
-                TrailAnimationSpeed = 1.0;
-                ClickAnimationSpeed = 1.0;
-                TrailRefreshRate = 40;
-                EnableEnvironmentFilter = false;
-                HideInFullscreen = true;
-                ShowEffectOnDesktop = true;
-                FilterProfiles = "";
-                ActiveProfileId = "";
-                _profiles.Clear();
-                IsTouchscreenMode = false;
-                ClickTriggerType = 0;
-                EnableMiddleClickTrigger = false;
-                ScreenshotCompatibilityMode = false;
-                EnabledScreenIds = "";
-                ScreenSelections = "";
-                UiLanguage = "";
-                NetworkRegion = NetworkRegionOption.Auto;
-                SidebarBackgroundImagePath = "";
-                TelemetryClientId = "";
-                LastTelemetrySentUtc = "";
+                    string oldJson = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
+                    if (System.IO.File.Exists(oldJson))
+                    {
+                        System.IO.File.Delete(oldJson);
+                    }
+
+                    ParticleColor = "45,175,255";
+                    IsEffectEnabled = true;
+                    AutoStart = false;
+                    AgreedToPrivacy = false;
+                    EnableTelemetry = false;
+                    TotalClicks = 0;
+                    LastNoticeContent = "";
+                    EnableAlwaysTrailEffect = false;
+                    StartSilent = false;
+                    RunAsAdmin = false;
+                    EffectScale = 1.5;
+                    EffectOpacity = 1.0;
+                    EffectSpeed = 1.0;
+                    UseLinkedAnimationSpeed = true;
+                    TrailAnimationSpeed = 1.0;
+                    ClickAnimationSpeed = 1.0;
+                    TrailRefreshRate = 40;
+                    EnableEnvironmentFilter = false;
+                    HideInFullscreen = true;
+                    ShowEffectOnDesktop = true;
+                    FilterProfiles = "";
+                    ActiveProfileId = "";
+                    _profiles.Clear();
+                    IsTouchscreenMode = false;
+                    ClickTriggerType = 0;
+                    EnableMiddleClickTrigger = false;
+                    ScreenshotCompatibilityMode = false;
+                    EnabledScreenIds = "";
+                    ScreenSelections = "";
+                    UiLanguage = "";
+                    NetworkRegion = NetworkRegionOption.Auto;
+                    SidebarBackgroundImagePath = "";
+                    TelemetryClientId = "";
+                    LastTelemetrySentUtc = "";
+                }
             }
             catch (Exception ex)
             {
