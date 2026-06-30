@@ -75,11 +75,11 @@ namespace BASpark
                     RestartWithAdminPrivileges(e.Args);
                     return;
                 }
-            catch (Exception ex)
-            {
-                AppLogger.Error("Restart with admin privileges failed.", ex);
-                Debug.WriteLine("自动请求管理员权限被拒绝或失败: " + ex.Message);
-            }
+                catch (Exception ex)
+                {
+                    AppLogger.Error("Restart with admin privileges failed.", ex);
+                    Debug.WriteLine("自动请求管理员权限被拒绝或失败: " + ex.Message);
+                }
             }
 
             SystemEvents.SessionEnding += OnSessionEnding;
@@ -128,7 +128,7 @@ namespace BASpark
 
         private void RestartWithAdminPrivileges(string[] args)
         {
-            string exePath = System.Environment.ProcessPath ?? 
+            string exePath = System.Environment.ProcessPath ??
                              System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
 
             ProcessStartInfo startInfo = new ProcessStartInfo
@@ -232,7 +232,7 @@ namespace BASpark
         {
             try
             {
-                string exePath = System.Environment.ProcessPath ?? 
+                string exePath = System.Environment.ProcessPath ??
                                  System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
 
                 ProcessStartInfo startInfo = new ProcessStartInfo(exePath) { UseShellExecute = true };
@@ -269,13 +269,13 @@ namespace BASpark
 
             this.Dispatcher.Invoke(() =>
             {
-                try { _controlPanel?.Close(); } catch { }
-                try { Overlay?.Dispose(); } catch { }
+                try { _controlPanel?.Close(); } catch { /* ignore: best-effort cleanup during shutdown */ }
+                try { Overlay?.Dispose(); } catch { /* ignore: best-effort cleanup during shutdown */ }
             });
 
             if (_mutex != null)
             {
-                try { _mutex.ReleaseMutex(); } catch { }
+                try { _mutex.ReleaseMutex(); } catch { /* ignore: mutex disposal during shutdown */ }
                 _mutex.Dispose();
                 _mutex = null;
             }

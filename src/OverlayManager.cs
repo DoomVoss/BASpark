@@ -663,7 +663,7 @@ namespace BASpark
                 return;
             }
 
-            try { overlay.Close(); } catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            try { overlay.Close(); } catch (Exception ex) { AppLogger.Warn($"Failed to close overlay for '{deviceName}': {ex.Message}"); }
             _overlays.Remove(deviceName);
         }
 

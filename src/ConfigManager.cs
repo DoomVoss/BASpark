@@ -151,7 +151,11 @@ namespace BASpark
                             {
                                 _profiles = System.Text.Json.JsonSerializer.Deserialize<List<FilterProfile>>(FilterProfiles) ?? new List<FilterProfile>();
                             }
-                            catch { _profiles = new List<FilterProfile>(); }
+                            catch (Exception ex)
+                            {
+                                AppLogger.Warn($"Failed to deserialize FilterProfiles; fallback to empty list: {ex.Message}");
+                                _profiles = new List<FilterProfile>();
+                            }
                         }
 
                         // 向后兼容处理
@@ -187,7 +191,10 @@ namespace BASpark
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AppLogger.Warn($"Failed to load config; some values may be missing: {ex.Message}");
+            }
         }
 
         public static PanelScrollbarVisibility ParseScrollbarVisibility(string? raw)
@@ -327,7 +334,10 @@ namespace BASpark
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AppLogger.Warn($"Failed to save config entry '{name}': {ex.Message}");
+            }
         }
 
         public static IReadOnlySet<string> GetProcessFilterEntries()
@@ -353,8 +363,9 @@ namespace BASpark
                     .Select(s => s.Trim())
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warn($"Failed to parse EnabledScreenIds; fallback to empty set: {ex.Message}");
                 return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
         }
@@ -382,8 +393,9 @@ namespace BASpark
             {
                 return System.Text.Json.JsonSerializer.Deserialize<List<ScreenSelectionState>>(ScreenSelections) ?? new List<ScreenSelectionState>();
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warn($"Failed to parse ScreenSelections; fallback to empty list: {ex.Message}");
                 return new List<ScreenSelectionState>();
             }
         }
@@ -518,7 +530,10 @@ namespace BASpark
                 TelemetryClientId = "";
                 LastTelemetrySentUtc = "";
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AppLogger.Warn($"Failed to reset config; registry/data may be partially cleared: {ex.Message}");
+            }
         }
     }
 }
