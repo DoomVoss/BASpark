@@ -489,6 +489,8 @@ namespace BASpark
 
         private void OnMouseDownExt(object? sender, MouseEventExtArgs e)
         {
+            // 点击特效开关
+            if (!ConfigManager.IsClickEffectActive) return;
             if (!CanRenderEffects()) return;
 
             bool isLeft = e.Button == MouseButtons.Left;
@@ -527,6 +529,8 @@ namespace BASpark
 
         private void OnMouseMoveExt(object? sender, MouseEventExtArgs e)
         {
+            // 拖尾仅在点击特效开启或常驻拖尾开启时渲染
+            if (!ConfigManager.IsTrailEffectActive) return;
             if (!CanRenderEffects()) return;
 
             bool cursorVisible = CursorIsVisible();
@@ -561,9 +565,13 @@ namespace BASpark
             _activePointerOverlay = null;
         }
 
+        /// <summary>
+        /// 检查渲染环境条件（覆盖窗口存在性、环境过滤、光标可见性）。
+        /// 业务开关（点击特效、常驻拖尾）由各调用点自行判断。
+        /// </summary>
         private bool CanRenderEffects()
         {
-            if (!ConfigManager.IsEffectEnabled || _overlays.Count == 0)
+            if (_overlays.Count == 0)
             {
                 ReleasePointerState();
                 return false;

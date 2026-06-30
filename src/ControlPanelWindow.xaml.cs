@@ -579,6 +579,7 @@ namespace BASpark
 
             UpdateColorPreview(ConfigManager.ParticleColor);
             UpdateStartSilentInterlock();
+            UpdateClickEffectPanelVisibility();
             UpdateEnvironmentFilterInterlock();
 
             SliderScale.Value = ConfigManager.EffectScale;
@@ -771,6 +772,18 @@ namespace BASpark
         private void CheckAutoStart_Changed(object sender, RoutedEventArgs e)
         {
             UpdateStartSilentInterlock();
+        }
+
+        private void CheckMasterSwitch_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            UpdateClickEffectPanelVisibility();
+        }
+
+        private void UpdateClickEffectPanelVisibility()
+        {
+            bool enabled = CheckMasterSwitch.IsChecked == true;
+            PanelClickEffectOptions.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void CheckRunAsAdmin_Changed(object sender, RoutedEventArgs e)
