@@ -125,6 +125,7 @@ namespace BASpark
             RebuildWindows(forceRebuild: true);
             SetupGlobalHooks();
             UpdateTrailRefreshRate(ConfigManager.TrailRefreshRate);
+            RefreshEnvironmentFilterState();
             SystemEvents.DisplaySettingsChanged += HandleDisplaySettingsChanged;
             SystemEvents.PowerModeChanged += HandlePowerModeChanged;
             SystemEvents.SessionSwitch += HandleSessionSwitch;
@@ -145,12 +146,13 @@ namespace BASpark
             ForEachOverlay(w => w.UpdateScreenshotCompatibilityMode(enabled));
             SyncScreenshotCompatCaptureSurfaces();
         }
-        public bool IsEffectSuppressedByEnvironment() => ShouldSuppressEffects();
+        public bool IsEffectSuppressedByEnvironment() => _isSuppressedByEnvironment;
         public void RefreshEnvironmentFilterState()
         {
             _suppressionCacheValidUntilTicks = 0;
             _lastForegroundWindow = IntPtr.Zero;
             ShouldSuppressEffects(forceRefresh: true);
+            SyncForegroundWinEventHook();
         }
         public void RefreshScreenSelection()
         {
@@ -190,7 +192,7 @@ namespace BASpark
             {
                 _globalHook.KeyDown += OnScreenshotCompatKeyDown;
                 _globalHook.KeyUp += OnScreenshotCompatKeyUp;
-                InstallForegroundScreenshotHook();
+                SyncForegroundWinEventHook();
                 _screenshotCompatCaptureWired = true;
             }
         }
@@ -207,13 +209,26 @@ namespace BASpark
                 _globalHook.KeyDown -= OnScreenshotCompatKeyDown;
                 _globalHook.KeyUp -= OnScreenshotCompatKeyUp;
             }
-            UninstallForegroundScreenshotHook();
+            SyncForegroundWinEventHook();
             StopScreenshotEndDebounce();
             CancelScreenshotFailsafeTimer();
             _screenshotCompatCaptureWired = false;
         }
 
-        private void InstallForegroundScreenshotHook()
+        private void SyncForegroundWinEventHook()
+        {
+            bool needHook = ConfigManager.EnableEnvironmentFilter || ConfigManager.ScreenshotCompatibilityMode;
+            if (needHook)
+            {
+                InstallForegroundWinEventHook();
+            }
+            else
+            {
+                UninstallForegroundWinEventHook();
+            }
+        }
+
+        private void InstallForegroundWinEventHook()
         {
             if (_foregroundWinEventHook != IntPtr.Zero)
             {
@@ -231,7 +246,7 @@ namespace BASpark
                 WINEVENT_OUTOFCONTEXT);
         }
 
-        private void UninstallForegroundScreenshotHook()
+        private void UninstallForegroundWinEventHook()
         {
             if (_foregroundWinEventHook == IntPtr.Zero)
             {
@@ -262,7 +277,27 @@ namespace BASpark
                 return;
             }
 
-            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(EvaluateScreenshotForegroundForCapture));
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(HandleForegroundWindowChanged));
+        }
+
+        private void HandleForegroundWindowChanged()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (ConfigManager.EnableEnvironmentFilter)
+            {
+                _suppressionCacheValidUntilTicks = 0;
+                _lastForegroundWindow = IntPtr.Zero;
+                ShouldSuppressEffects(forceRefresh: true);
+            }
+
+            if (ConfigManager.ScreenshotCompatibilityMode)
+            {
+                EvaluateScreenshotForegroundForCapture();
+            }
         }
 
         private void EvaluateScreenshotForegroundForCapture()
@@ -491,7 +526,9 @@ namespace BASpark
         {
             // 点击特效开关
             if (!ConfigManager.IsClickEffectActive) return;
-            if (!CanRenderEffects()) return;
+            // 每次点击都检测环境 避免切窗后首次点击渲染
+            if (ShouldSuppressEffects(forceRefresh: true)) return;
+            if (!CanRenderEffects(skipSuppressionCheck: true)) return;
 
             bool isLeft = e.Button == MouseButtons.Left;
             bool isRight = e.Button == MouseButtons.Right;
@@ -559,6 +596,12 @@ namespace BASpark
                 return;
             }
 
+            if (ShouldSuppressEffects())
+            {
+                ReleasePointerStateSilent();
+                return;
+            }
+
             _activePointerOverlay?.EmitUp(_isTouchLikeInput);
             _isPrimaryPointerDown = false;
             _isTouchLikeInput = false;
@@ -569,42 +612,46 @@ namespace BASpark
         /// 检查渲染环境条件（覆盖窗口存在性、环境过滤、光标可见性）。
         /// 业务开关（点击特效、常驻拖尾）由各调用点自行判断。
         /// </summary>
-        private bool CanRenderEffects()
+        private bool CanRenderEffects(bool skipSuppressionCheck = false)
         {
             if (_overlays.Count == 0)
             {
-                ReleasePointerState();
+                ReleasePointerStateSilent();
                 return false;
             }
 
-            if (ShouldSuppressEffects())
+            if (!skipSuppressionCheck && ShouldSuppressEffects())
             {
-                ReleasePointerState();
+                ReleasePointerStateSilent();
                 return false;
             }
 
             if (!ConfigManager.IsTouchscreenMode && !CursorIsVisible())
             {
-                ReleasePointerState();
+                ReleasePointerStateSilent();
                 return false;
             }
 
             return true;
         }
 
+        private void ReleasePointerStateSilent()
+        {
+            _isPrimaryPointerDown = false;
+            _isTouchLikeInput = false;
+            _activePointerOverlay = null;
+        }
+
         private void ReleasePointerState()
         {
             if (!_isPrimaryPointerDown)
             {
-                _isTouchLikeInput = false;
-                _activePointerOverlay = null;
+                ReleasePointerStateSilent();
                 return;
             }
 
             _activePointerOverlay?.EmitUp(_isTouchLikeInput);
-            _isPrimaryPointerDown = false;
-            _isTouchLikeInput = false;
-            _activePointerOverlay = null;
+            ReleasePointerStateSilent();
         }
 
         private MainWindow? ResolveTargetOverlay(int x, int y)
@@ -677,10 +724,10 @@ namespace BASpark
 
         private bool ShouldSuppressEffects(bool forceRefresh = false)
         {
+            long nowTicks = DateTime.UtcNow.Ticks;
             if (!ConfigManager.EnableEnvironmentFilter)
             {
-                _isSuppressedByEnvironment = false;
-                _suppressionCacheValidUntilTicks = 0;
+                UpdateSuppressionState(nowTicks, false);
                 return false;
             }
 
@@ -693,7 +740,6 @@ namespace BASpark
                 targetWindow = GetForegroundWindow();
             }
 
-            long nowTicks = DateTime.UtcNow.Ticks;
             if (targetWindow != _lastForegroundWindow)
             {
                 forceRefresh = true;
@@ -769,7 +815,24 @@ namespace BASpark
         }
 
         private void UpdateSuppressionState(long nowTicks, bool isSuppressed)
-            => UpdateSuppressionState(nowTicks, isSuppressed, ref _isSuppressedByEnvironment, ref _suppressionCacheValidUntilTicks);
+        {
+            bool changed = _isSuppressedByEnvironment != isSuppressed;
+            UpdateSuppressionState(nowTicks, isSuppressed, ref _isSuppressedByEnvironment, ref _suppressionCacheValidUntilTicks);
+            if (changed)
+            {
+                ApplySuppressionSideEffects(isSuppressed);
+            }
+        }
+
+        private void ApplySuppressionSideEffects(bool isSuppressed)
+        {
+            if (isSuppressed)
+            {
+                ReleasePointerStateSilent();
+            }
+
+            ForEachOverlay(w => w.SetEnvironmentSuppressed(isSuppressed));
+        }
 
         private bool TryGetForegroundProcessName(IntPtr hwnd, out string processName)
         {
@@ -980,6 +1043,8 @@ namespace BASpark
                 _globalHook.Dispose();
                 _globalHook = null;
             }
+
+            UninstallForegroundWinEventHook();
 
             CloseWindows();
         }

@@ -92,6 +92,8 @@ namespace BASpark
         private bool _screenshotCompatibilityMode = ConfigManager.ScreenshotCompatibilityMode;
         private static readonly long EnsureTopmostDebounceTicks = TimeSpan.FromMilliseconds(80).Ticks;
         private bool _hiddenForExternalScreenshotCapture;
+        private bool _hiddenByEnvironmentSuppression;
+        private bool _overlayRuntimePaused;
 
         private delegate void WinEventDelegate(
             IntPtr hWinEventHook,
@@ -180,7 +182,7 @@ namespace BASpark
 
         private void SafeEnsureTopmost()
         {
-            if (_hwnd == IntPtr.Zero || !IsVisible) return;
+            if (_hwnd == IntPtr.Zero || !IsVisible || _overlayRuntimePaused) return;
 
             Rectangle bounds = GetScreenBounds();
             SetWindowPos(_hwnd, HWND_TOPMOST,
@@ -231,15 +233,134 @@ namespace BASpark
             }
 
             _hiddenForExternalScreenshotCapture = hidden;
-            if (hidden)
+            SyncOverlayPresentationState();
+        }
+
+        /// 环境过滤时隐藏叠加层并暂停 WebView 渲染
+        public void SetEnvironmentSuppressed(bool suppressed)
+        {
+            if (_hiddenByEnvironmentSuppression == suppressed)
             {
-                Hide();
+                return;
+            }
+
+            _hiddenByEnvironmentSuppression = suppressed;
+            SyncOverlayPresentationState();
+        }
+
+        private bool ShouldOverlayBeVisible =>
+            !_hiddenForExternalScreenshotCapture && !_hiddenByEnvironmentSuppression;
+
+        private void SyncOverlayPresentationState()
+        {
+            if (ShouldOverlayBeVisible)
+            {
+                if (!IsVisible)
+                {
+                    Show();
+                    ApplyScreenshotCompatibilityMode();
+                }
+
+                ResumeOverlayRuntime();
             }
             else
             {
-                Show();
-                ApplyScreenshotCompatibilityMode();
+                PauseOverlayRuntime();
+                if (IsVisible)
+                {
+                    Hide();
+                }
             }
+        }
+
+        private void PauseOverlayRuntime()
+        {
+            if (_overlayRuntimePaused)
+            {
+                return;
+            }
+
+            _overlayRuntimePaused = true;
+            PauseTopmostMonitoring();
+            ExecuteScript("if(window.setRenderingPaused) window.setRenderingPaused(true);");
+            _ = TrySuspendWebViewAsync();
+        }
+
+        private void ResumeOverlayRuntime()
+        {
+            if (!_overlayRuntimePaused)
+            {
+                return;
+            }
+
+            _overlayRuntimePaused = false;
+            if (TryGetCoreWebView2(out CoreWebView2? coreWebView))
+            {
+                try
+                {
+                    coreWebView.Resume();
+                }
+                catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
+                {
+                }
+            }
+
+            ExecuteScript("if(window.setRenderingPaused) window.setRenderingPaused(false);");
+            ResumeTopmostMonitoring();
+        }
+
+        private async System.Threading.Tasks.Task TrySuspendWebViewAsync()
+        {
+            if (!TryGetCoreWebView2(out CoreWebView2? coreWebView))
+            {
+                return;
+            }
+
+            try
+            {
+                await coreWebView.TrySuspendAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex) when (IsExpectedWebViewShutdownException(ex))
+            {
+            }
+        }
+
+        private void PauseTopmostMonitoring()
+        {
+            if (_topmostTimer != null)
+            {
+                _topmostTimer.Stop();
+            }
+
+            if (_winEventHook != IntPtr.Zero)
+            {
+                UnhookWinEvent(_winEventHook);
+                _winEventHook = IntPtr.Zero;
+            }
+        }
+
+        private void ResumeTopmostMonitoring()
+        {
+            if (_hwnd == IntPtr.Zero || !IsVisible)
+            {
+                return;
+            }
+
+            if (_winEventHook == IntPtr.Zero)
+            {
+                InitRealtimeTopmostHook();
+            }
+
+            if (_topmostTimer == null)
+            {
+                InitTopmostSentinel();
+            }
+            else if (!_topmostTimer.IsEnabled)
+            {
+                _topmostTimer.Start();
+            }
+
+            SafeEnsureTopmost();
         }
 
         private void ApplyScreenshotCompatibilityMode()
@@ -318,6 +439,11 @@ namespace BASpark
                         ConfigManager.GetAnimationSpeedsForOverlay(out double trailSp, out double clickSp);
                         UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, trailSp, clickSp);
                         SyncInputContext(InputModeMouse);
+                        if (_overlayRuntimePaused)
+                        {
+                            ExecuteScript("if(window.setRenderingPaused) window.setRenderingPaused(true);");
+                            _ = TrySuspendWebViewAsync();
+                        }
                     };
                     coreWebView.NavigationCompleted += _navigationCompletedHandler;
                 }

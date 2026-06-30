@@ -90,7 +90,6 @@
 
                 this.initCanvas();
                 this.bindEvents();
-                requestAnimationFrame((now) => this.animationLoops(now));
             }
 
             bindEvents() {
@@ -155,6 +154,23 @@
 
                 // 监听窗口缩放
                 window.addEventListener("resize", () => this.resize());
+            }
+
+            clearEffects() {
+                this.waves = [];
+                this.sparks = [];
+                this.trail = [];
+                this.isDown = false;
+                this.lastPos = null;
+                this.previousDirtyRects = [];
+                this.forceFullRedraw = true;
+                this.lastFrameTime = performance.now();
+                if (this.mainCtx && this.mainCanvas) {
+                    this.mainCtx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+                }
+                if (this.bufferCtx && this.bufferCanvas) {
+                    this.bufferCtx.clearRect(0, 0, this.bufferCanvas.width, this.bufferCanvas.height);
+                }
             }
 
             alpha(value) {
@@ -617,12 +633,17 @@
 
             // 执行动画循环
             animationLoops(now) {
+                if (window.renderingPaused) {
+                    this.lastFrameTime = now;
+                    return;
+                }
+
                 const hasWork =
                     this.waves.length > 0 ||
                     this.sparks.length > 0 ||
                     this.trail.length > 0;
 
-                // 无粒子时只清主画布，跳过缓冲层绘制与贴图
+                // 无粒子时不持续占用rAF 有外部事件时唤醒
                 if (!hasWork) {
                     // 同步时间基准，避免静止后再出现拖尾/波纹时首帧 delta 被顶到 maxDeltaMs
                     this.lastFrameTime = now;
@@ -631,7 +652,6 @@
                         this._renderToMain(this.previousDirtyRects);
                         this.previousDirtyRects = [];
                     }
-                    requestAnimationFrame((nextNow) => this.animationLoops(nextNow));
                     return;
                 }
 
@@ -660,17 +680,48 @@
                 this.previousDirtyRects = this._getEffectRects();
                 this.forceFullRedraw = false;
 
-                requestAnimationFrame((nextNow) => this.animationLoops(nextNow));
+                window.scheduleNextAnimationFrame();
             }
         }
 
         window.spark = new MouseSpark();
-
-        // C# 通信接口
+        window.renderingPaused = false;
+        window.animationFramePending = false;
 
         let lastBoomX = -1, lastBoomY = -1;
         let lastBoomTime = 0;
         let lastMoveX = -1, lastMoveY = -1;
+
+        window.scheduleNextAnimationFrame = () => {
+            if (window.renderingPaused || window.animationFramePending || !window.spark) {
+                return;
+            }
+
+            window.animationFramePending = true;
+            requestAnimationFrame((nextNow) => {
+                window.animationFramePending = false;
+                window.spark.animationLoops(nextNow);
+            });
+        };
+
+        window.setRenderingPaused = (paused) => {
+            window.renderingPaused = Boolean(paused);
+            if (window.renderingPaused) {
+                window.animationFramePending = false;
+                lastBoomX = -1;
+                lastBoomY = -1;
+                lastMoveX = -1;
+                lastMoveY = -1;
+                if (window.spark) {
+                    window.spark.clearEffects();
+                }
+                return;
+            }
+
+            window.scheduleNextAnimationFrame();
+        };
+
+        // C# 通信接口
 
         window.currentInputMode = "mouse";
         window.enableAlwaysTrailEffect = false;
@@ -686,6 +737,7 @@
 
         // 接收 C# 传来的物理百分比 (0.0 ~ 1.0)，由前端根据真实的画布宽度自行计算
         window.externalBoom = (percentX, percentY) => {
+            if (window.renderingPaused) return;
             const now = Date.now();
             if (percentX === lastBoomX && percentY === lastBoomY && (now - lastBoomTime) < 25) return;
             lastBoomX = percentX;
@@ -696,9 +748,11 @@
             const cx = percentX * window.innerWidth;
             const cy = percentY * window.innerHeight;
             window.dispatchEvent(new MouseEvent('mousedown', { clientX: cx, clientY: cy, bubbles: true }));
+            window.scheduleNextAnimationFrame();
         };
 
         window.externalMove = (percentX, percentY) => {
+            if (window.renderingPaused) return;
             if (percentX === lastMoveX && percentY === lastMoveY) return;
             lastMoveX = percentX;
             lastMoveY = percentY;
@@ -707,10 +761,13 @@
             const cx = percentX * window.innerWidth;
             const cy = percentY * window.innerHeight;
             window.dispatchEvent(new MouseEvent('mousemove', { clientX: cx, clientY: cy, bubbles: true }));
+            window.scheduleNextAnimationFrame();
         };
 
         window.externalUp = () => {
+            if (window.renderingPaused) return;
             window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+            window.scheduleNextAnimationFrame();
         };
 
         window.updateColor = (rgbString) => {
