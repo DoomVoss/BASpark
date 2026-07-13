@@ -22,6 +22,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <WebView2LoaderPreference>Static</WebView2LoaderPreference>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>

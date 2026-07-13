@@ -590,7 +590,7 @@ Download now?</value>
       <value>Use curved trail lines</value>
     </data>
     <data name="Visual_CurveDrawHint" xml:space="preserve">
-      <value>Render trails as curves for smoother visuals at lower refresh rates. Recommended for 60Hz and above.</value>
+      <value>Render trails as curves for smoother visuals at lower refresh rates. Recommended for 60Hz and above.&#x0a;If GPU usage is too high, try lowering the refresh rate and enabling this feature — the visual impact is minimal.</value>
     </data>
     <data name="Visual_Opacity" xml:space="preserve">
       <value>Global opacity</value>
