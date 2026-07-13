@@ -590,7 +590,7 @@
       <value>曲線トレイルを使用</value>
     </data>
     <data name="Visual_CurveDrawHint" xml:space="preserve">
-      <value>トレイルを曲線で描画し、低リフレッシュレートでの視覚体験を向上させます。</value>
+      <value>トレイルを曲線で描画し、低リフレッシュレートでの視覚体験を向上させます。60Hz以上のリフレッシュレートでの使用を推奨します。</value>
     </data>
     <data name="Visual_Opacity" xml:space="preserve">
       <value>全体の不透明度</value>

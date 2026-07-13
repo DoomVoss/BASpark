@@ -590,7 +590,7 @@ Download now?</value>
       <value>Use curved trail lines</value>
     </data>
     <data name="Visual_CurveDrawHint" xml:space="preserve">
-      <value>Render trails as curves for smoother visuals at lower refresh rates.</value>
+      <value>Render trails as curves for smoother visuals at lower refresh rates. Recommended for 60Hz and above.</value>
     </data>
     <data name="Visual_Opacity" xml:space="preserve">
       <value>Global opacity</value>

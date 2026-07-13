@@ -526,7 +526,7 @@
 
                                                     <CheckBox Name="CheckApplyCurveDraw" Content="采用曲线拖尾" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,4"
                                                               Checked="CurveDraw_Changed" Unchecked="CurveDraw_Changed"/>
-                                                    <TextBlock x:Name="TxtCurveDrawHint" Text="点击后拖尾渲染变为曲线，适合在低刷新率下使用以获得更好视觉体验。" FontSize="11" Foreground="#999" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                                    <TextBlock x:Name="TxtCurveDrawHint" Text="点击后拖尾渲染变为曲线，适合在低刷新率下使用以获得更好视觉体验。建议在60Hz及以上刷新率时开启。" FontSize="11" Foreground="#999" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
                                                     <StackPanel Name="PanelUnifiedAnimationSpeed" Margin="0,0,0,15">
                                                         <DockPanel LastChildFill="False">
