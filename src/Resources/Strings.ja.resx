@@ -586,6 +586,12 @@
     <data name="Visual_LinkedSpeedHint" xml:space="preserve">
       <value>オフにするとトレイルとクリックの速度を個別に設定できます（下の更新率とは別）。</value>
     </data>
+    <data name="Visual_CurveDraw" xml:space="preserve">
+      <value>曲線トレイルを使用</value>
+    </data>
+    <data name="Visual_CurveDrawHint" xml:space="preserve">
+      <value>トレイルを曲線で描画し、低リフレッシュレートでの視覚体験を向上させます。</value>
+    </data>
     <data name="Visual_Opacity" xml:space="preserve">
       <value>全体の不透明度</value>
     </data>

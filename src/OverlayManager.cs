@@ -146,6 +146,7 @@ namespace BASpark
             ForEachOverlay(w => w.UpdateScreenshotCompatibilityMode(enabled));
             SyncScreenshotCompatCaptureSurfaces();
         }
+        public void SetCurveDraw(bool enabled) => ForEachOverlay(w => w.SetCurveDraw(enabled));
         public bool IsEffectSuppressedByEnvironment() => _isSuppressedByEnvironment;
         public void RefreshEnvironmentFilterState()
         {

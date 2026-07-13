@@ -72,6 +72,7 @@ namespace BASpark
         public static double EffectOpacity { get; set; } = 1.0;
         public static double EffectSpeed { get; set; } = 1.0;
         public static bool UseLinkedAnimationSpeed { get; set; } = true;
+        public static bool ApplyCurveDraw { get; set; } = false;
         public static double TrailAnimationSpeed { get; set; } = 1.0;
         public static double ClickAnimationSpeed { get; set; } = 1.0;
         public static int TrailRefreshRate { get; set; } = 40;
@@ -130,6 +131,7 @@ namespace BASpark
                         EffectOpacity = Math.Clamp(Convert.ToDouble(key.GetValue("EffectOpacity", 1.0)), 0.1, 1.0);
                         EffectSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("EffectSpeed", 1.0)), 0.2, 3.0);
                         UseLinkedAnimationSpeed = Convert.ToBoolean(key.GetValue("UseLinkedAnimationSpeed", true));
+                        ApplyCurveDraw = Convert.ToBoolean(key.GetValue("ApplyCurveDraw", false));
                         TrailAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("TrailAnimationSpeed", EffectSpeed)), 0.2, 3.0);
                         ClickAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("ClickAnimationSpeed", EffectSpeed)), 0.2, 3.0);
                         TrailRefreshRate = Math.Clamp(Convert.ToInt32(key.GetValue("TrailRefreshRate", 40)), 10, 240);
@@ -532,6 +534,7 @@ namespace BASpark
                     EffectOpacity = 1.0;
                     EffectSpeed = 1.0;
                     UseLinkedAnimationSpeed = true;
+                    ApplyCurveDraw = false;
                     TrailAnimationSpeed = 1.0;
                     ClickAnimationSpeed = 1.0;
                     TrailRefreshRate = 40;

@@ -586,6 +586,12 @@ Download now?</value>
     <data name="Visual_LinkedSpeedHint" xml:space="preserve">
       <value>When off, trail and click speeds are independent of trail refresh rate below.</value>
     </data>
+    <data name="Visual_CurveDraw" xml:space="preserve">
+      <value>Use curved trail lines</value>
+    </data>
+    <data name="Visual_CurveDrawHint" xml:space="preserve">
+      <value>Render trails as curves for smoother visuals at lower refresh rates.</value>
+    </data>
     <data name="Visual_Opacity" xml:space="preserve">
       <value>Global opacity</value>
     </data>
