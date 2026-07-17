@@ -590,7 +590,7 @@
       <value>采用曲线拖尾</value>
     </data>
     <data name="Visual_CurveDrawHint" xml:space="preserve">
-      <value>点击后拖尾渲染变为曲线，适合在低刷新率下使用以获得更好视觉体验。建议在60Hz及以上刷新率时开启。&#x0a;如果发现该应用显卡占用过高，可以降低刷新率同时开启该功能，对视觉效果影响不大。</value>
+      <value>建议在60Hz及以上刷新率开启</value>
     </data>
     <data name="Visual_Opacity" xml:space="preserve">
       <value>全局不透明度</value>
