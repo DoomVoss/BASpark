@@ -443,6 +443,7 @@ namespace BASpark
                         UpdateColor(ConfigManager.ParticleColor);
                         ConfigManager.GetAnimationSpeedsForOverlay(out double trailSp, out double clickSp);
                         UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, trailSp, clickSp);
+                        SetCurveDraw(ConfigManager.ApplyCurveDraw);
                         SyncInputContext(InputModeMouse);
                         if (_overlayRuntimePaused)
                         {
