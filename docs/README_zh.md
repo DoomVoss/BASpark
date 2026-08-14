@@ -32,13 +32,7 @@ BASpark 采用 **“WPF 骨架 + WebView2 渲染”** 的混合架构。
 * 基于 WebView2 优化，特效触发即渲染，闲置即休眠，不抢占额外系统资源。
 * 支持全屏应用与游戏环境，实时感知鼠标动作。
 
-### TODO（Not To Do？）
-
-*  已完成 ＜（＾－＾）＞ 应用黑白名单，支持自定义进程过滤，实现全屏游戏或特定软件环境下自动隐藏特效。
-* （开发中...）插件化系统，开放粒子脚本接口，允许用户通过修改本地 js/css 文件轻松分享自定义的点击动效。
-* （计划中...）交互联动，捕获鼠标点击以外的交互逻辑，如键盘敲击触发粒子喷发或跟随音乐节奏律动。
-
-想要更多？前往 [功能建议](https://github.com/DoomVoss/BASpark/issues/new?template=feature_request.yml) 补充
+想要更多功能？前往 [功能建议](https://github.com/DoomVoss/BASpark/issues/new?template=feature_request.yml) 补充
 
 ---
 
@@ -93,13 +87,16 @@ code .
 * 视觉风格灵感来源于 Nexon / Yostar 《Blue Archive》，版权归原作者所有。
 
 ---
+
 ## Star History
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DoomVoss/BASpark&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DoomVoss/BASpark&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DoomVoss/BASpark&type=Date" />
-</picture>
+<a href="https://www.star-history.com/?repos=DoomVoss%2FBASpark&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=DoomVoss/BASpark&type=date&theme=dark&legend=top-left&sealed_token=-Vpwthp9y2BTviDqs6KDQzdQSlUAPsJd4O_iV1f141iKyLDruv1AEEiqOihl3P4sO5NmkpodWK5VnAyrmqcX5LR5lI2r271e_G8MNoLmpl5Zr7v0kyGDi2BlOnVyLD-ZNtRucaqwy1Fisd6WjGOhlWyltlAx2GKieZrsfOCpgwLMG9ZgzthdNIUah_oz" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=DoomVoss/BASpark&type=date&legend=top-left&sealed_token=-Vpwthp9y2BTviDqs6KDQzdQSlUAPsJd4O_iV1f141iKyLDruv1AEEiqOihl3P4sO5NmkpodWK5VnAyrmqcX5LR5lI2r271e_G8MNoLmpl5Zr7v0kyGDi2BlOnVyLD-ZNtRucaqwy1Fisd6WjGOhlWyltlAx2GKieZrsfOCpgwLMG9ZgzthdNIUah_oz" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=DoomVoss/BASpark&type=date&legend=top-left&sealed_token=-Vpwthp9y2BTviDqs6KDQzdQSlUAPsJd4O_iV1f141iKyLDruv1AEEiqOihl3P4sO5NmkpodWK5VnAyrmqcX5LR5lI2r271e_G8MNoLmpl5Zr7v0kyGDi2BlOnVyLD-ZNtRucaqwy1Fisd6WjGOhlWyltlAx2GKieZrsfOCpgwLMG9ZgzthdNIUah_oz" />
+ </picture>
+</a>
 
 ---
 

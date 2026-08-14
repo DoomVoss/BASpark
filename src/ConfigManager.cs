@@ -1,5 +1,9 @@
 using Microsoft.Win32;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 namespace BASpark
@@ -102,6 +106,9 @@ namespace BASpark
 
         private static List<FilterProfile> _profiles = new List<FilterProfile>();
 
+        // 性能优化：为高频热路径增加只读过滤器缓存
+        private static HashSet<string> _cachedFilterEntries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         // 缓存属性元数据，避免 Save() 每次都反射查找
         private static readonly ConcurrentDictionary<string, PropertyInfo?> _propertyCache = new();
 
@@ -122,24 +129,24 @@ namespace BASpark
                         AutoStart = Convert.ToBoolean(key.GetValue("AutoStart", false));
                         AgreedToPrivacy = Convert.ToBoolean(key.GetValue("AgreedToPrivacy", false));
                         EnableTelemetry = Convert.ToBoolean(key.GetValue("EnableTelemetry", false));
-                        TotalClicks = Convert.ToInt32(key.GetValue("TotalClicks", 0));
+                        TotalClicks = Convert.ToInt32(key.GetValue("TotalClicks", 0), CultureInfo.InvariantCulture);
                         LastNoticeContent = key.GetValue("LastNoticeContent", "")?.ToString() ?? "";
                         EnableAlwaysTrailEffect = Convert.ToBoolean(key.GetValue("EnableAlwaysTrailEffect", false));
                         StartSilent = Convert.ToBoolean(key.GetValue("StartSilent", false));
                         RunAsAdmin = Convert.ToBoolean(key.GetValue("RunAsAdmin", false));
-                        EffectScale = Math.Clamp(Convert.ToDouble(key.GetValue("EffectScale", 1.5)), 0.5, 3.0);
-                        EffectOpacity = Math.Clamp(Convert.ToDouble(key.GetValue("EffectOpacity", 1.0)), 0.1, 1.0);
-                        EffectSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("EffectSpeed", 1.0)), 0.2, 3.0);
+                        EffectScale = Math.Clamp(Convert.ToDouble(key.GetValue("EffectScale", 1.5), CultureInfo.InvariantCulture), 0.5, 3.0);
+                        EffectOpacity = Math.Clamp(Convert.ToDouble(key.GetValue("EffectOpacity", 1.0), CultureInfo.InvariantCulture), 0.1, 1.0);
+                        EffectSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("EffectSpeed", 1.0), CultureInfo.InvariantCulture), 0.2, 3.0);
                         UseLinkedAnimationSpeed = Convert.ToBoolean(key.GetValue("UseLinkedAnimationSpeed", true));
                         ApplyCurveDraw = Convert.ToBoolean(key.GetValue("ApplyCurveDraw", false));
-                        TrailAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("TrailAnimationSpeed", EffectSpeed)), 0.2, 3.0);
-                        ClickAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("ClickAnimationSpeed", EffectSpeed)), 0.2, 3.0);
-                        TrailRefreshRate = Math.Clamp(Convert.ToInt32(key.GetValue("TrailRefreshRate", 40)), 10, 240);
+                        TrailAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("TrailAnimationSpeed", EffectSpeed), CultureInfo.InvariantCulture), 0.2, 3.0);
+                        ClickAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("ClickAnimationSpeed", EffectSpeed), CultureInfo.InvariantCulture), 0.2, 3.0);
+                        TrailRefreshRate = Math.Clamp(Convert.ToInt32(key.GetValue("TrailRefreshRate", 40), CultureInfo.InvariantCulture), 10, 240);
                         EnableEnvironmentFilter = Convert.ToBoolean(key.GetValue("EnableEnvironmentFilter", false));
                         HideInFullscreen = Convert.ToBoolean(key.GetValue("HideInFullscreen", true));
                         ShowEffectOnDesktop = Convert.ToBoolean(key.GetValue("ShowEffectOnDesktop", true));
                         IsTouchscreenMode = Convert.ToBoolean(key.GetValue("IsTouchscreenMode", false));
-                        ClickTriggerType = Convert.ToInt32(key.GetValue("ClickTriggerType", 0));
+                        ClickTriggerType = Convert.ToInt32(key.GetValue("ClickTriggerType", 0), CultureInfo.InvariantCulture);
                         EnableMiddleClickTrigger = Convert.ToBoolean(key.GetValue("EnableMiddleClickTrigger", false));
                         ScreenshotCompatibilityMode = Convert.ToBoolean(key.GetValue("ScreenshotCompatibilityMode", false));
                         EnabledScreenIds = key.GetValue("EnabledScreenIds", "")?.ToString() ?? "";
@@ -150,6 +157,7 @@ namespace BASpark
                         SidebarBackgroundImagePath = key.GetValue("SidebarBackgroundImagePath", "")?.ToString() ?? "";
                         TelemetryClientId = key.GetValue("TelemetryClientId", "")?.ToString() ?? "";
                         LastTelemetrySentUtc = key.GetValue("LastTelemetrySentUtc", "")?.ToString() ?? "";
+
                         if (!string.IsNullOrWhiteSpace(UiLanguage))
                         {
                             Localization.ApplyCulture(UiLanguage);
@@ -201,12 +209,31 @@ namespace BASpark
                         {
                             ActiveProfileId = _profiles[0].Id;
                         }
+
+                        // 加载成功后立即刷新进程过滤器缓存
+                        UpdateProcessFilterCache();
                     }
                 }
             }
             catch (Exception ex)
             {
                 AppLogger.Warn($"Failed to load config; some values may be missing: {ex.Message}");
+            }
+        }
+
+        public static void UpdateProcessFilterCache()
+        {
+            lock (_syncLock)
+            {
+                var profile = GetActiveProfile();
+                if (profile?.Processes != null)
+                {
+                    _cachedFilterEntries = profile.Processes.ToHashSet(StringComparer.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    _cachedFilterEntries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                }
             }
         }
 
@@ -271,6 +298,9 @@ namespace BASpark
                 string json = System.Text.Json.JsonSerializer.Serialize(_profiles);
                 Save("FilterProfiles", json);
                 Save("ActiveProfileId", activeId);
+                
+                // 变更时实时更新过滤器缓存
+                UpdateProcessFilterCache();
             }
         }
 
@@ -328,7 +358,15 @@ namespace BASpark
                 lock (_syncLock)
                 {
                     using RegistryKey key = Registry.CurrentUser.CreateSubKey(RegPath);
-                    if (value is Enum enumValue)
+                    if (value is double dVal)
+                    {
+                        key.SetValue(name, dVal.ToString(CultureInfo.InvariantCulture));
+                    }
+                    else if (value is float fVal)
+                    {
+                        key.SetValue(name, fVal.ToString(CultureInfo.InvariantCulture));
+                    }
+                    else if (value is Enum enumValue)
                     {
                         key.SetValue(name, enumValue.ToString());
                     }
@@ -352,6 +390,10 @@ namespace BASpark
                                 propertyValue = Enum.ToObject(prop.PropertyType, value);
                             }
                         }
+                        else if (prop.PropertyType == typeof(double) && value is string strDouble)
+                        {
+                            propertyValue = Convert.ToDouble(strDouble, CultureInfo.InvariantCulture);
+                        }
 
                         prop.SetValue(null, propertyValue);
                     }
@@ -365,10 +407,7 @@ namespace BASpark
 
         public static IReadOnlySet<string> GetProcessFilterEntries()
         {
-            var profile = GetActiveProfile();
-            if (profile == null) return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            return profile.Processes.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            return _cachedFilterEntries;
         }
 
         public static HashSet<string> GetEnabledScreenIds()
@@ -544,6 +583,7 @@ namespace BASpark
                     FilterProfiles = "";
                     ActiveProfileId = "";
                     _profiles.Clear();
+                    _cachedFilterEntries.Clear();
                     IsTouchscreenMode = false;
                     ClickTriggerType = 0;
                     EnableMiddleClickTrigger = false;

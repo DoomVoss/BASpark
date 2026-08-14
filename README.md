@@ -84,11 +84,13 @@ code .
 
 ## Star History
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DoomVoss/BASpark&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DoomVoss/BASpark&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DoomVoss/BASpark&type=Date" />
-</picture>
+<a href="https://www.star-history.com/?repos=DoomVoss%2FBASpark&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=DoomVoss/BASpark&type=date&theme=dark&legend=top-left&sealed_token=-Vpwthp9y2BTviDqs6KDQzdQSlUAPsJd4O_iV1f141iKyLDruv1AEEiqOihl3P4sO5NmkpodWK5VnAyrmqcX5LR5lI2r271e_G8MNoLmpl5Zr7v0kyGDi2BlOnVyLD-ZNtRucaqwy1Fisd6WjGOhlWyltlAx2GKieZrsfOCpgwLMG9ZgzthdNIUah_oz" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=DoomVoss/BASpark&type=date&legend=top-left&sealed_token=-Vpwthp9y2BTviDqs6KDQzdQSlUAPsJd4O_iV1f141iKyLDruv1AEEiqOihl3P4sO5NmkpodWK5VnAyrmqcX5LR5lI2r271e_G8MNoLmpl5Zr7v0kyGDi2BlOnVyLD-ZNtRucaqwy1Fisd6WjGOhlWyltlAx2GKieZrsfOCpgwLMG9ZgzthdNIUah_oz" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=DoomVoss/BASpark&type=date&legend=top-left&sealed_token=-Vpwthp9y2BTviDqs6KDQzdQSlUAPsJd4O_iV1f141iKyLDruv1AEEiqOihl3P4sO5NmkpodWK5VnAyrmqcX5LR5lI2r271e_G8MNoLmpl5Zr7v0kyGDi2BlOnVyLD-ZNtRucaqwy1Fisd6WjGOhlWyltlAx2GKieZrsfOCpgwLMG9ZgzthdNIUah_oz" />
+ </picture>
+</a>
 
 ---
 
