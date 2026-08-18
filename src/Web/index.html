@@ -356,8 +356,8 @@
                         const cp2x = a1.x - (next.x - a0.x) / 6;
                         const cp2y = a1.y - (next.y - a0.y) / 6;
 
-                        const alphaStart = i / lastIdx;
-                        const alphaEnd = (i + 1) / lastIdx;
+                        const alphaStart = alpha(i / lastIdx);
+                        const alphaEnd = alpha((i + 1) / lastIdx);
                         const segGrad = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
                         segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
                         segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
@@ -371,8 +371,8 @@
                 } else {
                     // 逐段渲染（直线版）
                     for (let i = 0; i < lastIdx; i++) {
-                        const alphaStart = i / lastIdx;
-                        const alphaEnd = (i + 1) / lastIdx;
+                        const alphaStart = alpha(i / lastIdx);
+                        const alphaEnd = alpha((i + 1) / lastIdx);
                         const a0 = pts[i];
                         const a1 = pts[i + 1];
                     
