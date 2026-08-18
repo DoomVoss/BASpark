@@ -15,10 +15,22 @@
             background: transparent !important;
             pointer-events: none;
         }
+
+        #baspark-fx-host
+        {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            opacity: 1;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body>
+    <div id="baspark-fx-host" aria-hidden="true"></div>
     <!-- C# 必须按 ba-click-fx.iife.js、fx-adapter.js 的顺序注入内联脚本。 -->
     <!-- BASPARK_RENDERER_SCRIPTS -->
 </body>

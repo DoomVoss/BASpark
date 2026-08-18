@@ -28,6 +28,13 @@ function createHarness(options = {})
   };
   const windowListeners = new Map();
   const canvasListeners = new Map();
+  const effectHost =
+  {
+    style:
+    {
+      opacity: '1',
+    },
+  };
 
   class FakeFx
   {
@@ -173,6 +180,15 @@ function createHarness(options = {})
     document:
     {
       readyState: 'complete',
+      getElementById(id)
+      {
+        if (options.missingEffectHost || id !== 'baspark-fx-host')
+        {
+          return null;
+        }
+
+        return effectHost;
+      },
       addEventListener()
       {
         throw new Error('DOMContentLoaded listener is not expected for a complete document.');
@@ -186,6 +202,7 @@ function createHarness(options = {})
   return {
     calls,
     canvasListeners,
+    effectHost,
     fx: FakeFx.instance,
     window: windowMock,
     windowListeners,
@@ -196,7 +213,9 @@ test('initializes the vendored renderer in manual WebView2 mode', () =>
 {
   const harness = createHarness();
 
+  assert.equal(harness.fx.config.target, harness.effectHost);
   assert.equal(harness.fx.config.inputSource, 'manual');
+  assert.equal(harness.fx.config.opacity, 1);
   assert.equal(harness.fx.config.effectBackend, 'webgl2');
   assert.equal(harness.fx.config.bloomBackend, 'webgl2');
   assert.equal(harness.fx.config.inputSamplingRate, 40);
@@ -210,6 +229,7 @@ test('initializes the vendored renderer in manual WebView2 mode', () =>
   assert.equal(harness.fx.config.isolatedCompositing, false);
   assert.equal(harness.fx.config.lightBackgroundContrastAlpha, 0);
   assert.equal(harness.fx.config.maxDpr, 2);
+  assert.equal(harness.effectHost.style.opacity, '1');
   assert.equal(harness.calls.setCompositingReference.length, 0);
   assert.equal(harness.calls.messages.at(-1).type, 'ready');
   assert.equal(harness.calls.messages.at(-1).generation, 'test-generation');
@@ -234,9 +254,10 @@ test('maps normalized host input and BASpark settings to BAClickFX', () =>
   harness.window.updateEffectSettings(1.5, 0.75, 1.2, 0.8);
   const settings = harness.calls.updateConfig.at(-1);
   assert.equal(settings.scale, 1);
-  assert.equal(settings.opacity, 0.75);
+  assert.equal(settings.opacity, 1);
   assert.equal(settings.trailTimeScale, 1.2);
   assert.equal(settings.clickTimeScale, 0.8);
+  assert.equal(harness.effectHost.style.opacity, '0.75');
 
   harness.window.updateColor('45,175,255');
   assert.equal(harness.calls.setThemeColor.at(-1), '#2dafff');
@@ -268,6 +289,20 @@ test('maps normalized host input and BASpark settings to BAClickFX', () =>
   harness.window.externalCancel();
   assert.equal(harness.calls.pointerCancel.at(-1), 1);
   assert.equal(harness.calls.clearTrail, 2);
+});
+
+test('applies global opacity after the renderer has completed Bloom', () =>
+{
+  const harness = createHarness();
+
+  for (const opacity of [0.1, 0.5, 1])
+  {
+    harness.window.updateEffectSettings(1.5, opacity, 1, 1);
+
+    assert.equal(harness.effectHost.style.opacity, String(opacity));
+    assert.equal(harness.calls.updateConfig.at(-1).opacity, 1);
+    assert.equal(harness.fx.config.opacity, 1);
+  }
 });
 
 test('keeps the current color when host configuration is invalid', () =>
@@ -303,6 +338,7 @@ test('disables always-trail for touch and blocks input while paused', () =>
 {
   const harness = createHarness();
 
+  harness.window.updateEffectSettings(1.5, 0.5, 1, 1);
   harness.window.setInputContext('touch', true);
   assert.equal(harness.calls.updateConfig.at(-1).trailAlways, false);
 
@@ -320,6 +356,7 @@ test('disables always-trail for touch and blocks input while paused', () =>
   harness.window.setRenderingPaused(false);
   assert.equal(harness.calls.setPaused.at(-1).paused, false);
   assert.equal(harness.calls.setPaused.at(-1).pauseOptions, undefined);
+  assert.equal(harness.effectHost.style.opacity, '0.5');
 });
 
 test('changes a software Bloom fallback to the bounded native backend', () =>
@@ -327,6 +364,7 @@ test('changes a software Bloom fallback to the bounded native backend', () =>
   const harness = createHarness();
   const listener = harness.canvasListeners.get('baclickfxbackendchange');
 
+  harness.window.updateEffectSettings(1.5, 0.5, 1, 1);
   harness.fx.resolvedEffectBackend = 'canvas2d';
   harness.fx.resolvedBloomBackend = 'software';
 
@@ -344,6 +382,7 @@ test('changes a software Bloom fallback to the bounded native backend', () =>
   assert.equal(harness.calls.messages.at(-1).resolvedEffectBackend, 'canvas2d');
   assert.equal(harness.calls.messages.at(-1).resolvedBloomBackend, 'software');
   assert.equal(harness.calls.updateConfig.at(-1).bloomBackend, 'native');
+  assert.equal(harness.effectHost.style.opacity, '0.5');
 });
 
 test('reports Full WebGL backend resolution to the host', () =>
@@ -409,6 +448,20 @@ test('reports initialization failure without announcing readiness', () =>
     },
   );
 
+  assert.equal(harness.calls.messages.some((message) => message.type === 'ready'), false);
+  assert.equal(harness.calls.messages.at(-1).type, 'error');
+  assert.equal(harness.calls.messages.at(-1).phase, 'initialize');
+});
+
+test('reports a missing renderer host without announcing readiness', () =>
+{
+  const harness = createHarness(
+    {
+      missingEffectHost: true,
+    },
+  );
+
+  assert.equal(harness.fx, undefined);
   assert.equal(harness.calls.messages.some((message) => message.type === 'ready'), false);
   assert.equal(harness.calls.messages.at(-1).type, 'error');
   assert.equal(harness.calls.messages.at(-1).phase, 'initialize');

@@ -6,7 +6,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const expectedSha256 =
-  'F198EEF9B29AE84D7B11B275DC0877D6BDD6C4D79035DDD200943CA8D5C3B764';
+  '7AC5DCB27EB652C7709751B2337A18EAD5ECFBEA02B49CC651AC6B2A841CA946';
 const vendorPath = new URL(
   '../../src/Web/vendor/ba-click-fx.iife.js',
   import.meta.url,
@@ -18,7 +18,7 @@ const versionPath = new URL(
   import.meta.url,
 );
 
-test('vendored artifact matches the reviewed v1.2.25 build', () =>
+test('vendored artifact matches the reviewed v1.2.29 build', () =>
 {
   const bytes = readFileSync(vendorPath);
   const actual = createHash('sha256').update(bytes).digest('hex').toUpperCase();
@@ -30,10 +30,10 @@ test('vendored metadata identifies the exact reviewed artifact', () =>
 {
   const metadata = readFileSync(versionPath, 'utf8');
 
-  assert.match(metadata, /^Version: v1\.2\.25$/m);
+  assert.match(metadata, /^Version: v1\.2\.29$/m);
   assert.match(
     metadata,
-    /^Commit: cbefdb849a96dae8d418547cf8cc90ab230029e3$/m,
+    /^Commit: e02336877fa74b46dff1f95d6876c58267251b1a$/m,
   );
   assert.match(metadata, new RegExp(`^SHA256: ${expectedSha256}$`, 'm'));
 });
@@ -109,10 +109,13 @@ test('inline resources cannot terminate their script element early', () =>
   assert.equal(vendor.includes('sourceMappingURL'), false);
 });
 
-test('renderer template contains one deterministic injection marker', () =>
+test('renderer template contains one host before its injection marker', () =>
 {
   const template = readFileSync(templatePath, 'utf8');
+  const host = 'id="baspark-fx-host"';
   const marker = '<!-- BASPARK_RENDERER_SCRIPTS -->';
 
+  assert.equal(template.split(host).length - 1, 1);
   assert.equal(template.split(marker).length - 1, 1);
+  assert.ok(template.indexOf(host) < template.indexOf(marker));
 });

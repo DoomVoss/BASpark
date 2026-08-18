@@ -5,6 +5,7 @@
     const POINTER_ID = 1;
     const DEFAULT_COLOR = '#2dafff';
     const DEFAULT_INPUT_SAMPLING_RATE = 40;
+    const EFFECT_HOST_ID = 'baspark-fx-host';
     const HOST_GENERATION =
         typeof window.__basparkRendererGeneration === 'string'
             ? window.__basparkRendererGeneration
@@ -23,6 +24,7 @@
     const state =
     {
         fx: null,
+        outputHost: null,
         initialized: false,
         paused: false,
         inputMode: 'mouse',
@@ -194,8 +196,22 @@
         state.fx.setThemeColor(state.color);
     }
 
+    function applyOutputOpacity()
+    {
+        if (!state.outputHost)
+        {
+            return;
+        }
+
+        // 全局透明度必须在 HDR 与 Bloom 完成后衰减，否则高能拖尾在低值下
+        // 仍会越过 Bloom 阈值，导致用户几乎看不出透明度变化。
+        state.outputHost.style.opacity = String(state.settings.opacity);
+    }
+
     function applyEffectSettings()
     {
+        applyOutputOpacity();
+
         if (!state.fx)
         {
             return;
@@ -205,7 +221,8 @@
             {
                 // 旧引擎以 1.5 为默认尺寸，新引擎以 1 为默认尺寸。
                 scale: Math.max(0.01, state.settings.scale / 1.5),
-                opacity: state.settings.opacity,
+                // 用户设置由最外层宿主统一执行，库内保持完整 HDR 发射。
+                opacity: 1,
                 trailTimeScale: state.settings.trailSpeed,
                 clickTimeScale: state.settings.clickSpeed,
             });
@@ -619,9 +636,20 @@
                 throw new Error('ba-click-fx IIFE 未在适配器之前注入');
             }
 
+            const outputHost = document.getElementById(EFFECT_HOST_ID);
+
+            if (!outputHost)
+            {
+                throw new Error('BASpark 特效宿主元素不存在');
+            }
+
+            state.outputHost = outputHost;
+
             state.fx = new window.BAClickFX.BAClickFX(
                 {
+                    target: outputHost,
                     inputSource: 'manual',
+                    opacity: 1,
                     // WebView2 无法读取窗口后的桌面背景；使用 source-over，
                     // 再以浅色背景补偿和 Alpha 上限提高未知背景上的可见性。
                     effectBackend: 'webgl2',
