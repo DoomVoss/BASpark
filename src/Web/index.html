@@ -330,59 +330,63 @@
 
                 // 逐段渲染：每段的透明度基于数组索引位置，而非空间位置
                 // 防止当鼠标锐角转动时，尾迹变淡后突然出现的问题
-                ctx.lineWidth = 5.0;
-                ctx.shadowColor = `rgba(${this.color}, 0.6)`;
-                ctx.shadowBlur = 3;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
+                const glowPasses = [   
+                    { lineWidth: 9, alphaMul: this.alpha(0.05) },    // 外层辉光
+                    { lineWidth: 6.0,  alphaMul: this.alpha(0.5) },    // 内层辉光
+                    { lineWidth: 4.5,  alphaMul: this.alpha(1.0) },     // 核心线
+                ];
 
                 const lastIdx = pts.length - 1;
                 // 每段的透明度基于数组索引位置，而非空间位置
                 if (window.ApplyCurveDraw) {
                     // 逐段渲染（Catmull-Rom → Cubic Bezier 曲线版）
-                    for (let i = 0; i < lastIdx; i++) {
-                        const a0 = pts[i];
-                        const a1 = pts[i + 1];
+                    for (const pass of glowPasses) {
+                        ctx.lineWidth = pass.lineWidth;
+                        for (let i = 0; i < lastIdx; i++) {
+                            const a0 = pts[i];
+                            const a1 = pts[i + 1];
 
-                        // Catmull-Rom 控制点：CP1 = P_i + (P_{i+1} - P_{i-1}) / 6
-                        //                      CP2 = P_{i+1} - (P_{i+2} - P_i) / 6
-                        const prev = i > 0 ? pts[i - 1] : a0;
-                        const next = i < lastIdx - 1 ? pts[i + 2] : a1;
-                        const cp1x = a0.x + (a1.x - prev.x) / 6;
-                        const cp1y = a0.y + (a1.y - prev.y) / 6;
-                        const cp2x = a1.x - (next.x - a0.x) / 6;
-                        const cp2y = a1.y - (next.y - a0.y) / 6;
+                            // Catmull-Rom 控制点：CP1 = P_i + (P_{i+1} - P_{i-1}) / 6
+                            //                      CP2 = P_{i+1} - (P_{i+2} - P_i) / 6
+                            const prev = i > 0 ? pts[i - 1] : a0;
+                            const next = i < lastIdx - 1 ? pts[i + 2] : a1;
+                            const cp1x = a0.x + (a1.x - prev.x) / 6;
+                            const cp1y = a0.y + (a1.y - prev.y) / 6;
+                            const cp2x = a1.x - (next.x - a0.x) / 6;
+                            const cp2y = a1.y - (next.y - a0.y) / 6;
 
-                        const alphaStart = i / lastIdx;
-                        const alphaEnd = (i + 1) / lastIdx;
-                        const segGrad = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
-                        segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
-                        segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
+                            const alphaStart = (i / lastIdx) * pass.alphaMul;
+                            const alphaEnd = ((i + 1) / lastIdx) * pass.alphaMul;
+                            const segGrad = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
+                            segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
+                            segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
 
-                        ctx.beginPath();
-                        ctx.moveTo(a0.x, a0.y);
-                        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, a1.x, a1.y);
-                        ctx.strokeStyle = segGrad;
-                        ctx.stroke();
-                    }
+                            ctx.beginPath();
+                            ctx.moveTo(a0.x, a0.y);
+                            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, a1.x, a1.y);
+                            ctx.strokeStyle = segGrad;
+                            ctx.stroke();
+                        }}
                 } else {
                     // 逐段渲染（直线版）
-                    for (let i = 0; i < lastIdx; i++) {
-                        const alphaStart = i / lastIdx;
-                        const alphaEnd = (i + 1) / lastIdx;
-                        const a0 = pts[i];
-                        const a1 = pts[i + 1];
-                    
-                        const segGrad = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
-                        segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
-                        segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
-                    
-                        ctx.beginPath();
-                        ctx.moveTo(a0.x, a0.y);
-                        ctx.lineTo(a1.x, a1.y);
-                        ctx.strokeStyle = segGrad;
-                        ctx.stroke();
-                    }
+                    for (const pass of glowPasses) {
+                        ctx.lineWidth = pass.lineWidth;
+                        for (let i = 0; i < lastIdx; i++) {
+                            const alphaStart = (i / lastIdx) * pass.alphaMul;
+                            const alphaEnd = ((i + 1) / lastIdx) * pass.alphaMul;
+                            const a0 = pts[i];
+                            const a1 = pts[i + 1];
+
+                            const segGrad = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
+                            segGrad.addColorStop(0, `rgba(${this.color}, ${alphaStart})`);
+                            segGrad.addColorStop(1, `rgba(${this.color}, ${alphaEnd})`);
+
+                            ctx.beginPath();
+                            ctx.moveTo(a0.x, a0.y);
+                            ctx.lineTo(a1.x, a1.y);
+                            ctx.strokeStyle = segGrad;
+                            ctx.stroke();
+                        }}
                 }
                 ctx.shadowColor = 'transparent';
             }
