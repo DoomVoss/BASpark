@@ -58,10 +58,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/BASpark_Installer_*.exe
-          name: "BASpark Release ${{ github.ref_name }}"
+          name: "BASpark Pre-release ${{ github.ref_name }}"
           generate_release_notes: true
           body: |
-            ## BASpark Release ${{ github.ref_name }}
+            ## BASpark Pre-release (Preview) ${{ github.ref_name }}
             
             ---
             
@@ -72,6 +72,6 @@ jobs:
             This release includes the following changes:
             本次更新包含以下改动：
           draft: false
-          prerelease: false
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

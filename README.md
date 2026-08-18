@@ -15,61 +15,15 @@
 </div>
 
 ---
-
 # BASpark
 
-> **A Windows Desktop Particle Effect Tool:** Reconstructing the iconic Blue Archive UI interactive visual dynamics using HTML5/Canvas.
+### Project Overview
 
-**BASpark** is a lightweight, versatile Windows desktop interactive visual effect utility dedicated to precisely reproducing the clicking and particle fluid dynamics seen in the game *Blue Archive*.
+> **A Windows Desktop Particle Effect Tool:** Reconstructing the iconic Blue Archive UI interactive visual dynamics.
 
----
+**BASpark** is a lightweight, versatile Windows desktop interactive visual effect utility dedicated to precisely reproducing the clicking and particle fluid dynamics seen in *Blue Archive*.
 
-## Features
-
-BASpark operates on a hybrid rendering architecture utilizing a **WPF host infrastructure powered by localized WebView2 rendering runtimes**.
-
-* **Authentic Visual Fidelity:** Flawlessly replicates the particle responses, easing animations, and interactive textures of the classic Blue Archive visual framework.
-* **Aggressive Resource Optimization:** Leveraging WebView2 lifecycle management, rendering procedures are invoked strictly upon input triggers. The graphics context completely hibernates when idle, causing zero overhead to active background processes or system resources.
-* **System-Wide Environment Perception:** Full compatibility with full-screen entertainment and production environments. Real-time hook intercepting accurately routes input feedback without interrupting target processes.
-
----
-
-## Getting Started
-
-### System Specifications
-* **Architecture:** Requires a 64-bit processor and native OS environment.
-* **Operating System:** Windows 10 / Windows 11 (X64 architectures).
-* **Memory:** Minimum 200 MB RAM allocation.
-* **Graphics Unit:** Discrete or integrated graphics processing units natively supporting DirectX 11 or OpenGL runtimes.
-* **Storage Matrix:** Minimum 200 MB available physical storage workspace.
-
-### Installation
-1. Navigate to the official [Releases Hub](https://github.com/DoomVoss/BASpark/releases). Download the latest setup binary: `BASpark_Installer_vX.X.X_x64.exe`.
-2. Execute the installer application and follow the deployment wizard instructions to initialize the localized directory.
-3. Launch the primary execution routine and enjoy the interactive effects.
-
----
-
-## Contribution Guide
-
-We encourage open-source community contributions. To set up your local workspace for BASpark engineering:
-
-### Environment Setup
-Clone the remote repository locally:
-
-```bash
-git clone https://github.com/DoomVoss/BASpark.git
-cd BASpark
-```
-
-Open the project folder using Visual Studio Code (Ensure the C# Dev Kit extension suite is installed):
-
-```bash
-code .
-```
-
-* **Live Frontend Engineering:** Because the central animation loops and visual textures are structurally compiled inside HTML5/Canvas components, you can dynamically view and troubleshoot elements in src/Web/ in real time via VS Code without rebuilding the whole C# runtime wrapper structure.
-* When submitting an issue solution or optimization, open a formal Pull Request (https://github.com/DoomVoss/BASpark/pulls). Ensure your implementation aligns with the project’s established formatting styles and code quality rules.
+🚧 **Notice**: The current branch (`new`) is undergoing major architectural refactoring and testing. Detailed technical documentation and feature breakdowns are to be updated. If you are looking for the stable version, please switch to the `main` branch.
 
 ---
 

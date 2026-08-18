@@ -24,58 +24,7 @@
 
 **BASpark** 是一款轻量化多功能的桌面点击特效工具，深度复刻游戏 **《蔚蓝档案》(Blue Archive)** 的点击动效。
 
-### 核心特性
-
-BASpark 采用 **“WPF 骨架 + WebView2 渲染”** 的混合架构。
-
-* 精准还原《蔚蓝档案》标志性的交互质感。
-* 基于 WebView2 优化，特效触发即渲染，闲置即休眠，不抢占额外系统资源。
-* 支持全屏应用与游戏环境，实时感知鼠标动作。
-
-想要更多功能？前往 [功能建议](https://github.com/DoomVoss/BASpark/issues/new?template=feature_request.yml) 补充
-
----
-
-## 快速开始
-
-### 1. 系统需求
-* *需要 64 位处理器和操作系统
-* 操作系统 : Windows 10 / 11
-* 内存: 200 MB RAM
-* 显卡: 支持 DirectX 11 / OpenGL 的集成或独立显卡
-* 存储空间: 需要 200 MB 可用空间
-
-### 2. 安装步骤
-1. 前往 [Releases](https://github.com/DoomVoss/BASpark/releases) 页面下载最新的安装包 BASpark_Installer_vX.X.X_x64.exe。
-2. 运行安装程序并完成安装。
-3. Enjoy it！
-
----
-
-## 开发与贡献
-
-如果你想参与 BASpark 的开发，可以参考以下步骤：
-
-### 克隆仓库
-
-```bash
-git clone https://github.com/DoomVoss/BASpark.git
-```
-
-### 进入目录
-
-```bash
-cd BASpark
-```
-
-### 使用 VS Code 打开项目 (需安装 C# Dev Kit 扩展)
-
-```bash
-code .
-```
-
-* 由于动效逻辑由 HTML5/Canvas 实现，你可以直接在 VS Code 中实时预览和调试 src/Web/ 下的代码，而无需频繁编译整个项目。
-* 提交 [Pull Request](https://github.com/DoomVoss/BASpark/pulls)，并确保代码风格与现有一致
+🚧 **注意**：当前分支（`new`）正在进行重大架构重构与测试，详细的技术文档及功能说明待完善。如需查看稳定版代码，请切换至 `main` 分支。
 
 ---
 
