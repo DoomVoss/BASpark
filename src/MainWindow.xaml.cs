@@ -242,6 +242,11 @@ namespace BASpark
                 $"window.updateInputSamplingRate({normalizedRate.ToString(CultureInfo.InvariantCulture)});";
         }
 
+        public void SetEffectGlow(bool enabled)
+        {
+            ExecuteScript($"if(window.setEffectGlow) window.setEffectGlow({(enabled ? "true" : "false")});");
+        }
+
         public void SetCurveDraw(bool enabled)
         {
             ExecuteScript($"window.ApplyCurveDraw = {(enabled ? "true" : "false")};");
@@ -586,6 +591,7 @@ namespace BASpark
             UpdateColor(ConfigManager.ParticleColor);
             ConfigManager.GetAnimationSpeedsForOverlay(out double trailSp, out double clickSp);
             UpdateEffectSettings(ConfigManager.EffectScale, ConfigManager.EffectOpacity, trailSp, clickSp);
+            SetEffectGlow(ConfigManager.EnableEffectGlow);
             UpdateInputSamplingRate(ConfigManager.InputSamplingRate);
             SyncInputContext(InputModeMouse);
             if (_overlayRuntimePaused)

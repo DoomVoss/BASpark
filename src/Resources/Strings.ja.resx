@@ -637,4 +637,13 @@
     <data name="Welcome_Title" xml:space="preserve">
       <value>おかえりなさい、先生！</value>
     </data>
+    <data name="Visual_EffectGlow" xml:space="preserve">
+      <value>全体の発光を有効にする</value>
+    </data>
+    <data name="Visual_EffectGlowHint" xml:space="preserve">
+      <value>切り替えるとすぐに反映・保存されます。オフにすると広範囲の光のにじみを抑え、軌跡・クリック・粒子の滑らかな輪郭とアニメーションを維持します。</value>
+    </data>
+    <data name="VisualReset_EffectGlow_Sub" xml:space="preserve">
+      <value>全体の発光を無効に戻します。</value>
+    </data>
   </root>

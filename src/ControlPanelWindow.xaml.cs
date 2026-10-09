@@ -585,6 +585,7 @@ namespace BASpark
             SliderOpacity.Value = ConfigManager.EffectOpacity * 100;
             CheckLinkedAnimationSpeed.IsChecked = ConfigManager.UseLinkedAnimationSpeed;
             CheckApplyCurveDraw.IsChecked = ConfigManager.ApplyCurveDraw;
+            CheckEffectGlow.IsChecked = ConfigManager.EnableEffectGlow;
             SliderSpeed.Value = ConfigManager.EffectSpeed;
             SliderTrailAnimSpeed.Value = ConfigManager.TrailAnimationSpeed;
             SliderClickAnimSpeed.Value = ConfigManager.ClickAnimationSpeed;
@@ -1228,6 +1229,7 @@ namespace BASpark
             VisualResetItems.Clear();
             VisualResetItems.Add(new VisualResetItem(VisualAppearanceResetFlags.EffectScale, Localization.Get("VisualReset_Scale"), Localization.Get("VisualReset_Scale_Sub")));
             VisualResetItems.Add(new VisualResetItem(VisualAppearanceResetFlags.EffectOpacity, Localization.Get("VisualReset_Opacity"), Localization.Get("VisualReset_Opacity_Sub")));
+            VisualResetItems.Add(new VisualResetItem(VisualAppearanceResetFlags.EffectGlow, Localization.Get("Visual_EffectGlow"), Localization.Get("VisualReset_EffectGlow_Sub")));
             VisualResetItems.Add(new VisualResetItem(VisualAppearanceResetFlags.UnifiedAnimationSpeed, Localization.Get("VisualReset_UnifiedSpeed"), Localization.Get("VisualReset_UnifiedSpeed_Sub")));
             VisualResetItems.Add(new VisualResetItem(VisualAppearanceResetFlags.TrailAnimationSpeed, Localization.Get("VisualReset_TrailSpeed"), Localization.Get("VisualReset_TrailSpeed_Sub")));
             VisualResetItems.Add(new VisualResetItem(VisualAppearanceResetFlags.ClickAnimationSpeed, Localization.Get("VisualReset_ClickSpeed"), Localization.Get("VisualReset_ClickSpeed_Sub")));
@@ -1322,6 +1324,7 @@ namespace BASpark
             App.Overlay?.UpdateEffectSettings(effectScale, effectOpacity, trailSp, clickSp);
             App.Overlay?.UpdateInputSamplingRate(inputSamplingRate);
             App.Overlay?.SetCurveDraw(CheckApplyCurveDraw.IsChecked ?? false);
+            App.Overlay?.SetEffectGlow(CheckEffectGlow.IsChecked ?? false);
 
             VisualResetOverlay.Visibility = Visibility.Collapsed;
             System.Windows.MessageBox.Show(
@@ -1429,6 +1432,7 @@ namespace BASpark
             ConfigManager.Save("EnableMiddleClickTrigger", middleClickEnabled);
             ConfigManager.Save("ScreenshotCompatibilityMode", screenshotCompatibilityEnabled);
             ConfigManager.Save("ApplyCurveDraw", CheckApplyCurveDraw.IsChecked ?? false);
+            ConfigManager.Save("EnableEffectGlow", CheckEffectGlow.IsChecked ?? false);
 
             string sidebarBackgroundPath = TxtSidebarBackgroundPath?.Text?.Trim() ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(sidebarBackgroundPath))
@@ -1491,6 +1495,7 @@ namespace BASpark
             App.Overlay?.UpdateTouchMode(isTouchscreenEnabled);
             App.Overlay?.UpdateScreenshotCompatibilityMode(screenshotCompatibilityEnabled);
             App.Overlay?.SetCurveDraw(CheckApplyCurveDraw.IsChecked ?? false);
+            App.Overlay?.SetEffectGlow(CheckEffectGlow.IsChecked ?? false);
             if (!previousEnabledScreenIds.SetEquals(selectedIds))
             {
                 App.Overlay?.RefreshScreenSelection();
@@ -1729,6 +1734,15 @@ namespace BASpark
         private void EffectSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!IsLoaded) return;
+        }
+
+        private void EffectGlow_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded || _suspendLinkedAnimationUiHandlers) return;
+
+            bool enabled = CheckEffectGlow.IsChecked == true;
+            ConfigManager.Save("EnableEffectGlow", enabled);
+            App.Overlay?.SetEffectGlow(enabled);
         }
 
         private void CurveDraw_Changed(object sender, RoutedEventArgs e)
