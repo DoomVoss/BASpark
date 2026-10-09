@@ -331,8 +331,8 @@
                 // 逐段渲染：每段的透明度基于数组索引位置，而非空间位置
                 // 防止当鼠标锐角转动时，尾迹变淡后突然出现的问题
                 ctx.lineWidth = 5.0;
-                ctx.shadowColor = `rgba(${this.color}, 0.6)`;
-                ctx.shadowBlur = 3;
+                ctx.shadowColor = window.enableEffectGlow ? `rgba(${this.color}, 0.6)` : 'transparent';
+                ctx.shadowBlur = window.enableEffectGlow ? 3 : 0;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
 
@@ -684,6 +684,11 @@
             }
         }
 
+        window.enableEffectGlow = false;
+        window.setEffectGlow = (enabled) => {
+            window.enableEffectGlow = Boolean(enabled);
+            window.scheduleNextAnimationFrame();
+        };
         window.spark = new MouseSpark();
         window.renderingPaused = false;
         window.animationFramePending = false;

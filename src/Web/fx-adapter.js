@@ -17,6 +17,15 @@
             trailSpeed: 1,
             clickSpeed: 1,
         });
+    // 关闭大范围辉光时保留最细一级 Bloom，用于细拖尾的边缘重建。
+    // intensity 归零会暴露 2.7px 核心纹理的断续与锯齿。
+    const COMPACT_GLOW = Object.freeze(
+        {
+            'bloom.diffusion': 0,
+            'bloom.ringBlur': 1,
+            'bloom.diskBlur': 1,
+            'trail.outerGlowWidth': 1,
+        });
     const DOM_CONTENT_LOADED_OPTIONS =
     {
         once: true,
@@ -26,6 +35,8 @@
         fx: null,
         outputHost: null,
         initialized: false,
+        glowEnabled: false,
+        glowDefaults: null,
         paused: false,
         inputMode: 'mouse',
         alwaysTrailEnabled: false,
@@ -227,6 +238,38 @@
                 clickTimeScale: state.settings.clickSpeed,
             });
     }
+
+    function applyEffectGlow()
+    {
+        if (!state.fx || !state.glowDefaults)
+        {
+            return;
+        }
+
+        // GPU/软件只保留紧贴核心的扩散；原生回退采用 1px 模糊。
+        // 保留发射强度与 Alpha，避免拖尾变细或断裂。
+        const patch = {};
+        for (const [path, value] of Object.entries(state.glowDefaults))
+        {
+            patch[path] = state.glowEnabled ? value : COMPACT_GLOW[path];
+        }
+
+        const result = state.fx.setFxParams(patch, { strict: true });
+        if (!result.committed)
+        {
+            throw new Error('无法应用全局辉光设置');
+        }
+    }
+
+    window.setEffectGlow = function (enabled)
+    {
+        state.glowEnabled = Boolean(enabled);
+        return invokeFx('setEffectGlow', function ()
+        {
+            applyEffectGlow();
+            return true;
+        });
+    };
 
     function parseRgbColor(rgbString)
     {
@@ -668,6 +711,16 @@
                     lightBackgroundContrastAlpha: 0,
                     maxDpr: 2,
                 });
+
+            const defaultFx = state.fx.getFxConfig();
+            state.glowDefaults = Object.fromEntries(
+                Object.keys(COMPACT_GLOW).map((path) =>
+                {
+                    const [group, key] = path.split('.');
+                    return [path, defaultFx[group][key]];
+                }),
+            );
+            applyEffectGlow();
 
             const bloomBackendEventName =
                 window.BAClickFX.BLOOM_BACKEND_CHANGE_EVENT ||

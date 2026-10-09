@@ -524,6 +524,10 @@
                                                               Checked="LinkedAnimationSpeed_Changed" Unchecked="LinkedAnimationSpeed_Changed"/>
                                                     <TextBlock x:Name="TxtLinkedSpeedHint" Text="关闭此项后可单独加快或减慢拖尾衰减与移动粒子，而不影响点击波纹与爆发粒子，与下方「输入采样率上限」不同。" FontSize="11" Foreground="#999" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
+                                                    <CheckBox Name="CheckEffectGlow" Content="启用全局辉光" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,4"
+                                                              Checked="EffectGlow_Changed" Unchecked="EffectGlow_Changed"/>
+                                                    <TextBlock x:Name="TxtEffectGlowHint" Text="切换立即生效并保存；关闭大范围光晕，保留拖尾、点击和粒子的贴边平滑与动画。" FontSize="11" Foreground="#999" Margin="0,0,0,10" TextWrapping="Wrap"/>
+
                                                     <CheckBox Name="CheckApplyCurveDraw" Content="采用曲线拖尾" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,4"
                                                               Checked="CurveDraw_Changed" Unchecked="CurveDraw_Changed"/>
                                                     <TextBlock x:Name="TxtCurveDrawHint" Text="输入采样率为 60 Hz 及以上时建议开启" FontSize="11" Foreground="#999" Margin="0,0,0,10" TextWrapping="Wrap"/>

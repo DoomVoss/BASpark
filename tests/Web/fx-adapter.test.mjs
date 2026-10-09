@@ -8,6 +8,13 @@ const adapterSource = readFileSync(
   'utf8',
 );
 
+const vendorContext = {
+  atob: (value) => Buffer.from(value, 'base64').toString('latin1'),
+  structuredClone,
+};
+vm.runInNewContext(readFileSync(new URL('../../src/Web/vendor/ba-click-fx.iife.js', import.meta.url), 'utf8'), vendorContext);
+const vendorApi = vendorContext.BAClickFX;
+
 function createHarness(options = {})
 {
   const calls =
@@ -24,6 +31,7 @@ function createHarness(options = {})
     setInputSamplingRate: [],
     setPaused: [],
     setThemeColor: [],
+    setFxParams: [],
     updateConfig: [],
   };
   const windowListeners = new Map();
@@ -48,6 +56,8 @@ function createHarness(options = {})
       this.width = 800;
       this.height = 600;
       this.config = config;
+      this.fxConfig = structuredClone(vendorApi.UNITY_FX_TOUCH);
+      this.destroyed = false;
       this.resolvedEffectBackend = 'pending';
       this.resolvedBloomBackend = 'pending';
       this.resolvedHostCompositing = 'pending';
@@ -61,6 +71,31 @@ function createHarness(options = {})
         },
       };
       FakeFx.instance = this;
+    }
+
+    getFxConfig()
+    {
+      return structuredClone(this.fxConfig);
+    }
+
+    setFxParams(patch, options)
+    {
+      calls.setFxParams.push(patch);
+      return vendorApi.BAClickFX.prototype.setFxParams.call(this, patch, options);
+    }
+
+    _createFxParamResetBaseline()
+    {
+      return structuredClone(vendorApi.UNITY_FX_TOUCH);
+    }
+
+    _commitFxParamConfig(config)
+    {
+      vendorApi.BAClickFX.prototype._commitFxParamConfig.call(this, config);
+    }
+
+    _requestRender()
+    {
     }
 
     destroy()
@@ -474,4 +509,48 @@ test('destroys renderer-owned resources before the document unloads', () =>
   harness.windowListeners.get('beforeunload')();
 
   assert.equal(harness.calls.destroy, 1);
+});
+
+test('glow off retains edge smoothing, shapes, emission, coverage and timing', () =>
+{
+  const harness = createHarness();
+  const expected = structuredClone(vendorApi.UNITY_FX_TOUCH);
+  expected.bloom.diffusion = 0;
+  expected.bloom.ringBlur = 1;
+  expected.bloom.diskBlur = 1;
+  expected.trail.outerGlowWidth = 1;
+  assert.deepEqual(harness.fx.getFxConfig(), expected);
+  assert.equal(harness.effectHost.style.opacity, '1');
+});
+
+test('global glow restores exact vendor defaults across repeated toggles', () =>
+{
+  const harness = createHarness();
+  for (let i = 0; i < 3; i++)
+  {
+    assert.equal(harness.window.setEffectGlow(true), true);
+    assert.deepEqual(harness.fx.getFxConfig(), structuredClone(vendorApi.UNITY_FX_TOUCH));
+    assert.equal(harness.window.setEffectGlow(false), true);
+    assert.equal(harness.fx.getFxConfig().bloom.diffusion, 0);
+    assert.equal(harness.fx.getFxConfig().bloom.intensity, vendorApi.UNITY_FX_TOUCH.bloom.intensity);
+    assert.equal(harness.fx.getFxConfig().bloom.trailAlpha, vendorApi.UNITY_FX_TOUCH.bloom.trailAlpha);
+  }
+});
+
+test('glow stays off through backend fallback, settings updates and pause/resume', () =>
+{
+  const harness = createHarness();
+  harness.window.setEffectGlow(false);
+  const before = harness.fx.getFxConfig();
+  harness.fx.resolvedEffectBackend = 'canvas2d';
+  harness.fx.resolvedBloomBackend = 'software';
+  harness.canvasListeners.get('baclickfxbackendchange')({detail: {resolvedEffectBackend: 'canvas2d', resolvedBloomBackend: 'software'}});
+  assert.equal(harness.fx.config.bloomBackend, 'native');
+  harness.window.updateEffectSettings(1, 0.5, 0.9, 1.2);
+  harness.window.setRenderingPaused(true);
+  harness.window.setRenderingPaused(false);
+  assert.deepEqual(harness.fx.getFxConfig(), before);
+  assert.equal(harness.effectHost.style.opacity, '0.5');
+  assert.equal(harness.window.externalBoom(0.5, 0.5), true);
+  assert.equal(harness.window.externalMove(0.6, 0.5), true);
 });

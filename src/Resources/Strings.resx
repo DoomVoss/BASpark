@@ -637,4 +637,13 @@
     <data name="Welcome_Title" xml:space="preserve">
       <value>欢迎回来，老师！</value>
     </data>
+    <data name="Visual_EffectGlow" xml:space="preserve">
+      <value>启用全局辉光</value>
+    </data>
+    <data name="Visual_EffectGlowHint" xml:space="preserve">
+      <value>切换立即生效并保存；关闭大范围光晕，保留拖尾、点击和粒子的贴边平滑与动画。</value>
+    </data>
+    <data name="VisualReset_EffectGlow_Sub" xml:space="preserve">
+      <value>恢复为关闭全局辉光。</value>
+    </data>
   </root>

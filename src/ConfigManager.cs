@@ -18,7 +18,8 @@ namespace BASpark
         InputSamplingRate = 1 << 3,
         ParticleColor = 1 << 4,
         TrailAnimationSpeed = 1 << 5,
-        ClickAnimationSpeed = 1 << 6
+        ClickAnimationSpeed = 1 << 6,
+        EffectGlow = 1 << 7
     }
 
     public enum ProcessFilterModeOption
@@ -80,6 +81,7 @@ namespace BASpark
         public static double EffectSpeed { get; set; } = 1.0;
         public static bool UseLinkedAnimationSpeed { get; set; } = true;
         public static bool ApplyCurveDraw { get; set; } = false;
+        public static bool EnableEffectGlow { get; set; } = false;
         public static double TrailAnimationSpeed { get; set; } = 1.0;
         public static double ClickAnimationSpeed { get; set; } = 1.0;
         public static int InputSamplingRate { get; set; } = DefaultInputSamplingRate;
@@ -142,6 +144,7 @@ namespace BASpark
                         EffectSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("EffectSpeed", 1.0), CultureInfo.InvariantCulture), 0.2, 3.0);
                         UseLinkedAnimationSpeed = Convert.ToBoolean(key.GetValue("UseLinkedAnimationSpeed", true));
                         ApplyCurveDraw = Convert.ToBoolean(key.GetValue("ApplyCurveDraw", false));
+                        EnableEffectGlow = Convert.ToBoolean(key.GetValue("EnableEffectGlow", false));
                         TrailAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("TrailAnimationSpeed", EffectSpeed), CultureInfo.InvariantCulture), 0.2, 3.0);
                         ClickAnimationSpeed = Math.Clamp(Convert.ToDouble(key.GetValue("ClickAnimationSpeed", EffectSpeed), CultureInfo.InvariantCulture), 0.2, 3.0);
                         object legacyInputSamplingRate = key.GetValue(
@@ -360,6 +363,11 @@ namespace BASpark
             if (flags.HasFlag(VisualAppearanceResetFlags.InputSamplingRate))
             {
                 Save("InputSamplingRate", DefaultInputSamplingRate);
+            }
+
+            if (flags.HasFlag(VisualAppearanceResetFlags.EffectGlow))
+            {
+                Save("EnableEffectGlow", false);
             }
 
             if (flags.HasFlag(VisualAppearanceResetFlags.ParticleColor))
@@ -591,6 +599,7 @@ namespace BASpark
                     EffectSpeed = 1.0;
                     UseLinkedAnimationSpeed = true;
                     ApplyCurveDraw = false;
+                    EnableEffectGlow = false;
                     TrailAnimationSpeed = 1.0;
                     ClickAnimationSpeed = 1.0;
                     InputSamplingRate = DefaultInputSamplingRate;

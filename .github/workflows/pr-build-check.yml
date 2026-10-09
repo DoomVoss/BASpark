@@ -2,7 +2,7 @@ name: PR Build Check
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "new" ]
   workflow_dispatch:
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Web tests
         shell: pwsh
-        run: node --test tests/Web/fx-adapter.test.mjs tests/Web/vendor-contract.test.mjs
+        run: node --test tests/Web/*.test.mjs
 
       - name: Run tests
         shell: pwsh

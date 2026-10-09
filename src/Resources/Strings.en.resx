@@ -637,4 +637,13 @@ Download now?</value>
     <data name="Welcome_Title" xml:space="preserve">
       <value>Welcome back, Sensei!</value>
     </data>
+    <data name="Visual_EffectGlow" xml:space="preserve">
+      <value>Enable global glow</value>
+    </data>
+    <data name="Visual_EffectGlowHint" xml:space="preserve">
+      <value>Changes take effect and save immediately. Turn off wide halos while preserving smooth edges and animations for trails, clicks and particles.</value>
+    </data>
+    <data name="VisualReset_EffectGlow_Sub" xml:space="preserve">
+      <value>Restore global glow to disabled.</value>
+    </data>
   </root>
